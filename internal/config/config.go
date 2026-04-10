@@ -5,6 +5,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"strconv"
 
@@ -60,6 +61,7 @@ func Load(args []string, getenv func(string) string) (Config, error) {
 	cfg := Default()
 
 	fs := flag.NewFlagSet("sonarr2", flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
 	configFile := fs.String("config-file", "", "Path to YAML config file")
 	bindAddress := fs.String("bind", "", "HTTP bind address")
 	port := fs.Int("port", 0, "HTTP port")
@@ -70,7 +72,8 @@ func Load(args []string, getenv func(string) string) (Config, error) {
 		return Config{}, fmt.Errorf("parse flags: %w", err)
 	}
 
-	// 1. Config file (from flag or env).
+	// 1. Config file path — flag takes priority over SONARR2_CONFIG_FILE env var.
+	//    The file's contents are then overridden by env vars and flags in steps 2-3.
 	path := *configFile
 	if path == "" {
 		path = getenv("SONARR2_CONFIG_FILE")
@@ -110,6 +113,7 @@ func Load(args []string, getenv func(string) string) (Config, error) {
 	if *bindAddress != "" {
 		cfg.HTTP.BindAddress = *bindAddress
 	}
+	// port==0 means the flag was not provided (0 is also invalid, so Validate catches misuse).
 	if *port != 0 {
 		cfg.HTTP.Port = *port
 	}

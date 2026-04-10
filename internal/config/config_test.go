@@ -128,12 +128,22 @@ func TestLoadConfigFilePrecedence(t *testing.T) {
 	env := map[string]string{"SONARR2_PORT": "22222"}
 	getenv := func(k string) string { return env[k] }
 
+	// Flag should beat env and file (flag > env > file).
 	cfg, err := Load([]string{"-config-file", path, "-port", "33333"}, getenv)
 	if err != nil {
 		t.Fatalf("Load() error = %v", err)
 	}
 	if cfg.HTTP.Port != 33333 {
 		t.Errorf("precedence: flag should win, got port = %d", cfg.HTTP.Port)
+	}
+
+	// Env should beat file when no flag is provided (env > file).
+	cfg2, err := Load([]string{"-config-file", path}, getenv)
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+	if cfg2.HTTP.Port != 22222 {
+		t.Errorf("precedence: env should beat file, got port = %d", cfg2.HTTP.Port)
 	}
 }
 
