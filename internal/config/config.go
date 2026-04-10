@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/ajthom90/sonarr2/internal/logging"
 	"gopkg.in/yaml.v3"
@@ -18,6 +19,7 @@ type Config struct {
 	HTTP    HTTPConfig     `yaml:"http"`
 	Logging logging.Config `yaml:"logging"`
 	Paths   PathsConfig    `yaml:"paths"`
+	DB      DBConfig       `yaml:"db"`
 }
 
 // HTTPConfig controls the HTTP listener.
@@ -32,6 +34,16 @@ type PathsConfig struct {
 	Config string `yaml:"config"`
 	Data   string `yaml:"data"`
 	Logs   string `yaml:"logs"`
+}
+
+// DBConfig controls the database connection.
+type DBConfig struct {
+	Dialect         string        `yaml:"dialect"`
+	DSN             string        `yaml:"dsn"`
+	MaxOpenConns    int           `yaml:"max_open_conns"`
+	MaxIdleConns    int           `yaml:"max_idle_conns"`
+	ConnMaxLifetime time.Duration `yaml:"conn_max_lifetime"`
+	BusyTimeout     time.Duration `yaml:"busy_timeout"`
 }
 
 // Default returns the built-in defaults.
@@ -51,6 +63,14 @@ func Default() Config {
 			Data:   "./data",
 			Logs:   "./logs",
 		},
+		DB: DBConfig{
+			Dialect:         "sqlite",
+			DSN:             "file:./data/sonarr2.db?_journal=WAL&_busy_timeout=5000",
+			MaxOpenConns:    20,
+			MaxIdleConns:    2,
+			ConnMaxLifetime: 30 * time.Minute,
+			BusyTimeout:     5 * time.Second,
+		},
 	}
 }
 
@@ -67,6 +87,8 @@ func Load(args []string, getenv func(string) string) (Config, error) {
 	port := fs.Int("port", 0, "HTTP port")
 	logFormat := fs.String("log-format", "", "Log format (json|text)")
 	logLevel := fs.String("log-level", "", "Log level (debug|info|warn|error)")
+	dbDialect := fs.String("db-dialect", "", "Database dialect (sqlite|postgres)")
+	dbDSN := fs.String("db-dsn", "", "Database DSN")
 
 	if err := fs.Parse(args); err != nil {
 		return Config{}, fmt.Errorf("parse flags: %w", err)
@@ -108,6 +130,33 @@ func Load(args []string, getenv func(string) string) (Config, error) {
 	if v := getenv("SONARR2_LOG_LEVEL"); v != "" {
 		cfg.Logging.Level = logging.Level(v)
 	}
+	if v := getenv("SONARR2_DB_DIALECT"); v != "" {
+		cfg.DB.Dialect = v
+	}
+	if v := getenv("SONARR2_DB_DSN"); v != "" {
+		cfg.DB.DSN = v
+	}
+	if v := getenv("SONARR2_DB_MAX_OPEN_CONNS"); v != "" {
+		n, err := strconv.Atoi(v)
+		if err != nil {
+			return Config{}, fmt.Errorf("SONARR2_DB_MAX_OPEN_CONNS must be an integer, got %q: %w", v, err)
+		}
+		cfg.DB.MaxOpenConns = n
+	}
+	if v := getenv("SONARR2_DB_MAX_IDLE_CONNS"); v != "" {
+		n, err := strconv.Atoi(v)
+		if err != nil {
+			return Config{}, fmt.Errorf("SONARR2_DB_MAX_IDLE_CONNS must be an integer, got %q: %w", v, err)
+		}
+		cfg.DB.MaxIdleConns = n
+	}
+	if v := getenv("SONARR2_DB_BUSY_TIMEOUT"); v != "" {
+		d, err := time.ParseDuration(v)
+		if err != nil {
+			return Config{}, fmt.Errorf("SONARR2_DB_BUSY_TIMEOUT must be a duration, got %q: %w", v, err)
+		}
+		cfg.DB.BusyTimeout = d
+	}
 
 	// 3. CLI flags override environment.
 	if *bindAddress != "" {
@@ -123,6 +172,12 @@ func Load(args []string, getenv func(string) string) (Config, error) {
 	if *logLevel != "" {
 		cfg.Logging.Level = logging.Level(*logLevel)
 	}
+	if *dbDialect != "" {
+		cfg.DB.Dialect = *dbDialect
+	}
+	if *dbDSN != "" {
+		cfg.DB.DSN = *dbDSN
+	}
 
 	if err := cfg.Validate(); err != nil {
 		return Config{}, err
@@ -137,6 +192,21 @@ func (c Config) Validate() error {
 	}
 	if c.HTTP.BindAddress == "" {
 		return errors.New("http.bind_address must not be empty")
+	}
+	switch c.DB.Dialect {
+	case "sqlite", "postgres":
+		// ok
+	default:
+		return fmt.Errorf("db.dialect must be sqlite or postgres, got %q", c.DB.Dialect)
+	}
+	if c.DB.DSN == "" {
+		return errors.New("db.dsn must not be empty")
+	}
+	if c.DB.MaxOpenConns < 0 {
+		return fmt.Errorf("db.max_open_conns must be >= 0, got %d", c.DB.MaxOpenConns)
+	}
+	if c.DB.MaxIdleConns < 0 {
+		return fmt.Errorf("db.max_idle_conns must be >= 0, got %d", c.DB.MaxIdleConns)
 	}
 	return nil
 }

@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/ajthom90/sonarr2/internal/logging"
 )
@@ -198,5 +199,101 @@ func TestValidateEmptyBindAddress(t *testing.T) {
 	cfg.HTTP.BindAddress = ""
 	if err := cfg.Validate(); err == nil {
 		t.Error("expected error for empty bind address")
+	}
+}
+
+func TestDefaultDBConfig(t *testing.T) {
+	cfg := Default()
+	if cfg.DB.Dialect != "sqlite" {
+		t.Errorf("default dialect = %q, want sqlite", cfg.DB.Dialect)
+	}
+	if cfg.DB.DSN == "" {
+		t.Errorf("default DSN must not be empty")
+	}
+	if cfg.DB.MaxOpenConns != 20 {
+		t.Errorf("default max_open_conns = %d, want 20", cfg.DB.MaxOpenConns)
+	}
+	if cfg.DB.MaxIdleConns != 2 {
+		t.Errorf("default max_idle_conns = %d, want 2", cfg.DB.MaxIdleConns)
+	}
+	if cfg.DB.BusyTimeout != 5*time.Second {
+		t.Errorf("default busy_timeout = %v, want 5s", cfg.DB.BusyTimeout)
+	}
+}
+
+func TestLoadDBEnvOverride(t *testing.T) {
+	env := map[string]string{
+		"SONARR2_DB_DIALECT":        "postgres",
+		"SONARR2_DB_DSN":            "postgres://user:pass@localhost/sonarr2",
+		"SONARR2_DB_MAX_OPEN_CONNS": "50",
+		"SONARR2_DB_MAX_IDLE_CONNS": "5",
+		"SONARR2_DB_BUSY_TIMEOUT":   "10s",
+	}
+	cfg, err := Load(nil, func(k string) string { return env[k] })
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+	if cfg.DB.Dialect != "postgres" {
+		t.Errorf("dialect = %q, want postgres", cfg.DB.Dialect)
+	}
+	if cfg.DB.DSN != "postgres://user:pass@localhost/sonarr2" {
+		t.Errorf("DSN = %q", cfg.DB.DSN)
+	}
+	if cfg.DB.MaxOpenConns != 50 {
+		t.Errorf("max_open_conns = %d, want 50", cfg.DB.MaxOpenConns)
+	}
+	if cfg.DB.MaxIdleConns != 5 {
+		t.Errorf("max_idle_conns = %d, want 5", cfg.DB.MaxIdleConns)
+	}
+	if cfg.DB.BusyTimeout != 10*time.Second {
+		t.Errorf("busy_timeout = %v, want 10s", cfg.DB.BusyTimeout)
+	}
+}
+
+func TestLoadDBFlagsOverrideEnv(t *testing.T) {
+	env := map[string]string{"SONARR2_DB_DIALECT": "sqlite"}
+	getenv := func(k string) string { return env[k] }
+
+	cfg, err := Load(
+		[]string{"-db-dialect", "postgres", "-db-dsn", "postgres://x"},
+		getenv,
+	)
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+	if cfg.DB.Dialect != "postgres" {
+		t.Errorf("dialect = %q, want postgres", cfg.DB.Dialect)
+	}
+	if cfg.DB.DSN != "postgres://x" {
+		t.Errorf("dsn = %q", cfg.DB.DSN)
+	}
+}
+
+func TestValidateDBConfig(t *testing.T) {
+	cases := []struct {
+		name    string
+		mutate  func(*Config)
+		wantErr bool
+	}{
+		{"empty dialect", func(c *Config) { c.DB.Dialect = "" }, true},
+		{"unknown dialect", func(c *Config) { c.DB.Dialect = "mysql" }, true},
+		{"empty DSN", func(c *Config) { c.DB.DSN = "" }, true},
+		{"negative max open", func(c *Config) { c.DB.MaxOpenConns = -1 }, true},
+		{"negative max idle", func(c *Config) { c.DB.MaxIdleConns = -1 }, true},
+		{"valid sqlite", func(c *Config) { c.DB.Dialect = "sqlite"; c.DB.DSN = "file:test.db" }, false},
+		{"valid postgres", func(c *Config) { c.DB.Dialect = "postgres"; c.DB.DSN = "postgres://x" }, false},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			cfg := Default()
+			tc.mutate(&cfg)
+			err := cfg.Validate()
+			if tc.wantErr && err == nil {
+				t.Errorf("Validate() error = nil, want non-nil")
+			}
+			if !tc.wantErr && err != nil {
+				t.Errorf("Validate() error = %v, want nil", err)
+			}
+		})
 	}
 }
