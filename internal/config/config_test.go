@@ -1,0 +1,192 @@
+package config
+
+import (
+	"os"
+	"path/filepath"
+	"testing"
+
+	"github.com/ajthom90/sonarr2/internal/logging"
+)
+
+func TestDefault(t *testing.T) {
+	cfg := Default()
+	if cfg.HTTP.Port != 8989 {
+		t.Errorf("default port = %d, want 8989", cfg.HTTP.Port)
+	}
+	if cfg.HTTP.BindAddress != "0.0.0.0" {
+		t.Errorf("default bind = %q, want 0.0.0.0", cfg.HTTP.BindAddress)
+	}
+	if cfg.Logging.Format != logging.FormatJSON {
+		t.Errorf("default log format = %q, want json", cfg.Logging.Format)
+	}
+	if cfg.Logging.Level != logging.LevelInfo {
+		t.Errorf("default log level = %q, want info", cfg.Logging.Level)
+	}
+}
+
+func TestLoadNoArgsNoEnvUsesDefaults(t *testing.T) {
+	cfg, err := Load(nil, func(string) string { return "" })
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+	if cfg.HTTP.Port != 8989 {
+		t.Errorf("port = %d, want 8989", cfg.HTTP.Port)
+	}
+}
+
+func TestLoadEnvOverride(t *testing.T) {
+	env := map[string]string{
+		"SONARR2_PORT":         "9999",
+		"SONARR2_BIND_ADDRESS": "127.0.0.1",
+		"SONARR2_LOG_LEVEL":    "debug",
+		"SONARR2_LOG_FORMAT":   "text",
+	}
+	getenv := func(k string) string { return env[k] }
+
+	cfg, err := Load(nil, getenv)
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+	if cfg.HTTP.Port != 9999 {
+		t.Errorf("port = %d, want 9999", cfg.HTTP.Port)
+	}
+	if cfg.HTTP.BindAddress != "127.0.0.1" {
+		t.Errorf("bind = %q, want 127.0.0.1", cfg.HTTP.BindAddress)
+	}
+	if cfg.Logging.Level != logging.LevelDebug {
+		t.Errorf("level = %q, want debug", cfg.Logging.Level)
+	}
+	if cfg.Logging.Format != logging.FormatText {
+		t.Errorf("format = %q, want text", cfg.Logging.Format)
+	}
+}
+
+func TestLoadFlagsOverrideEnv(t *testing.T) {
+	env := map[string]string{"SONARR2_PORT": "9999"}
+	getenv := func(k string) string { return env[k] }
+
+	cfg, err := Load([]string{"-port", "7777", "-bind", "10.0.0.1"}, getenv)
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+	if cfg.HTTP.Port != 7777 {
+		t.Errorf("port = %d, want 7777", cfg.HTTP.Port)
+	}
+	if cfg.HTTP.BindAddress != "10.0.0.1" {
+		t.Errorf("bind = %q, want 10.0.0.1", cfg.HTTP.BindAddress)
+	}
+}
+
+func TestLoadConfigFile(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.yaml")
+	content := `
+http:
+  port: 12345
+  bind_address: 127.0.0.1
+  url_base: /sonarr
+logging:
+  format: text
+  level: warn
+paths:
+  config: /etc/sonarr2
+  data: /var/lib/sonarr2
+  logs: /var/log/sonarr2
+`
+	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	cfg, err := Load([]string{"-config-file", path}, func(string) string { return "" })
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+	if cfg.HTTP.Port != 12345 {
+		t.Errorf("port = %d, want 12345", cfg.HTTP.Port)
+	}
+	if cfg.HTTP.BindAddress != "127.0.0.1" {
+		t.Errorf("bind = %q, want 127.0.0.1", cfg.HTTP.BindAddress)
+	}
+	if cfg.HTTP.URLBase != "/sonarr" {
+		t.Errorf("url_base = %q, want /sonarr", cfg.HTTP.URLBase)
+	}
+	if cfg.Logging.Format != logging.FormatText {
+		t.Errorf("format = %q, want text", cfg.Logging.Format)
+	}
+	if cfg.Paths.Data != "/var/lib/sonarr2" {
+		t.Errorf("paths.data = %q, want /var/lib/sonarr2", cfg.Paths.Data)
+	}
+}
+
+func TestLoadConfigFilePrecedence(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.yaml")
+	if err := os.WriteFile(path, []byte("http:\n  port: 12345\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	env := map[string]string{"SONARR2_PORT": "22222"}
+	getenv := func(k string) string { return env[k] }
+
+	cfg, err := Load([]string{"-config-file", path, "-port", "33333"}, getenv)
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+	if cfg.HTTP.Port != 33333 {
+		t.Errorf("precedence: flag should win, got port = %d", cfg.HTTP.Port)
+	}
+}
+
+func TestLoadConfigFileFromEnv(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.yaml")
+	if err := os.WriteFile(path, []byte("http:\n  port: 12345\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	env := map[string]string{"SONARR2_CONFIG_FILE": path}
+	getenv := func(k string) string { return env[k] }
+
+	cfg, err := Load(nil, getenv)
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+	if cfg.HTTP.Port != 12345 {
+		t.Errorf("port = %d, want 12345", cfg.HTTP.Port)
+	}
+}
+
+func TestLoadConfigFileNotFound(t *testing.T) {
+	_, err := Load([]string{"-config-file", "/nonexistent/nope.yaml"}, func(string) string { return "" })
+	if err == nil {
+		t.Fatal("expected error for missing config file")
+	}
+}
+
+func TestLoadInvalidEnvPort(t *testing.T) {
+	env := map[string]string{"SONARR2_PORT": "not-a-number"}
+	_, err := Load(nil, func(k string) string { return env[k] })
+	if err == nil {
+		t.Fatal("expected error for invalid SONARR2_PORT")
+	}
+}
+
+func TestValidateInvalidPort(t *testing.T) {
+	cfg := Default()
+	cfg.HTTP.Port = 0
+	if err := cfg.Validate(); err == nil {
+		t.Error("expected error for port 0")
+	}
+	cfg.HTTP.Port = 70000
+	if err := cfg.Validate(); err == nil {
+		t.Error("expected error for port 70000")
+	}
+}
+
+func TestValidateEmptyBindAddress(t *testing.T) {
+	cfg := Default()
+	cfg.HTTP.BindAddress = ""
+	if err := cfg.Validate(); err == nil {
+		t.Error("expected error for empty bind address")
+	}
+}
