@@ -20,7 +20,6 @@ import (
 
 // App is the running sonarr2 process.
 type App struct {
-	cfg    config.Config
 	log    *slog.Logger
 	server *api.Server
 }
@@ -30,7 +29,6 @@ type App struct {
 func New(cfg config.Config) *App {
 	log := logging.New(cfg.Logging, os.Stderr)
 	return &App{
-		cfg:    cfg,
 		log:    log,
 		server: api.New(cfg.HTTP, log),
 	}
@@ -69,6 +67,14 @@ func (a *App) Run(ctx context.Context) error {
 		return fmt.Errorf("server shutdown: %w", err)
 	}
 	wg.Wait()
+
+	// Surface any Start error that arrived concurrently with ctx cancellation.
+	select {
+	case err := <-errCh:
+		return fmt.Errorf("server failed: %w", err)
+	default:
+	}
+
 	a.log.Info("sonarr2 stopped")
 	return nil
 }
