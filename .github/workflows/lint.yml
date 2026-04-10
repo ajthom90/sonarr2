@@ -1,0 +1,45 @@
+name: lint
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache: true
+
+      - name: go vet
+        run: go vet ./...
+
+      - name: gofmt
+        run: |
+          output=$(gofmt -l -s .)
+          if [ -n "$output" ]; then
+            echo "::error::gofmt issues found in:"
+            echo "$output"
+            gofmt -d -s .
+            exit 1
+          fi
+
+      - name: staticcheck
+        uses: dominikh/staticcheck-action@v1.3.1
+        with:
+          version: "2024.1.1"
+          install-go: false
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.60.3
