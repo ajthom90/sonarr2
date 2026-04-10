@@ -1,0 +1,11 @@
+.git
+.github
+dist
+docs
+*.md
+!README.md
+.vscode
+.idea
+node_modules
+coverage.out
+*.test
