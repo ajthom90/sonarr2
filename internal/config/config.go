@@ -95,7 +95,7 @@ func Load(args []string, getenv func(string) string) (Config, error) {
 	if v := getenv("SONARR2_PORT"); v != "" {
 		n, err := strconv.Atoi(v)
 		if err != nil {
-			return Config{}, fmt.Errorf("SONARR2_PORT must be an integer, got %q", v)
+			return Config{}, fmt.Errorf("SONARR2_PORT must be an integer, got %q: %w", v, err)
 		}
 		cfg.HTTP.Port = n
 	}

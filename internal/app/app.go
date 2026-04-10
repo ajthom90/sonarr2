@@ -6,8 +6,10 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"net"
 	"os"
 	"os/signal"
+	"strconv"
 	"sync"
 	"syscall"
 	"time"
@@ -28,9 +30,10 @@ type App struct {
 // server but does not start any goroutines.
 func New(cfg config.Config) *App {
 	log := logging.New(cfg.Logging, os.Stderr)
+	addr := net.JoinHostPort(cfg.HTTP.BindAddress, strconv.Itoa(cfg.HTTP.Port))
 	return &App{
 		log:    log,
-		server: api.New(cfg.HTTP, log),
+		server: api.New(addr, log),
 	}
 }
 

@@ -6,13 +6,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
-	"net"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/ajthom90/sonarr2/internal/buildinfo"
-	"github.com/ajthom90/sonarr2/internal/config"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
@@ -23,12 +20,13 @@ type Server struct {
 	httpsrv *http.Server
 }
 
-// New builds a Server bound to cfg.BindAddress:cfg.Port.
-func New(cfg config.HTTPConfig, log *slog.Logger) *Server {
+// New builds a Server bound to addr. addr should be a host:port string
+// suitable for net/http (e.g., "0.0.0.0:8989").
+func New(addr string, log *slog.Logger) *Server {
 	return &Server{
 		log: log,
 		httpsrv: &http.Server{
-			Addr:              net.JoinHostPort(cfg.BindAddress, strconv.Itoa(cfg.Port)),
+			Addr:              addr,
 			Handler:           Handler(log),
 			ReadHeaderTimeout: 10 * time.Second,
 		},
