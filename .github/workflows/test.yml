@@ -1,0 +1,49 @@
+name: test
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache: true
+
+      - name: download modules
+        run: go mod download
+
+      - name: go test
+        run: go test -race -count=1 -v ./...
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache: true
+
+      - name: build binary
+        run: |
+          CGO_ENABLED=0 go build -o /tmp/sonarr2 ./cmd/sonarr
+          /tmp/sonarr2 -port 18989 -bind 127.0.0.1 -log-format text &
+          PID=$!
+          sleep 1
+          curl -sf http://127.0.0.1:18989/ping
+          curl -sf http://127.0.0.1:18989/api/v3/system/status
+          kill $PID
+          wait $PID 2>/dev/null || true
