@@ -1,0 +1,53 @@
+# Build output
+/dist/
+/out/
+/bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Go
+/vendor/
+*.test
+*.out
+go.work
+go.work.sum
+coverage.txt
+coverage.html
+
+# Frontend
+/frontend/node_modules/
+/frontend/dist/
+/frontend/.vite/
+/frontend/coverage/
+/frontend/.eslintcache
+/web/dist/
+
+# Tooling
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/settings.json.example
+!.vscode/extensions.json
+*.swp
+*.swo
+*~
+
+# Local config / runtime
+/config/
+/data/
+/logs/
+/backups/
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+.env
+.env.local
+
+# Migration tool fixtures (large)
+/tools/sonarr-migrate/testdata/fixtures/*.db
