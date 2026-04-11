@@ -4,6 +4,7 @@ package app
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net"
@@ -17,6 +18,8 @@ import (
 	"github.com/ajthom90/sonarr2/internal/api"
 	"github.com/ajthom90/sonarr2/internal/buildinfo"
 	"github.com/ajthom90/sonarr2/internal/config"
+	"github.com/ajthom90/sonarr2/internal/db"
+	"github.com/ajthom90/sonarr2/internal/hostconfig"
 	"github.com/ajthom90/sonarr2/internal/logging"
 )
 
@@ -24,17 +27,64 @@ import (
 type App struct {
 	log    *slog.Logger
 	server *api.Server
+	pool   db.Pool
 }
 
-// New constructs an App from the given config. It creates the logger and
-// server but does not start any goroutines.
-func New(cfg config.Config) *App {
+// New constructs an App from the given config. It opens the database,
+// runs migrations, and wires the HTTP server. If any step fails, returns
+// the error. The caller is responsible for calling Run to start serving.
+func New(ctx context.Context, cfg config.Config) (*App, error) {
 	log := logging.New(cfg.Logging, os.Stderr)
+
+	pool, err := db.OpenFromConfig(ctx, cfg.DB)
+	if err != nil {
+		return nil, fmt.Errorf("app: open db: %w", err)
+	}
+
+	if err := db.Migrate(ctx, pool); err != nil {
+		_ = pool.Close()
+		return nil, fmt.Errorf("app: migrate db: %w", err)
+	}
+
+	if err := seedHostConfig(ctx, pool); err != nil {
+		_ = pool.Close()
+		return nil, fmt.Errorf("app: seed host config: %w", err)
+	}
+
 	addr := net.JoinHostPort(cfg.HTTP.BindAddress, strconv.Itoa(cfg.HTTP.Port))
 	return &App{
 		log:    log,
 		server: api.New(addr, log),
+		pool:   pool,
+	}, nil
+}
+
+// seedHostConfig inserts a default host_config row with a freshly generated
+// API key if none exists. Called once on startup from New.
+func seedHostConfig(ctx context.Context, pool db.Pool) error {
+	var store hostconfig.Store
+	switch p := pool.(type) {
+	case *db.PostgresPool:
+		store = hostconfig.NewPostgresStore(p)
+	case *db.SQLitePool:
+		store = hostconfig.NewSQLiteStore(p)
+	default:
+		return fmt.Errorf("app: unsupported pool type %T", pool)
 	}
+
+	_, err := store.Get(ctx)
+	if err == nil {
+		return nil // already seeded
+	}
+	if !errors.Is(err, hostconfig.ErrNotFound) {
+		return fmt.Errorf("app: get host config: %w", err)
+	}
+
+	return store.Upsert(ctx, hostconfig.HostConfig{
+		APIKey:         hostconfig.NewAPIKey(),
+		AuthMode:       "forms",
+		MigrationState: "clean",
+	})
 }
 
 // Run starts the HTTP server and blocks until ctx is cancelled or the server
@@ -76,6 +126,10 @@ func (a *App) Run(ctx context.Context) error {
 	case err := <-errCh:
 		return fmt.Errorf("server failed: %w", err)
 	default:
+	}
+
+	if err := a.pool.Close(); err != nil {
+		a.log.Error("db close error", slog.String("err", err.Error()))
 	}
 
 	a.log.Info("sonarr2 stopped")

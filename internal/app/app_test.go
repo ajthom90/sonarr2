@@ -29,8 +29,14 @@ func TestAppRunAndShutdown(t *testing.T) {
 	cfg.HTTP.Port = port
 	cfg.HTTP.BindAddress = "127.0.0.1"
 	cfg.Logging.Level = logging.LevelError // quiet tests
+	cfg.DB.Dialect = "sqlite"
+	cfg.DB.DSN = ":memory:"
+	cfg.DB.BusyTimeout = 5 * time.Second
 
-	a := New(cfg)
+	a, err := New(context.Background(), cfg)
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 	done := make(chan error, 1)

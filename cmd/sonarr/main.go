@@ -23,8 +23,12 @@ func run() error {
 		return fmt.Errorf("load config: %w", err)
 	}
 
-	a := app.New(cfg)
 	ctx, cancel := app.SignalContext(context.Background())
 	defer cancel()
+
+	a, err := app.New(ctx, cfg)
+	if err != nil {
+		return fmt.Errorf("new app: %w", err)
+	}
 	return a.Run(ctx)
 }
