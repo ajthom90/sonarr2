@@ -3,8 +3,12 @@ package commands
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"time"
 )
+
+// ErrNotFound is returned when a command lookup finds no matching row.
+var ErrNotFound = errors.New("commands: not found")
 
 type Priority int
 
