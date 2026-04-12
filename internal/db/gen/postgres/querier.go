@@ -18,6 +18,7 @@ type Querier interface {
 	CreateDownloadClient(ctx context.Context, arg CreateDownloadClientParams) (DownloadClient, error)
 	CreateEpisode(ctx context.Context, arg CreateEpisodeParams) (Episode, error)
 	CreateEpisodeFile(ctx context.Context, arg CreateEpisodeFileParams) (EpisodeFile, error)
+	CreateHistoryEntry(ctx context.Context, arg CreateHistoryEntryParams) (History, error)
 	CreateIndexer(ctx context.Context, arg CreateIndexerParams) (Indexer, error)
 	CreateQualityProfile(ctx context.Context, arg CreateQualityProfileParams) (QualityProfile, error)
 	CreateSeries(ctx context.Context, arg CreateSeriesParams) (Series, error)
@@ -25,6 +26,7 @@ type Querier interface {
 	DeleteDownloadClient(ctx context.Context, id int32) error
 	DeleteEpisode(ctx context.Context, id int64) error
 	DeleteEpisodeFile(ctx context.Context, id int64) error
+	DeleteForSeries(ctx context.Context, seriesID int64) error
 	DeleteIndexer(ctx context.Context, id int32) error
 	DeleteOldCompleted(ctx context.Context, endedAt pgtype.Timestamptz) (int64, error)
 	DeleteQualityProfile(ctx context.Context, id int32) error
@@ -33,6 +35,7 @@ type Querier interface {
 	DeleteSeriesStatistics(ctx context.Context, seriesID int64) error
 	EnqueueCommand(ctx context.Context, arg EnqueueCommandParams) (Command, error)
 	FailCommand(ctx context.Context, arg FailCommandParams) error
+	FindByDownloadID(ctx context.Context, downloadID string) ([]History, error)
 	FindDuplicate(ctx context.Context, dedupKey string) (int64, error)
 	GetAllQualityDefinitions(ctx context.Context) ([]QualityDefinition, error)
 	GetCommand(ctx context.Context, id int64) (Command, error)
@@ -55,6 +58,8 @@ type Querier interface {
 	ListDownloadClients(ctx context.Context) ([]DownloadClient, error)
 	ListEpisodeFilesForSeries(ctx context.Context, seriesID int64) ([]EpisodeFile, error)
 	ListEpisodesForSeries(ctx context.Context, seriesID int64) ([]Episode, error)
+	ListForEpisode(ctx context.Context, episodeID int64) ([]History, error)
+	ListForSeries(ctx context.Context, seriesID int64) ([]History, error)
 	ListIndexers(ctx context.Context) ([]Indexer, error)
 	ListQualityProfiles(ctx context.Context) ([]QualityProfile, error)
 	ListScheduledTasks(ctx context.Context) ([]ScheduledTask, error)

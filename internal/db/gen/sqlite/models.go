@@ -74,6 +74,18 @@ type EpisodeFile struct {
 	UpdatedAt    string
 }
 
+type History struct {
+	ID          int64
+	EpisodeID   int64
+	SeriesID    int64
+	SourceTitle string
+	QualityName string
+	EventType   string
+	Date        string
+	DownloadID  string
+	Data        string
+}
+
 type HostConfig struct {
 	ID             int64
 	ApiKey         string
