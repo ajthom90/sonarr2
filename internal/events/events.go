@@ -108,9 +108,9 @@ func (b *bus) Publish(ctx context.Context, event any) error {
 func (b *bus) register(eventType reflect.Type, h handlerEntry) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
-	entries := append(b.handlers[eventType], h)
+	b.handlers[eventType] = append(b.handlers[eventType], h)
+	entries := b.handlers[eventType]
 	sort.SliceStable(entries, func(i, j int) bool {
 		return entries[i].order < entries[j].order
 	})
-	b.handlers[eventType] = entries
 }
