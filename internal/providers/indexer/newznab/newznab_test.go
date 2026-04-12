@@ -54,7 +54,7 @@ func TestNewznabFetchRss(t *testing.T) {
 			t.Errorf("expected dl=1, got %s", r.URL.Query().Get("dl"))
 		}
 		w.Header().Set("Content-Type", "application/rss+xml")
-		w.Write([]byte(cannedRSS))
+		_, _ = w.Write([]byte(cannedRSS))
 	}))
 
 	n := New(Settings{
@@ -118,7 +118,7 @@ func TestNewznabSearch(t *testing.T) {
 			t.Errorf("expected ep=3, got %s", q.Get("ep"))
 		}
 		w.Header().Set("Content-Type", "application/rss+xml")
-		w.Write([]byte(cannedRSS))
+		_, _ = w.Write([]byte(cannedRSS))
 	}))
 
 	n := New(Settings{
@@ -146,7 +146,7 @@ func TestNewznabTestSuccess(t *testing.T) {
 			t.Errorf("expected t=caps, got %s", r.URL.Query().Get("t"))
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(cannedCaps))
+		_, _ = w.Write([]byte(cannedCaps))
 	}))
 
 	n := New(Settings{BaseURL: baseURL, ApiPath: "/api", ApiKey: "testkey"}, client)

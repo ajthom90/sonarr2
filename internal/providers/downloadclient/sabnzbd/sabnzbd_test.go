@@ -70,7 +70,7 @@ func TestSabnzbdAdd(t *testing.T) {
 			t.Errorf("expected output=json, got %q", q.Get("output"))
 		}
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(cannedAddResponse))
+		_, _ = w.Write([]byte(cannedAddResponse))
 	}))
 	defer srv.Close()
 
@@ -94,7 +94,7 @@ func TestSabnzbdItems(t *testing.T) {
 			t.Errorf("expected apikey=testapikey, got %q", q.Get("apikey"))
 		}
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(cannedQueueResponse))
+		_, _ = w.Write([]byte(cannedQueueResponse))
 	}))
 	defer srv.Close()
 
@@ -135,7 +135,7 @@ func TestSabnzbdRemove(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		gotQuery = r.URL.Query()
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(`{"status": true}`))
+		_, _ = w.Write([]byte(`{"status": true}`))
 	}))
 	defer srv.Close()
 
@@ -166,7 +166,7 @@ func TestSabnzbdRemoveNoDelete(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		gotQuery = r.URL.Query()
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(`{"status": true}`))
+		_, _ = w.Write([]byte(`{"status": true}`))
 	}))
 	defer srv.Close()
 
@@ -189,7 +189,7 @@ func TestSabnzbdTestSuccess(t *testing.T) {
 			t.Errorf("expected apikey=testapikey, got %q", q.Get("apikey"))
 		}
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(cannedVersionResponse))
+		_, _ = w.Write([]byte(cannedVersionResponse))
 	}))
 	defer srv.Close()
 
