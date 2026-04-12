@@ -28,6 +28,10 @@ import (
 	"github.com/ajthom90/sonarr2/internal/library"
 	"github.com/ajthom90/sonarr2/internal/logging"
 	"github.com/ajthom90/sonarr2/internal/profiles"
+	"github.com/ajthom90/sonarr2/internal/providers/downloadclient"
+	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/sabnzbd"
+	"github.com/ajthom90/sonarr2/internal/providers/indexer"
+	"github.com/ajthom90/sonarr2/internal/providers/indexer/newznab"
 	"github.com/ajthom90/sonarr2/internal/scheduler"
 )
 
@@ -45,6 +49,10 @@ type App struct {
 	qualityDefs     profiles.QualityDefinitionStore
 	qualityProfiles profiles.QualityProfileStore
 	customFormats   customformats.Store
+	indexerRegistry *indexer.Registry
+	dcRegistry      *downloadclient.Registry
+	indexerStore    indexer.InstanceStore
+	dcStore         downloadclient.InstanceStore
 }
 
 // New constructs an App from the given config. It opens the database,
@@ -148,6 +156,30 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 		}
 	}
 
+	// Provider registries.
+	idxReg := indexer.NewRegistry()
+	dcReg := downloadclient.NewRegistry()
+
+	// Register built-in providers.
+	idxReg.Register("Newznab", func() indexer.Indexer {
+		return newznab.New(newznab.Settings{ApiPath: "/api"}, nil)
+	})
+	dcReg.Register("SABnzbd", func() downloadclient.DownloadClient {
+		return sabnzbd.New(sabnzbd.Settings{Host: "localhost", Port: 8080, Category: "tv"}, nil)
+	})
+
+	// Provider instance stores.
+	var idxStore indexer.InstanceStore
+	var dcStore downloadclient.InstanceStore
+	switch p := pool.(type) {
+	case *db.PostgresPool:
+		idxStore = indexer.NewPostgresInstanceStore(p)
+		dcStore = downloadclient.NewPostgresInstanceStore(p)
+	case *db.SQLitePool:
+		idxStore = indexer.NewSQLiteInstanceStore(p)
+		dcStore = downloadclient.NewSQLiteInstanceStore(p)
+	}
+
 	// Create the command queue (dialect-dispatched).
 	var cmdQueue commands.Queue
 	var taskStore scheduler.TaskStore
@@ -199,6 +231,10 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 		qualityDefs:     qualityDefStore,
 		qualityProfiles: qualityProfileStore,
 		customFormats:   cfStore,
+		indexerRegistry: idxReg,
+		dcRegistry:      dcReg,
+		indexerStore:    idxStore,
+		dcStore:         dcStore,
 	}, nil
 }
 

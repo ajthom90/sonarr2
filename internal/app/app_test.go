@@ -211,6 +211,39 @@ func TestAppSeedsDefaultQualityProfile(t *testing.T) {
 	}
 }
 
+func TestAppProviderRegistriesExist(t *testing.T) {
+	port := findFreePort(t)
+	cfg := config.Default()
+	cfg.HTTP.Port = port
+	cfg.HTTP.BindAddress = "127.0.0.1"
+	cfg.Logging.Level = logging.LevelError
+	cfg.DB.Dialect = "sqlite"
+	cfg.DB.DSN = ":memory:"
+	cfg.DB.BusyTimeout = 5 * time.Second
+
+	ctx := context.Background()
+	a, err := New(ctx, cfg)
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	t.Cleanup(func() { _ = a.pool.Close() })
+
+	_, err = a.indexerRegistry.Get("Newznab")
+	if err != nil {
+		t.Errorf("Newznab not registered: %v", err)
+	}
+	_, err = a.dcRegistry.Get("SABnzbd")
+	if err != nil {
+		t.Errorf("SABnzbd not registered: %v", err)
+	}
+	if a.indexerStore == nil {
+		t.Error("indexerStore is nil")
+	}
+	if a.dcStore == nil {
+		t.Error("dcStore is nil")
+	}
+}
+
 func TestAppCommandExecution(t *testing.T) {
 	port := findFreePort(t)
 	cfg := config.Default()
