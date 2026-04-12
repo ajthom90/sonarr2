@@ -34,6 +34,18 @@ type CustomFormat struct {
 	Specifications      []byte
 }
 
+type DownloadClient struct {
+	ID                       int32
+	Name                     string
+	Implementation           string
+	Settings                 []byte
+	Enable                   bool
+	Priority                 int32
+	RemoveCompletedDownloads bool
+	RemoveFailedDownloads    bool
+	Added                    pgtype.Timestamptz
+}
+
 type Episode struct {
 	ID                    int64
 	SeriesID              int64
@@ -69,6 +81,18 @@ type HostConfig struct {
 	MigrationState string
 	CreatedAt      pgtype.Timestamptz
 	UpdatedAt      pgtype.Timestamptz
+}
+
+type Indexer struct {
+	ID                      int32
+	Name                    string
+	Implementation          string
+	Settings                []byte
+	EnableRss               bool
+	EnableAutomaticSearch   bool
+	EnableInteractiveSearch bool
+	Priority                int32
+	Added                   pgtype.Timestamptz
 }
 
 type QualityDefinition struct {

@@ -34,6 +34,18 @@ type CustomFormat struct {
 	Specifications      string
 }
 
+type DownloadClient struct {
+	ID                       int64
+	Name                     string
+	Implementation           string
+	Settings                 string
+	Enable                   int64
+	Priority                 int64
+	RemoveCompletedDownloads int64
+	RemoveFailedDownloads    int64
+	Added                    string
+}
+
 type Episode struct {
 	ID                    int64
 	SeriesID              int64
@@ -69,6 +81,18 @@ type HostConfig struct {
 	MigrationState string
 	CreatedAt      string
 	UpdatedAt      string
+}
+
+type Indexer struct {
+	ID                      int64
+	Name                    string
+	Implementation          string
+	Settings                string
+	EnableRss               int64
+	EnableAutomaticSearch   int64
+	EnableInteractiveSearch int64
+	Priority                int64
+	Added                   string
 }
 
 type QualityDefinition struct {

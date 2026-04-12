@@ -15,13 +15,17 @@ type Querier interface {
 	CompleteCommand(ctx context.Context, arg CompleteCommandParams) error
 	CountEpisodesForSeries(ctx context.Context, seriesID int64) (CountEpisodesForSeriesRow, error)
 	CreateCustomFormat(ctx context.Context, arg CreateCustomFormatParams) (CustomFormat, error)
+	CreateDownloadClient(ctx context.Context, arg CreateDownloadClientParams) (DownloadClient, error)
 	CreateEpisode(ctx context.Context, arg CreateEpisodeParams) (Episode, error)
 	CreateEpisodeFile(ctx context.Context, arg CreateEpisodeFileParams) (EpisodeFile, error)
+	CreateIndexer(ctx context.Context, arg CreateIndexerParams) (Indexer, error)
 	CreateQualityProfile(ctx context.Context, arg CreateQualityProfileParams) (QualityProfile, error)
 	CreateSeries(ctx context.Context, arg CreateSeriesParams) (Series, error)
 	DeleteCustomFormat(ctx context.Context, id int32) error
+	DeleteDownloadClient(ctx context.Context, id int32) error
 	DeleteEpisode(ctx context.Context, id int64) error
 	DeleteEpisodeFile(ctx context.Context, id int64) error
+	DeleteIndexer(ctx context.Context, id int32) error
 	DeleteOldCompleted(ctx context.Context, endedAt pgtype.Timestamptz) (int64, error)
 	DeleteQualityProfile(ctx context.Context, id int32) error
 	DeleteSeason(ctx context.Context, arg DeleteSeasonParams) error
@@ -33,10 +37,12 @@ type Querier interface {
 	GetAllQualityDefinitions(ctx context.Context) ([]QualityDefinition, error)
 	GetCommand(ctx context.Context, id int64) (Command, error)
 	GetCustomFormatByID(ctx context.Context, id int32) (CustomFormat, error)
+	GetDownloadClientByID(ctx context.Context, id int32) (DownloadClient, error)
 	GetDueTasks(ctx context.Context) ([]ScheduledTask, error)
 	GetEpisode(ctx context.Context, id int64) (Episode, error)
 	GetEpisodeFile(ctx context.Context, id int64) (EpisodeFile, error)
 	GetHostConfig(ctx context.Context) (HostConfig, error)
+	GetIndexerByID(ctx context.Context, id int32) (Indexer, error)
 	GetQualityDefinitionByID(ctx context.Context, id int32) (QualityDefinition, error)
 	GetQualityProfileByID(ctx context.Context, id int32) (QualityProfile, error)
 	GetScheduledTask(ctx context.Context, typeName string) (ScheduledTask, error)
@@ -46,8 +52,10 @@ type Querier interface {
 	GetSeriesByTvdbID(ctx context.Context, tvdbID int64) (Series, error)
 	GetSeriesStatistics(ctx context.Context, seriesID int64) (SeriesStatistic, error)
 	ListCustomFormats(ctx context.Context) ([]CustomFormat, error)
+	ListDownloadClients(ctx context.Context) ([]DownloadClient, error)
 	ListEpisodeFilesForSeries(ctx context.Context, seriesID int64) ([]EpisodeFile, error)
 	ListEpisodesForSeries(ctx context.Context, seriesID int64) ([]Episode, error)
+	ListIndexers(ctx context.Context) ([]Indexer, error)
 	ListQualityProfiles(ctx context.Context) ([]QualityProfile, error)
 	ListScheduledTasks(ctx context.Context) ([]ScheduledTask, error)
 	ListSeasonsForSeries(ctx context.Context, seriesID int64) ([]Season, error)
@@ -56,7 +64,9 @@ type Querier interface {
 	SumEpisodeFileSizesForSeries(ctx context.Context, seriesID int64) (SumEpisodeFileSizesForSeriesRow, error)
 	SweepExpiredLeases(ctx context.Context) (int64, error)
 	UpdateCustomFormat(ctx context.Context, arg UpdateCustomFormatParams) error
+	UpdateDownloadClient(ctx context.Context, arg UpdateDownloadClientParams) error
 	UpdateEpisode(ctx context.Context, arg UpdateEpisodeParams) error
+	UpdateIndexer(ctx context.Context, arg UpdateIndexerParams) error
 	UpdateQualityDefinitionSizes(ctx context.Context, arg UpdateQualityDefinitionSizesParams) error
 	UpdateQualityProfile(ctx context.Context, arg UpdateQualityProfileParams) error
 	UpdateSeries(ctx context.Context, arg UpdateSeriesParams) error
