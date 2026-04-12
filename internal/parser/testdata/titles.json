@@ -1,0 +1,51 @@
+[
+  {
+    "title": "The.Simpsons.S35E10.1080p.WEB-DL.x264-GROUP",
+    "seriesTitle": "The Simpsons",
+    "seriesType": "standard",
+    "seasonNumber": 35,
+    "episodeNumbers": [10],
+    "releaseGroup": "GROUP"
+  },
+  {
+    "title": "Jeopardy.2024.03.15.720p.HDTV-NTb",
+    "seriesTitle": "Jeopardy",
+    "seriesType": "daily",
+    "seasonNumber": 2024,
+    "episodeNumbers": [315],
+    "year": 2024,
+    "releaseGroup": "NTb"
+  },
+  {
+    "title": "[SubGroup] One Piece - 1100 [1080p]",
+    "seriesTitle": "One Piece",
+    "seriesType": "anime",
+    "absoluteEpisodeNumbers": [1100],
+    "releaseGroup": "SubGroup"
+  },
+  {
+    "title": "Game.of.Thrones.S08E03E04.1080p.BluRay-GROUP",
+    "seriesTitle": "Game of Thrones",
+    "seriesType": "standard",
+    "seasonNumber": 8,
+    "episodeNumbers": [3, 4],
+    "releaseGroup": "GROUP"
+  },
+  {
+    "title": "The.Daily.Show.2024.01.08.720p.WEB.h264-EDITH",
+    "seriesTitle": "The Daily Show",
+    "seriesType": "daily",
+    "seasonNumber": 2024,
+    "episodeNumbers": [108],
+    "year": 2024,
+    "releaseGroup": "EDITH"
+  },
+  {
+    "title": "Breaking.Bad.S05E16.Felina.REPACK.1080p.BluRay.x264-DEMAND",
+    "seriesTitle": "Breaking Bad",
+    "seriesType": "standard",
+    "seasonNumber": 5,
+    "episodeNumbers": [16],
+    "releaseGroup": "DEMAND"
+  }
+]

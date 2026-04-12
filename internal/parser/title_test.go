@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"encoding/json"
+	"os"
 	"testing"
 )
 
@@ -118,4 +120,48 @@ func slicesEqual(a, b []int) bool {
 		}
 	}
 	return true
+}
+
+func TestParseTitleGoldenFile(t *testing.T) {
+	data, err := os.ReadFile("testdata/titles.json")
+	if err != nil {
+		t.Fatalf("read golden file: %v", err)
+	}
+	var cases []struct {
+		Title                  string `json:"title"`
+		SeriesTitle            string `json:"seriesTitle"`
+		SeriesType             string `json:"seriesType"`
+		SeasonNumber           int    `json:"seasonNumber"`
+		EpisodeNumbers         []int  `json:"episodeNumbers"`
+		AbsoluteEpisodeNumbers []int  `json:"absoluteEpisodeNumbers"`
+		Year                   int    `json:"year"`
+		ReleaseGroup           string `json:"releaseGroup"`
+	}
+	if err := json.Unmarshal(data, &cases); err != nil {
+		t.Fatalf("parse golden file: %v", err)
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.Title, func(t *testing.T) {
+			got := ParseTitle(tc.Title)
+			if got.SeriesTitle != tc.SeriesTitle {
+				t.Errorf("SeriesTitle = %q, want %q", got.SeriesTitle, tc.SeriesTitle)
+			}
+			if string(got.SeriesType) != tc.SeriesType {
+				t.Errorf("SeriesType = %q, want %q", got.SeriesType, tc.SeriesType)
+			}
+			if got.SeasonNumber != tc.SeasonNumber {
+				t.Errorf("SeasonNumber = %d, want %d", got.SeasonNumber, tc.SeasonNumber)
+			}
+			if !slicesEqual(got.EpisodeNumbers, tc.EpisodeNumbers) {
+				t.Errorf("EpisodeNumbers = %v, want %v", got.EpisodeNumbers, tc.EpisodeNumbers)
+			}
+			if !slicesEqual(got.AbsoluteEpisodeNumbers, tc.AbsoluteEpisodeNumbers) {
+				t.Errorf("AbsoluteEpisodeNumbers = %v, want %v", got.AbsoluteEpisodeNumbers, tc.AbsoluteEpisodeNumbers)
+			}
+			if got.ReleaseGroup != tc.ReleaseGroup {
+				t.Errorf("ReleaseGroup = %q, want %q", got.ReleaseGroup, tc.ReleaseGroup)
+			}
+		})
+	}
 }
