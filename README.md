@@ -1,24 +1,66 @@
 # sonarr2
 
-A feature-complete rewrite of [Sonarr](https://github.com/Sonarr/Sonarr) focused on performance.
+A feature-complete rewrite of [Sonarr](https://github.com/Sonarr/Sonarr) focused on performance for large TV libraries.
 
-Status: **early design phase.** See [the design doc](./docs/superpowers/specs/2026-04-10-sonarr-rewrite-design.md) for the full plan.
+## Current Status
 
-## Why another Sonarr?
+**Milestone 6 of 24 complete** — the core backend is functional. Not yet ready for end users.
 
-Sonarr is an excellent PVR, but its current .NET implementation struggles with large libraries (tens of thousands of series, shows with thousands of episodes like Jeopardy). sonarr2 is a ground-up rewrite in Go targeting:
+### What's implemented
 
-- **Performance on large libraries** — responsive UI on 29,000+ series, 500,000+ episode files.
-- **Low-resource deployment** — runs comfortably on a 2 CPU core / 4 GB RAM homelab.
-- **Drop-in replacement** — wire-compatible with Sonarr's v3 REST API so existing integrations keep working, plus a one-shot migration tool for importing an existing Sonarr database.
-- **Multi-arch** — first-class support for `linux/amd64`, `linux/arm64`, `linux/arm/v7`, macOS, Windows.
-- **Open source, MIT licensed** — freely reusable without GPL restrictions.
+- **Database layer** — Postgres (pgx/v5) and SQLite (pure-Go, no CGo) with single-writer discipline preventing "database is locked" errors
+- **Domain model** — Series, Seasons, Episodes, EpisodeFiles with dual-dialect stores and reactive statistics via a typed event bus
+- **Command queue** — durable DB-backed queue with crash-recovery leases, deduplication, priority levels, and a worker pool with panic recovery
+- **Scheduler** — tick-based background task scheduler with configurable intervals
+- **Release parser** — extracts series title, season/episode numbers, quality (source + resolution + modifier), release group from release title strings; supports standard (SxxExx), daily (YYYY.MM.DD), and anime (absolute numbering) formats
+- **Quality profiles** — 18 seeded quality definitions, configurable profiles with upgrade/cutoff logic
+- **Custom formats** — regex-based format matching with weighted scoring (compatible with TRaSH Guides JSON)
+- **Decision engine** — evaluates releases against quality profiles with 8 core specs; ranks accepted releases by CF score, quality, and size
+- **Provider SDK** — pluggable integration architecture with reflection-based settings schema generation
+- **Newznab indexer** — search and RSS feed support for Newznab-compatible indexers
+- **SABnzbd download client** — add, queue status, and remove operations
+- **HTTP API** — `/ping` liveness, `/api/v3/system/status` with database connectivity reporting
+- **Docker-ready** — multi-stage Dockerfile producing a ~20MB distroless static binary
+- **CI** — GitHub Actions for lint (staticcheck + golangci-lint) and test (race detector + Postgres testcontainers)
 
-## Relationship to upstream Sonarr
+### What's NOT yet implemented
 
-sonarr2 is a **clean-room reimplementation**. It re-implements the Sonarr v3 REST API surface (APIs themselves are not copyrightable — see _Google v. Oracle_, 2021), but does not copy any source code from Sonarr. The Sonarr project is licensed under GPL-3.0; sonarr2 is licensed under MIT.
+RSS sync flow, import pipeline, filesystem watcher, full Sonarr v3 API compatibility, SignalR real-time updates, the React frontend, remaining ~60 providers, metadata sources (TVDB), migration tool, and more. See the [design doc](./docs/superpowers/specs/2026-04-10-sonarr-rewrite-design.md) for the full roadmap.
 
-sonarr2 is not affiliated with the Sonarr project.
+## Quick Start
+
+```bash
+# Build
+make build
+
+# Run with SQLite (default)
+./dist/sonarr2 -port 8989 -bind 0.0.0.0
+
+# Run with Docker
+docker build -f docker/Dockerfile -t sonarr2 .
+docker run -p 8989:8989 -v ./config:/config sonarr2
+```
+
+## Development
+
+```bash
+git clone https://github.com/ajthom90/sonarr2.git
+cd sonarr2
+make test    # run all tests with race detector
+make lint    # gofmt + go vet
+make build   # produce dist/sonarr2
+```
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
+
+## Architecture
+
+- **Go 1.23** backend — single static binary, ~15MB
+- **Postgres-first** with SQLite support — no "database is locked" errors via application-level single-writer discipline
+- **Clean-room reimplementation** — MIT licensed, no Sonarr (GPL-3) source code copied
+- **Multi-arch** — builds for linux/amd64, linux/arm64, linux/arm/v7, macOS
+
+See the [design doc](./docs/superpowers/specs/2026-04-10-sonarr-rewrite-design.md) for the full architectural spec.
 
 ## License
 
