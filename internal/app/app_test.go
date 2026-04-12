@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"errors"
 	"io"
 	"net"
 	"net/http"
@@ -10,6 +11,7 @@ import (
 	"time"
 
 	"github.com/ajthom90/sonarr2/internal/config"
+	"github.com/ajthom90/sonarr2/internal/library"
 	"github.com/ajthom90/sonarr2/internal/logging"
 )
 
@@ -84,5 +86,91 @@ func TestSignalContextCancelsOnParentCancel(t *testing.T) {
 		// expected
 	case <-time.After(time.Second):
 		t.Fatal("SignalContext did not cancel when parent was cancelled")
+	}
+}
+
+func TestAppLibraryStatsRecompute(t *testing.T) {
+	port := findFreePort(t)
+	cfg := config.Default()
+	cfg.HTTP.Port = port
+	cfg.HTTP.BindAddress = "127.0.0.1"
+	cfg.Logging.Level = logging.LevelError
+	cfg.DB.Dialect = "sqlite"
+	cfg.DB.DSN = ":memory:"
+	cfg.DB.BusyTimeout = 5 * time.Second
+
+	ctx := context.Background()
+	a, err := New(ctx, cfg)
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	t.Cleanup(func() {
+		_ = a.pool.Close()
+	})
+
+	// Create a series.
+	series, err := a.library.Series.Create(ctx, library.Series{
+		TvdbID: 42, Title: "Test Show", Slug: "test-show",
+		Status: "continuing", SeriesType: "standard",
+		Path: "/tv/Test Show", Monitored: true,
+	})
+	if err != nil {
+		t.Fatalf("Create series: %v", err)
+	}
+
+	// Create 3 episodes, 2 monitored.
+	for i := int32(1); i <= 3; i++ {
+		if _, err := a.library.Episodes.Create(ctx, library.Episode{
+			SeriesID: series.ID, SeasonNumber: 1, EpisodeNumber: i,
+			Title: "E", Monitored: i < 3,
+		}); err != nil {
+			t.Fatalf("Create episode: %v", err)
+		}
+	}
+
+	// After creating episodes, the stats row should exist and reflect
+	// the 3 episodes (2 monitored) via the EpisodeAdded subscriber.
+	stats, err := a.library.Stats.Get(ctx, series.ID)
+	if err != nil {
+		t.Fatalf("Stats.Get after episodes: %v", err)
+	}
+	if stats.EpisodeCount != 3 {
+		t.Errorf("EpisodeCount = %d, want 3", stats.EpisodeCount)
+	}
+	if stats.MonitoredEpisodeCount != 2 {
+		t.Errorf("MonitoredEpisodeCount = %d, want 2", stats.MonitoredEpisodeCount)
+	}
+	if stats.EpisodeFileCount != 0 {
+		t.Errorf("EpisodeFileCount = %d, want 0 before any files", stats.EpisodeFileCount)
+	}
+
+	// Create 2 episode files, 100 + 200 bytes.
+	for _, size := range []int64{100, 200} {
+		if _, err := a.library.EpisodeFiles.Create(ctx, library.EpisodeFile{
+			SeriesID: series.ID, SeasonNumber: 1, RelativePath: "x.mkv", Size: size,
+		}); err != nil {
+			t.Fatalf("Create file: %v", err)
+		}
+	}
+
+	// Stats should now reflect both episodes and files.
+	stats, err = a.library.Stats.Get(ctx, series.ID)
+	if err != nil {
+		t.Fatalf("Stats.Get after files: %v", err)
+	}
+	if stats.EpisodeFileCount != 2 {
+		t.Errorf("EpisodeFileCount = %d, want 2", stats.EpisodeFileCount)
+	}
+	if stats.SizeOnDisk != 300 {
+		t.Errorf("SizeOnDisk = %d, want 300", stats.SizeOnDisk)
+	}
+
+	// Delete the series; Stats should be deleted via the SeriesDeleted subscriber.
+	if err := a.library.Series.Delete(ctx, series.ID); err != nil {
+		t.Fatalf("Delete series: %v", err)
+	}
+	_, err = a.library.Stats.Get(ctx, series.ID)
+	if !errors.Is(err, library.ErrNotFound) {
+		t.Errorf("Stats.Get after series delete error = %v, want ErrNotFound", err)
 	}
 }

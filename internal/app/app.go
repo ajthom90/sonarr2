@@ -19,20 +19,25 @@ import (
 	"github.com/ajthom90/sonarr2/internal/buildinfo"
 	"github.com/ajthom90/sonarr2/internal/config"
 	"github.com/ajthom90/sonarr2/internal/db"
+	"github.com/ajthom90/sonarr2/internal/events"
 	"github.com/ajthom90/sonarr2/internal/hostconfig"
+	"github.com/ajthom90/sonarr2/internal/library"
 	"github.com/ajthom90/sonarr2/internal/logging"
 )
 
 // App is the running sonarr2 process.
 type App struct {
-	log    *slog.Logger
-	server *api.Server
-	pool   db.Pool
+	log     *slog.Logger
+	server  *api.Server
+	pool    db.Pool
+	bus     events.Bus
+	library *library.Library
 }
 
 // New constructs an App from the given config. It opens the database,
-// runs migrations, and wires the HTTP server. If any step fails, returns
-// the error. The caller is responsible for calling Run to start serving.
+// runs migrations, seeds default config, creates the event bus and
+// library stores, wires stats recompute subscribers, and builds the
+// HTTP server.
 func New(ctx context.Context, cfg config.Config) (*App, error) {
 	log := logging.New(cfg.Logging, os.Stderr)
 
@@ -51,11 +56,43 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 		return nil, fmt.Errorf("app: seed host config: %w", err)
 	}
 
+	bus := events.NewBus(16)
+
+	lib, err := library.New(pool, bus)
+	if err != nil {
+		_ = pool.Close()
+		return nil, fmt.Errorf("app: library new: %w", err)
+	}
+
+	// Wire statistics recompute subscribers. Any time episodes or
+	// episode files change for a series, recompute the cached stats row
+	// for that series synchronously so the next read reflects reality.
+	events.SubscribeSync[library.EpisodeAdded](bus, func(ctx context.Context, e library.EpisodeAdded) error {
+		return lib.Stats.Recompute(ctx, e.SeriesID)
+	})
+	events.SubscribeSync[library.EpisodeUpdated](bus, func(ctx context.Context, e library.EpisodeUpdated) error {
+		return lib.Stats.Recompute(ctx, e.SeriesID)
+	})
+	events.SubscribeSync[library.EpisodeDeleted](bus, func(ctx context.Context, e library.EpisodeDeleted) error {
+		return lib.Stats.Recompute(ctx, e.SeriesID)
+	})
+	events.SubscribeSync[library.EpisodeFileAdded](bus, func(ctx context.Context, e library.EpisodeFileAdded) error {
+		return lib.Stats.Recompute(ctx, e.SeriesID)
+	})
+	events.SubscribeSync[library.EpisodeFileDeleted](bus, func(ctx context.Context, e library.EpisodeFileDeleted) error {
+		return lib.Stats.Recompute(ctx, e.SeriesID)
+	})
+	events.SubscribeSync[library.SeriesDeleted](bus, func(ctx context.Context, e library.SeriesDeleted) error {
+		return lib.Stats.Delete(ctx, e.ID)
+	})
+
 	addr := net.JoinHostPort(cfg.HTTP.BindAddress, strconv.Itoa(cfg.HTTP.Port))
 	return &App{
-		log:    log,
-		server: api.New(addr, log, poolPingerAdapter{pool: pool}),
-		pool:   pool,
+		log:     log,
+		server:  api.New(addr, log, poolPingerAdapter{pool: pool}),
+		pool:    pool,
+		bus:     bus,
+		library: lib,
 	}, nil
 }
 
