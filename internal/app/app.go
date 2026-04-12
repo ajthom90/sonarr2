@@ -19,6 +19,7 @@ import (
 	"github.com/ajthom90/sonarr2/internal/api"
 	"github.com/ajthom90/sonarr2/internal/buildinfo"
 	"github.com/ajthom90/sonarr2/internal/commands"
+	"github.com/ajthom90/sonarr2/internal/commands/handlers"
 	"github.com/ajthom90/sonarr2/internal/config"
 	"github.com/ajthom90/sonarr2/internal/db"
 	"github.com/ajthom90/sonarr2/internal/events"
@@ -115,6 +116,20 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 	}
 	wp := commands.NewWorkerPool(cmdQueue, reg, bus, log, numWorkers)
 	sched := scheduler.New(taskStore, cmdQueue, log)
+
+	// Register built-in command handlers.
+	cleanup := handlers.NewCleanupHandler(cmdQueue)
+	reg.Register("MessagingCleanup", cleanup)
+
+	// Register the MessagingCleanup scheduled task (1-hour interval).
+	if err := taskStore.Upsert(ctx, scheduler.ScheduledTask{
+		TypeName:      "MessagingCleanup",
+		IntervalSecs:  3600,
+		NextExecution: time.Now().Add(time.Hour),
+	}); err != nil {
+		_ = pool.Close()
+		return nil, fmt.Errorf("app: upsert MessagingCleanup task: %w", err)
+	}
 
 	addr := net.JoinHostPort(cfg.HTTP.BindAddress, strconv.Itoa(cfg.HTTP.Port))
 	return &App{
