@@ -40,7 +40,7 @@ type Rejection struct {
 // Release is the raw metadata for a candidate release from an indexer.
 type Release struct {
 	Title    string
-	Size     int64  // bytes
+	Size     int64 // bytes
 	Indexer  string
 	Age      int    // days (usenet) or minutes (torrent)
 	Protocol string // "usenet" or "torrent"

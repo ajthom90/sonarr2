@@ -71,6 +71,28 @@ func (s *alwaysRejectSpec) Evaluate(_ context.Context, _ decisionengine.RemoteEp
 
 // ---- Task 6 ranking tests ---------------------------------------------------
 
+// TestRankStableOrder verifies that releases that compare equal (same CF score,
+// same quality, same size) preserve their original insertion order — confirming
+// that Rank uses sort.SliceStable, not sort.Slice.
+func TestRankStableOrder(t *testing.T) {
+	eng := decisionengine.New()
+	p := profile(item(1, true))
+	// Mark each release with a unique protocol so we can distinguish them.
+	r1 := remote(1, 10, 500*1024*1024)
+	r1.Release.Protocol = "first"
+	r2 := remote(1, 10, 500*1024*1024)
+	r2.Release.Protocol = "second"
+	r3 := remote(1, 10, 500*1024*1024)
+	r3.Release.Protocol = "third"
+	ranked := eng.Rank([]decisionengine.RemoteEpisode{r1, r2, r3}, p)
+	wantOrder := []string{"first", "second", "third"}
+	for i, want := range wantOrder {
+		if ranked[i].Release.Protocol != want {
+			t.Errorf("position %d: want %q, got %q (stable sort violated)", i, want, ranked[i].Release.Protocol)
+		}
+	}
+}
+
 func TestRankByCustomFormatScore(t *testing.T) {
 	eng := decisionengine.New()
 	p := profile(item(1, true), item(2, true), item(3, true))
