@@ -21,25 +21,30 @@ import (
 	"github.com/ajthom90/sonarr2/internal/commands"
 	"github.com/ajthom90/sonarr2/internal/commands/handlers"
 	"github.com/ajthom90/sonarr2/internal/config"
+	"github.com/ajthom90/sonarr2/internal/customformats"
 	"github.com/ajthom90/sonarr2/internal/db"
 	"github.com/ajthom90/sonarr2/internal/events"
 	"github.com/ajthom90/sonarr2/internal/hostconfig"
 	"github.com/ajthom90/sonarr2/internal/library"
 	"github.com/ajthom90/sonarr2/internal/logging"
+	"github.com/ajthom90/sonarr2/internal/profiles"
 	"github.com/ajthom90/sonarr2/internal/scheduler"
 )
 
 // App is the running sonarr2 process.
 type App struct {
-	log       *slog.Logger
-	server    *api.Server
-	pool      db.Pool
-	bus       events.Bus
-	library   *library.Library
-	cmdQueue  commands.Queue
-	registry  *commands.Registry
-	workers   *commands.WorkerPool
-	scheduler *scheduler.Scheduler
+	log             *slog.Logger
+	server          *api.Server
+	pool            db.Pool
+	bus             events.Bus
+	library         *library.Library
+	cmdQueue        commands.Queue
+	registry        *commands.Registry
+	workers         *commands.WorkerPool
+	scheduler       *scheduler.Scheduler
+	qualityDefs     profiles.QualityDefinitionStore
+	qualityProfiles profiles.QualityProfileStore
+	customFormats   customformats.Store
 }
 
 // New constructs an App from the given config. It opens the database,
@@ -94,6 +99,55 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 		return lib.Stats.Delete(ctx, e.ID)
 	})
 
+	// Create profile and custom format stores.
+	var qualityDefStore profiles.QualityDefinitionStore
+	var qualityProfileStore profiles.QualityProfileStore
+	var cfStore customformats.Store
+	switch p := pool.(type) {
+	case *db.PostgresPool:
+		qualityDefStore = profiles.NewPostgresQualityDefinitionStore(p)
+		qualityProfileStore = profiles.NewPostgresQualityProfileStore(p)
+		cfStore = customformats.NewPostgresStore(p)
+	case *db.SQLitePool:
+		qualityDefStore = profiles.NewSQLiteQualityDefinitionStore(p)
+		qualityProfileStore = profiles.NewSQLiteQualityProfileStore(p)
+		cfStore = customformats.NewSQLiteStore(p)
+	default:
+		_ = pool.Close()
+		return nil, fmt.Errorf("app: unsupported pool type for profiles/CF: %T", pool)
+	}
+
+	// Seed a default "Any" quality profile that allows all qualities if none exist.
+	existing, err := qualityProfileStore.List(ctx)
+	if err != nil {
+		_ = pool.Close()
+		return nil, fmt.Errorf("app: list quality profiles: %w", err)
+	}
+	if len(existing) == 0 {
+		allDefs, err := qualityDefStore.GetAll(ctx)
+		if err != nil {
+			_ = pool.Close()
+			return nil, fmt.Errorf("app: get quality definitions: %w", err)
+		}
+		items := make([]profiles.QualityProfileItem, 0, len(allDefs))
+		for _, d := range allDefs {
+			items = append(items, profiles.QualityProfileItem{
+				QualityID: d.ID,
+				Allowed:   true,
+			})
+		}
+		_, err = qualityProfileStore.Create(ctx, profiles.QualityProfile{
+			Name:           "Any",
+			UpgradeAllowed: true,
+			Cutoff:         0, // no cutoff
+			Items:          items,
+		})
+		if err != nil {
+			_ = pool.Close()
+			return nil, fmt.Errorf("app: seed default quality profile: %w", err)
+		}
+	}
+
 	// Create the command queue (dialect-dispatched).
 	var cmdQueue commands.Queue
 	var taskStore scheduler.TaskStore
@@ -133,15 +187,18 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 
 	addr := net.JoinHostPort(cfg.HTTP.BindAddress, strconv.Itoa(cfg.HTTP.Port))
 	return &App{
-		log:       log,
-		server:    api.New(addr, log, poolPingerAdapter{pool: pool}),
-		pool:      pool,
-		bus:       bus,
-		library:   lib,
-		cmdQueue:  cmdQueue,
-		registry:  reg,
-		workers:   wp,
-		scheduler: sched,
+		log:             log,
+		server:          api.New(addr, log, poolPingerAdapter{pool: pool}),
+		pool:            pool,
+		bus:             bus,
+		library:         lib,
+		cmdQueue:        cmdQueue,
+		registry:        reg,
+		workers:         wp,
+		scheduler:       sched,
+		qualityDefs:     qualityDefStore,
+		qualityProfiles: qualityProfileStore,
+		customFormats:   cfStore,
 	}, nil
 }
 

@@ -176,6 +176,41 @@ func TestAppLibraryStatsRecompute(t *testing.T) {
 	}
 }
 
+func TestAppSeedsDefaultQualityProfile(t *testing.T) {
+	port := findFreePort(t)
+	cfg := config.Default()
+	cfg.HTTP.Port = port
+	cfg.HTTP.BindAddress = "127.0.0.1"
+	cfg.Logging.Level = logging.LevelError
+	cfg.DB.Dialect = "sqlite"
+	cfg.DB.DSN = ":memory:"
+	cfg.DB.BusyTimeout = 5 * time.Second
+
+	ctx := context.Background()
+	a, err := New(ctx, cfg)
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	t.Cleanup(func() { _ = a.pool.Close() })
+
+	list, err := a.qualityProfiles.List(ctx)
+	if err != nil {
+		t.Fatalf("List: %v", err)
+	}
+	if len(list) != 1 {
+		t.Fatalf("expected 1 default profile, got %d", len(list))
+	}
+	if list[0].Name != "Any" {
+		t.Errorf("Name = %q, want Any", list[0].Name)
+	}
+	if !list[0].UpgradeAllowed {
+		t.Error("UpgradeAllowed = false, want true")
+	}
+	if len(list[0].Items) != 18 {
+		t.Errorf("Items count = %d, want 18", len(list[0].Items))
+	}
+}
+
 func TestAppCommandExecution(t *testing.T) {
 	port := findFreePort(t)
 	cfg := config.Default()
