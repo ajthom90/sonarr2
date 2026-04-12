@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ajthom90/sonarr2/internal/commands"
 	"github.com/ajthom90/sonarr2/internal/config"
 	"github.com/ajthom90/sonarr2/internal/library"
 	"github.com/ajthom90/sonarr2/internal/logging"
@@ -172,5 +173,75 @@ func TestAppLibraryStatsRecompute(t *testing.T) {
 	_, err = a.library.Stats.Get(ctx, series.ID)
 	if !errors.Is(err, library.ErrNotFound) {
 		t.Errorf("Stats.Get after series delete error = %v, want ErrNotFound", err)
+	}
+}
+
+func TestAppCommandExecution(t *testing.T) {
+	port := findFreePort(t)
+	cfg := config.Default()
+	cfg.HTTP.Port = port
+	cfg.HTTP.BindAddress = "127.0.0.1"
+	cfg.Logging.Level = logging.LevelError
+	cfg.DB.Dialect = "sqlite"
+	cfg.DB.DSN = ":memory:"
+	cfg.DB.BusyTimeout = 5 * time.Second
+
+	ctx := context.Background()
+	a, err := New(ctx, cfg)
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	// Register a test handler.
+	executed := make(chan struct{}, 1)
+	a.registry.Register("TestCommand", commands.HandlerFunc(
+		func(ctx context.Context, cmd commands.Command) error {
+			executed <- struct{}{}
+			return nil
+		},
+	))
+
+	// Start the app's background systems.
+	runCtx, cancel := context.WithCancel(ctx)
+	done := make(chan error, 1)
+	go func() { done <- a.Run(runCtx) }()
+
+	// Wait for the HTTP server to be ready.
+	base := "http://127.0.0.1:" + strconv.Itoa(port)
+	deadline := time.Now().Add(3 * time.Second)
+	for time.Now().Before(deadline) {
+		if resp, err := http.Get(base + "/ping"); err == nil {
+			_, _ = io.Copy(io.Discard, resp.Body)
+			resp.Body.Close()
+			if resp.StatusCode == http.StatusOK {
+				break
+			}
+		}
+		time.Sleep(50 * time.Millisecond)
+	}
+
+	// Enqueue a command.
+	_, err = a.cmdQueue.Enqueue(ctx, "TestCommand", nil, commands.PriorityHigh, commands.TriggerManual, "")
+	if err != nil {
+		t.Fatalf("Enqueue: %v", err)
+	}
+
+	// Wait for the handler to execute.
+	select {
+	case <-executed:
+		// success
+	case <-time.After(5 * time.Second):
+		t.Fatal("handler did not execute within 5s")
+	}
+
+	// Shut down.
+	cancel()
+	select {
+	case err := <-done:
+		if err != nil {
+			t.Errorf("Run() error = %v", err)
+		}
+	case <-time.After(10 * time.Second):
+		t.Fatal("Run() did not return after cancel")
 	}
 }

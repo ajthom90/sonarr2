@@ -10,6 +10,7 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"runtime"
 	"strconv"
 	"sync"
 	"syscall"
@@ -17,21 +18,27 @@ import (
 
 	"github.com/ajthom90/sonarr2/internal/api"
 	"github.com/ajthom90/sonarr2/internal/buildinfo"
+	"github.com/ajthom90/sonarr2/internal/commands"
 	"github.com/ajthom90/sonarr2/internal/config"
 	"github.com/ajthom90/sonarr2/internal/db"
 	"github.com/ajthom90/sonarr2/internal/events"
 	"github.com/ajthom90/sonarr2/internal/hostconfig"
 	"github.com/ajthom90/sonarr2/internal/library"
 	"github.com/ajthom90/sonarr2/internal/logging"
+	"github.com/ajthom90/sonarr2/internal/scheduler"
 )
 
 // App is the running sonarr2 process.
 type App struct {
-	log     *slog.Logger
-	server  *api.Server
-	pool    db.Pool
-	bus     events.Bus
-	library *library.Library
+	log       *slog.Logger
+	server    *api.Server
+	pool      db.Pool
+	bus       events.Bus
+	library   *library.Library
+	cmdQueue  commands.Queue
+	registry  *commands.Registry
+	workers   *commands.WorkerPool
+	scheduler *scheduler.Scheduler
 }
 
 // New constructs an App from the given config. It opens the database,
@@ -86,13 +93,40 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 		return lib.Stats.Delete(ctx, e.ID)
 	})
 
+	// Create the command queue (dialect-dispatched).
+	var cmdQueue commands.Queue
+	var taskStore scheduler.TaskStore
+	switch p := pool.(type) {
+	case *db.PostgresPool:
+		cmdQueue = commands.NewPostgresQueue(p)
+		taskStore = scheduler.NewPostgresTaskStore(p)
+	case *db.SQLitePool:
+		cmdQueue = commands.NewSQLiteQueue(p)
+		taskStore = scheduler.NewSQLiteTaskStore(p)
+	default:
+		_ = pool.Close()
+		return nil, fmt.Errorf("app: unsupported pool type %T for command queue", pool)
+	}
+
+	reg := commands.NewRegistry()
+	numWorkers := runtime.NumCPU()
+	if numWorkers > 4 {
+		numWorkers = 4
+	}
+	wp := commands.NewWorkerPool(cmdQueue, reg, bus, log, numWorkers)
+	sched := scheduler.New(taskStore, cmdQueue, log)
+
 	addr := net.JoinHostPort(cfg.HTTP.BindAddress, strconv.Itoa(cfg.HTTP.Port))
 	return &App{
-		log:     log,
-		server:  api.New(addr, log, poolPingerAdapter{pool: pool}),
-		pool:    pool,
-		bus:     bus,
-		library: lib,
+		log:       log,
+		server:    api.New(addr, log, poolPingerAdapter{pool: pool}),
+		pool:      pool,
+		bus:       bus,
+		library:   lib,
+		cmdQueue:  cmdQueue,
+		registry:  reg,
+		workers:   wp,
+		scheduler: sched,
 	}, nil
 }
 
@@ -134,6 +168,9 @@ func (a *App) Run(ctx context.Context) error {
 		slog.String("date", info.Date),
 	)
 
+	a.workers.Start(ctx)
+	a.scheduler.Start(ctx)
+
 	errCh := make(chan error, 1)
 	var wg sync.WaitGroup
 	wg.Add(1)
@@ -164,6 +201,9 @@ func (a *App) Run(ctx context.Context) error {
 		return fmt.Errorf("server failed: %w", err)
 	default:
 	}
+
+	a.scheduler.Stop()
+	a.workers.Stop()
 
 	if err := a.pool.Close(); err != nil {
 		a.log.Error("db close error", slog.String("err", err.Error()))
