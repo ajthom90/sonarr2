@@ -37,18 +37,30 @@ type Library struct {
 func New(pool db.Pool, bus events.Bus) (*Library, error) {
 	switch p := pool.(type) {
 	case *db.PostgresPool:
+		series := newPostgresSeriesStore(p, bus)
+		seasons := newPostgresSeasonsStore(p, bus)
+		episodes := newPostgresEpisodesStore(p, bus)
+		episodeFiles := newPostgresEpisodeFilesStore(p, bus)
+		stats := newPostgresStatsStore(p, episodes, episodeFiles)
 		return &Library{
-			Series:       newPostgresSeriesStore(p, bus),
-			Seasons:      newPostgresSeasonsStore(p, bus),
-			Episodes:     newPostgresEpisodesStore(p, bus),
-			EpisodeFiles: newPostgresEpisodeFilesStore(p, bus),
+			Series:       series,
+			Seasons:      seasons,
+			Episodes:     episodes,
+			EpisodeFiles: episodeFiles,
+			Stats:        stats,
 		}, nil
 	case *db.SQLitePool:
+		series := newSqliteSeriesStore(p, bus)
+		seasons := newSqliteSeasonsStore(p, bus)
+		episodes := newSqliteEpisodesStore(p, bus)
+		episodeFiles := newSqliteEpisodeFilesStore(p, bus)
+		stats := newSqliteStatsStore(p, episodes, episodeFiles)
 		return &Library{
-			Series:       newSqliteSeriesStore(p, bus),
-			Seasons:      newSqliteSeasonsStore(p, bus),
-			Episodes:     newSqliteEpisodesStore(p, bus),
-			EpisodeFiles: newSqliteEpisodeFilesStore(p, bus),
+			Series:       series,
+			Seasons:      seasons,
+			Episodes:     episodes,
+			EpisodeFiles: episodeFiles,
+			Stats:        stats,
 		}, nil
 	default:
 		return nil, fmt.Errorf("library: unsupported pool type %T", pool)
