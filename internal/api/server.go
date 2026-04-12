@@ -14,20 +14,28 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 )
 
+// PoolPinger is the minimum interface the status handler needs to report
+// database connectivity. The api package intentionally does not import
+// internal/db to keep this layer free of database-package coupling — the
+// app composition root adapts a db.Pool to this interface.
+type PoolPinger interface {
+	Dialect() string
+	Ping(ctx context.Context) error
+}
+
 // Server wraps a net/http server configured with the sonarr2 router.
 type Server struct {
 	log     *slog.Logger
 	httpsrv *http.Server
 }
 
-// New builds a Server bound to addr. addr should be a host:port string
-// suitable for net/http (e.g., "0.0.0.0:8989").
-func New(addr string, log *slog.Logger) *Server {
+// New builds a Server bound to addr.
+func New(addr string, log *slog.Logger, pool PoolPinger) *Server {
 	return &Server{
 		log: log,
 		httpsrv: &http.Server{
 			Addr:              addr,
-			Handler:           Handler(log),
+			Handler:           HandlerWithPool(log, pool),
 			ReadHeaderTimeout: 10 * time.Second,
 		},
 	}
@@ -49,18 +57,26 @@ func (s *Server) Shutdown(ctx context.Context) error {
 	return s.httpsrv.Shutdown(ctx)
 }
 
-// Handler builds the chi router without wrapping it in a full server. Useful
-// for tests that need to drive the handler directly.
-func Handler(log *slog.Logger) http.Handler {
+// HandlerWithPool builds the chi router with a database pool reference so
+// the /api/v3/system/status handler can report db connectivity. Most code
+// should use this instead of Handler.
+func HandlerWithPool(log *slog.Logger, pool PoolPinger) http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
 	r.Use(requestLogger(log))
 	r.Use(middleware.Recoverer)
 
 	r.Get("/ping", pingHandler)
-	r.Get("/api/v3/system/status", statusHandler)
+	r.Get("/api/v3/system/status", statusHandlerWithPool(pool))
 
 	return r
+}
+
+// Handler builds the chi router without wrapping it in a full server.
+// Convenience for tests that don't need a pool; the status handler tolerates
+// a nil pool and reports database connected=false.
+func Handler(log *slog.Logger) http.Handler {
+	return HandlerWithPool(log, nil)
 }
 
 func pingHandler(w http.ResponseWriter, _ *http.Request) {
@@ -68,16 +84,32 @@ func pingHandler(w http.ResponseWriter, _ *http.Request) {
 	_ = json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 }
 
-func statusHandler(w http.ResponseWriter, _ *http.Request) {
-	info := buildinfo.Get()
-	resp := map[string]any{
-		"appName":   "sonarr2",
-		"version":   info.Version,
-		"buildTime": info.Date,
-		"commit":    info.Commit,
+func statusHandlerWithPool(pool PoolPinger) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		info := buildinfo.Get()
+		resp := map[string]any{
+			"appName":   "sonarr2",
+			"version":   info.Version,
+			"buildTime": info.Date,
+			"commit":    info.Commit,
+		}
+
+		if pool != nil {
+			connected := pool.Ping(r.Context()) == nil
+			resp["database"] = map[string]any{
+				"dialect":   pool.Dialect(),
+				"connected": connected,
+			}
+		} else {
+			resp["database"] = map[string]any{
+				"dialect":   "",
+				"connected": false,
+			}
+		}
+
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		_ = json.NewEncoder(w).Encode(resp)
 	}
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	_ = json.NewEncoder(w).Encode(resp)
 }
 
 func requestLogger(log *slog.Logger) func(http.Handler) http.Handler {

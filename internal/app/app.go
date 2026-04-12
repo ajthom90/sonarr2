@@ -54,7 +54,7 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 	addr := net.JoinHostPort(cfg.HTTP.BindAddress, strconv.Itoa(cfg.HTTP.Port))
 	return &App{
 		log:    log,
-		server: api.New(addr, log),
+		server: api.New(addr, log, poolPingerAdapter{pool: pool}),
 		pool:   pool,
 	}, nil
 }
@@ -141,3 +141,13 @@ func (a *App) Run(ctx context.Context) error {
 func SignalContext(parent context.Context) (context.Context, context.CancelFunc) {
 	return signal.NotifyContext(parent, syscall.SIGINT, syscall.SIGTERM)
 }
+
+// poolPingerAdapter wraps a db.Pool to satisfy api.PoolPinger by returning
+// the dialect as a plain string. This keeps the api package free of a
+// db-package import.
+type poolPingerAdapter struct {
+	pool db.Pool
+}
+
+func (p poolPingerAdapter) Dialect() string                { return string(p.pool.Dialect()) }
+func (p poolPingerAdapter) Ping(ctx context.Context) error { return p.pool.Ping(ctx) }
