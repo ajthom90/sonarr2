@@ -32,6 +32,8 @@ import (
 	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/sabnzbd"
 	"github.com/ajthom90/sonarr2/internal/providers/indexer"
 	"github.com/ajthom90/sonarr2/internal/providers/indexer/newznab"
+	"github.com/ajthom90/sonarr2/internal/providers/metadatasource"
+	"github.com/ajthom90/sonarr2/internal/providers/metadatasource/tvdb"
 	"github.com/ajthom90/sonarr2/internal/scheduler"
 )
 
@@ -53,6 +55,7 @@ type App struct {
 	dcRegistry      *downloadclient.Registry
 	indexerStore    indexer.InstanceStore
 	dcStore         downloadclient.InstanceStore
+	metadataSource  metadatasource.MetadataSource
 }
 
 // New constructs an App from the given config. It opens the database,
@@ -203,9 +206,17 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 	wp := commands.NewWorkerPool(cmdQueue, reg, bus, log, numWorkers)
 	sched := scheduler.New(taskStore, cmdQueue, log)
 
+	// Create the TVDB metadata source. API key is empty by default — users
+	// configure it via the UI or SONARR2_TVDB_API_KEY env var later. The
+	// handler will return an error if called without a valid key.
+	tvdbSource := tvdb.New(tvdb.Settings{ApiKey: ""}, nil)
+
 	// Register built-in command handlers.
 	cleanup := handlers.NewCleanupHandler(cmdQueue)
 	reg.Register("MessagingCleanup", cleanup)
+
+	refreshHandler := handlers.NewRefreshSeriesHandler(tvdbSource, lib)
+	reg.Register("RefreshSeriesMetadata", refreshHandler)
 
 	// Register the MessagingCleanup scheduled task (1-hour interval).
 	if err := taskStore.Upsert(ctx, scheduler.ScheduledTask{
@@ -235,6 +246,7 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 		dcRegistry:      dcReg,
 		indexerStore:    idxStore,
 		dcStore:         dcStore,
+		metadataSource:  tvdbSource,
 	}, nil
 }
 
