@@ -102,6 +102,14 @@ func newRecorder() (events.Bus, func() []any) {
 		recorder(e)
 		return nil
 	})
+	events.SubscribeSync[EpisodeFileAdded](bus, func(_ context.Context, e EpisodeFileAdded) error {
+		recorder(e)
+		return nil
+	})
+	events.SubscribeSync[EpisodeFileDeleted](bus, func(_ context.Context, e EpisodeFileDeleted) error {
+		recorder(e)
+		return nil
+	})
 	return bus, func() []any {
 		mu.Lock()
 		defer mu.Unlock()
