@@ -38,13 +38,15 @@ func New(pool db.Pool, bus events.Bus) (*Library, error) {
 	switch p := pool.(type) {
 	case *db.PostgresPool:
 		return &Library{
-			Series:  newPostgresSeriesStore(p, bus),
-			Seasons: newPostgresSeasonsStore(p, bus),
+			Series:   newPostgresSeriesStore(p, bus),
+			Seasons:  newPostgresSeasonsStore(p, bus),
+			Episodes: newPostgresEpisodesStore(p, bus),
 		}, nil
 	case *db.SQLitePool:
 		return &Library{
-			Series:  newSqliteSeriesStore(p, bus),
-			Seasons: newSqliteSeasonsStore(p, bus),
+			Series:   newSqliteSeriesStore(p, bus),
+			Seasons:  newSqliteSeasonsStore(p, bus),
+			Episodes: newSqliteEpisodesStore(p, bus),
 		}, nil
 	default:
 		return nil, fmt.Errorf("library: unsupported pool type %T", pool)
