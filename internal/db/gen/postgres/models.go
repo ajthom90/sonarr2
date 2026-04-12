@@ -27,6 +27,13 @@ type Command struct {
 	DedupKey   string
 }
 
+type CustomFormat struct {
+	ID                  int32
+	Name                string
+	IncludeWhenRenaming bool
+	Specifications      []byte
+}
+
 type Episode struct {
 	ID                    int64
 	SeriesID              int64
@@ -62,6 +69,27 @@ type HostConfig struct {
 	MigrationState string
 	CreatedAt      pgtype.Timestamptz
 	UpdatedAt      pgtype.Timestamptz
+}
+
+type QualityDefinition struct {
+	ID            int32
+	Name          string
+	Source        string
+	Resolution    string
+	MinSize       float32
+	MaxSize       float32
+	PreferredSize float32
+}
+
+type QualityProfile struct {
+	ID                int32
+	Name              string
+	UpgradeAllowed    bool
+	Cutoff            int32
+	Items             []byte
+	MinFormatScore    int32
+	CutoffFormatScore int32
+	FormatItems       []byte
 }
 
 type ScheduledTask struct {

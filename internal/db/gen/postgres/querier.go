@@ -14,38 +14,51 @@ type Querier interface {
 	ClaimCommand(ctx context.Context, arg ClaimCommandParams) (Command, error)
 	CompleteCommand(ctx context.Context, arg CompleteCommandParams) error
 	CountEpisodesForSeries(ctx context.Context, seriesID int64) (CountEpisodesForSeriesRow, error)
+	CreateCustomFormat(ctx context.Context, arg CreateCustomFormatParams) (CustomFormat, error)
 	CreateEpisode(ctx context.Context, arg CreateEpisodeParams) (Episode, error)
 	CreateEpisodeFile(ctx context.Context, arg CreateEpisodeFileParams) (EpisodeFile, error)
+	CreateQualityProfile(ctx context.Context, arg CreateQualityProfileParams) (QualityProfile, error)
 	CreateSeries(ctx context.Context, arg CreateSeriesParams) (Series, error)
+	DeleteCustomFormat(ctx context.Context, id int32) error
 	DeleteEpisode(ctx context.Context, id int64) error
 	DeleteEpisodeFile(ctx context.Context, id int64) error
 	DeleteOldCompleted(ctx context.Context, endedAt pgtype.Timestamptz) (int64, error)
+	DeleteQualityProfile(ctx context.Context, id int32) error
 	DeleteSeason(ctx context.Context, arg DeleteSeasonParams) error
 	DeleteSeries(ctx context.Context, id int64) error
 	DeleteSeriesStatistics(ctx context.Context, seriesID int64) error
 	EnqueueCommand(ctx context.Context, arg EnqueueCommandParams) (Command, error)
 	FailCommand(ctx context.Context, arg FailCommandParams) error
 	FindDuplicate(ctx context.Context, dedupKey string) (int64, error)
+	GetAllQualityDefinitions(ctx context.Context) ([]QualityDefinition, error)
 	GetCommand(ctx context.Context, id int64) (Command, error)
+	GetCustomFormatByID(ctx context.Context, id int32) (CustomFormat, error)
 	GetDueTasks(ctx context.Context) ([]ScheduledTask, error)
 	GetEpisode(ctx context.Context, id int64) (Episode, error)
 	GetEpisodeFile(ctx context.Context, id int64) (EpisodeFile, error)
 	GetHostConfig(ctx context.Context) (HostConfig, error)
+	GetQualityDefinitionByID(ctx context.Context, id int32) (QualityDefinition, error)
+	GetQualityProfileByID(ctx context.Context, id int32) (QualityProfile, error)
 	GetScheduledTask(ctx context.Context, typeName string) (ScheduledTask, error)
 	GetSeason(ctx context.Context, arg GetSeasonParams) (Season, error)
 	GetSeries(ctx context.Context, id int64) (Series, error)
 	GetSeriesBySlug(ctx context.Context, slug string) (Series, error)
 	GetSeriesByTvdbID(ctx context.Context, tvdbID int64) (Series, error)
 	GetSeriesStatistics(ctx context.Context, seriesID int64) (SeriesStatistic, error)
+	ListCustomFormats(ctx context.Context) ([]CustomFormat, error)
 	ListEpisodeFilesForSeries(ctx context.Context, seriesID int64) ([]EpisodeFile, error)
 	ListEpisodesForSeries(ctx context.Context, seriesID int64) ([]Episode, error)
+	ListQualityProfiles(ctx context.Context) ([]QualityProfile, error)
 	ListScheduledTasks(ctx context.Context) ([]ScheduledTask, error)
 	ListSeasonsForSeries(ctx context.Context, seriesID int64) ([]Season, error)
 	ListSeries(ctx context.Context) ([]Series, error)
 	RefreshLease(ctx context.Context, arg RefreshLeaseParams) error
 	SumEpisodeFileSizesForSeries(ctx context.Context, seriesID int64) (SumEpisodeFileSizesForSeriesRow, error)
 	SweepExpiredLeases(ctx context.Context) (int64, error)
+	UpdateCustomFormat(ctx context.Context, arg UpdateCustomFormatParams) error
 	UpdateEpisode(ctx context.Context, arg UpdateEpisodeParams) error
+	UpdateQualityDefinitionSizes(ctx context.Context, arg UpdateQualityDefinitionSizesParams) error
+	UpdateQualityProfile(ctx context.Context, arg UpdateQualityProfileParams) error
 	UpdateSeries(ctx context.Context, arg UpdateSeriesParams) error
 	UpdateTaskExecution(ctx context.Context, arg UpdateTaskExecutionParams) error
 	UpsertHostConfig(ctx context.Context, arg UpsertHostConfigParams) error
