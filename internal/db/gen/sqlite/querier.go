@@ -6,21 +6,30 @@ package sqlite
 
 import (
 	"context"
+	"database/sql"
 )
 
 type Querier interface {
+	CompleteCommand(ctx context.Context, arg CompleteCommandParams) error
 	CountEpisodesForSeries(ctx context.Context, seriesID int64) (CountEpisodesForSeriesRow, error)
 	CreateEpisode(ctx context.Context, arg CreateEpisodeParams) (Episode, error)
 	CreateEpisodeFile(ctx context.Context, arg CreateEpisodeFileParams) (EpisodeFile, error)
 	CreateSeries(ctx context.Context, arg CreateSeriesParams) (Series, error)
 	DeleteEpisode(ctx context.Context, id int64) error
 	DeleteEpisodeFile(ctx context.Context, id int64) error
+	DeleteOldCompleted(ctx context.Context, endedAt sql.NullString) (int64, error)
 	DeleteSeason(ctx context.Context, arg DeleteSeasonParams) error
 	DeleteSeries(ctx context.Context, id int64) error
 	DeleteSeriesStatistics(ctx context.Context, seriesID int64) error
+	EnqueueCommand(ctx context.Context, arg EnqueueCommandParams) (Command, error)
+	FailCommand(ctx context.Context, arg FailCommandParams) error
+	FindDuplicate(ctx context.Context, dedupKey string) (int64, error)
+	GetCommand(ctx context.Context, id int64) (Command, error)
+	GetDueTasks(ctx context.Context) ([]ScheduledTask, error)
 	GetEpisode(ctx context.Context, id int64) (Episode, error)
 	GetEpisodeFile(ctx context.Context, id int64) (EpisodeFile, error)
 	GetHostConfig(ctx context.Context) (HostConfig, error)
+	GetScheduledTask(ctx context.Context, typeName string) (ScheduledTask, error)
 	GetSeason(ctx context.Context, arg GetSeasonParams) (Season, error)
 	GetSeries(ctx context.Context, id int64) (Series, error)
 	GetSeriesBySlug(ctx context.Context, slug string) (Series, error)
@@ -28,12 +37,19 @@ type Querier interface {
 	GetSeriesStatistics(ctx context.Context, seriesID int64) (SeriesStatistic, error)
 	ListEpisodeFilesForSeries(ctx context.Context, seriesID int64) ([]EpisodeFile, error)
 	ListEpisodesForSeries(ctx context.Context, seriesID int64) ([]Episode, error)
+	ListScheduledTasks(ctx context.Context) ([]ScheduledTask, error)
 	ListSeasonsForSeries(ctx context.Context, seriesID int64) ([]Season, error)
 	ListSeries(ctx context.Context) ([]Series, error)
+	MarkCommandRunning(ctx context.Context, arg MarkCommandRunningParams) error
+	RefreshLease(ctx context.Context, arg RefreshLeaseParams) error
+	SelectNextQueuedCommand(ctx context.Context) (int64, error)
 	SumEpisodeFileSizesForSeries(ctx context.Context, seriesID int64) (SumEpisodeFileSizesForSeriesRow, error)
+	SweepExpiredLeases(ctx context.Context) (int64, error)
 	UpdateEpisode(ctx context.Context, arg UpdateEpisodeParams) error
 	UpdateSeries(ctx context.Context, arg UpdateSeriesParams) error
+	UpdateTaskExecution(ctx context.Context, arg UpdateTaskExecutionParams) error
 	UpsertHostConfig(ctx context.Context, arg UpsertHostConfigParams) error
+	UpsertScheduledTask(ctx context.Context, arg UpsertScheduledTaskParams) error
 	UpsertSeason(ctx context.Context, arg UpsertSeasonParams) error
 	UpsertSeriesStatistics(ctx context.Context, arg UpsertSeriesStatisticsParams) error
 }

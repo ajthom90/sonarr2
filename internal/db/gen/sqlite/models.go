@@ -8,6 +8,25 @@ import (
 	"database/sql"
 )
 
+type Command struct {
+	ID         int64
+	Name       string
+	Body       string
+	Priority   int64
+	Status     string
+	QueuedAt   string
+	StartedAt  sql.NullString
+	EndedAt    sql.NullString
+	DurationMs sql.NullInt64
+	Exception  string
+	Trigger    string
+	Message    string
+	Result     string
+	WorkerID   string
+	LeaseUntil sql.NullString
+	DedupKey   string
+}
+
 type Episode struct {
 	ID                    int64
 	SeriesID              int64
@@ -43,6 +62,13 @@ type HostConfig struct {
 	MigrationState string
 	CreatedAt      string
 	UpdatedAt      string
+}
+
+type ScheduledTask struct {
+	TypeName      string
+	IntervalSecs  int64
+	LastExecution sql.NullString
+	NextExecution string
 }
 
 type Season struct {

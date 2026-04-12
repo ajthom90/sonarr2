@@ -8,6 +8,25 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type Command struct {
+	ID         int64
+	Name       string
+	Body       []byte
+	Priority   int16
+	Status     string
+	QueuedAt   pgtype.Timestamptz
+	StartedAt  pgtype.Timestamptz
+	EndedAt    pgtype.Timestamptz
+	DurationMs pgtype.Int8
+	Exception  string
+	Trigger    string
+	Message    string
+	Result     []byte
+	WorkerID   string
+	LeaseUntil pgtype.Timestamptz
+	DedupKey   string
+}
+
 type Episode struct {
 	ID                    int64
 	SeriesID              int64
@@ -43,6 +62,13 @@ type HostConfig struct {
 	MigrationState string
 	CreatedAt      pgtype.Timestamptz
 	UpdatedAt      pgtype.Timestamptz
+}
+
+type ScheduledTask struct {
+	TypeName      string
+	IntervalSecs  int32
+	LastExecution pgtype.Timestamptz
+	NextExecution pgtype.Timestamptz
 }
 
 type Season struct {
