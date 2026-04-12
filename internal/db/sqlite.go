@@ -5,6 +5,9 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -123,12 +126,58 @@ func normalizeDSN(dsn string) string {
 	return dsn
 }
 
+// sqliteFilePath extracts the filesystem path from a SQLite DSN, or returns
+// an empty string if the DSN refers to an in-memory database. Handles bare
+// file paths ("./data/x.db"), URI-form DSNs ("file:./data/x.db?_pragma=..."),
+// and in-memory variants (":memory:", "file::memory:?..."). It does NOT
+// validate that the path is well-formed — it's a best-effort extractor used
+// only to decide whether to create a parent directory.
+func sqliteFilePath(dsn string) string {
+	if dsn == "" || dsn == ":memory:" {
+		return ""
+	}
+	// Strip file: prefix if present (URI-form DSN).
+	path := strings.TrimPrefix(dsn, "file:")
+	// Strip query string.
+	if idx := strings.Index(path, "?"); idx != -1 {
+		path = path[:idx]
+	}
+	// In-memory URI form: "file::memory:" → path == ":memory:" after stripping.
+	if path == ":memory:" || strings.HasPrefix(path, ":memory:") {
+		return ""
+	}
+	return path
+}
+
+// ensureSQLiteDir creates the parent directory of a file-based SQLite DSN
+// if it does not already exist. In-memory DSNs are a no-op. This makes fresh
+// installs work without requiring the user to pre-create the data directory.
+func ensureSQLiteDir(dsn string) error {
+	path := sqliteFilePath(dsn)
+	if path == "" {
+		return nil
+	}
+	dir := filepath.Dir(path)
+	if dir == "" || dir == "." {
+		return nil // current directory always exists
+	}
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return fmt.Errorf("db: create sqlite parent dir %q: %w", dir, err)
+	}
+	return nil
+}
+
 // OpenSQLite opens a SQLite database using the modernc.org/sqlite pure-Go
 // driver. It creates two sql.DB handles: a single-connection writer and a
-// multi-connection reader with PRAGMA query_only=1.
+// multi-connection reader with PRAGMA query_only=1. For file-based DSNs,
+// any missing parent directory is created automatically.
 func OpenSQLite(ctx context.Context, opts SQLiteOptions) (*SQLitePool, error) {
 	if opts.DSN == "" {
 		return nil, errors.New("db: sqlite DSN is required")
+	}
+
+	if err := ensureSQLiteDir(opts.DSN); err != nil {
+		return nil, err
 	}
 
 	dsn := normalizeDSN(opts.DSN)

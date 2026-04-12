@@ -2,11 +2,77 @@ package db
 
 import (
 	"context"
+	"os"
 	"path/filepath"
 	"sync"
 	"testing"
 	"time"
 )
+
+func TestSQLiteFilePath(t *testing.T) {
+	cases := map[string]struct {
+		dsn  string
+		want string
+	}{
+		"empty":             {"", ""},
+		"bare memory":       {":memory:", ""},
+		"uri memory":        {"file::memory:", ""},
+		"uri memory with q": {"file::memory:?cache=shared&mode=memory", ""},
+		"bare relative":     {"./data/sonarr2.db", "./data/sonarr2.db"},
+		"bare absolute":     {"/var/lib/sonarr2/sonarr2.db", "/var/lib/sonarr2/sonarr2.db"},
+		"uri relative":      {"file:./data/sonarr2.db", "./data/sonarr2.db"},
+		"uri relative w q":  {"file:./data/sonarr2.db?_journal=WAL&_busy_timeout=5000", "./data/sonarr2.db"},
+		"uri absolute w q":  {"file:/var/lib/sonarr2/x.db?_journal=WAL", "/var/lib/sonarr2/x.db"},
+	}
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			got := sqliteFilePath(tc.dsn)
+			if got != tc.want {
+				t.Errorf("sqliteFilePath(%q) = %q, want %q", tc.dsn, got, tc.want)
+			}
+		})
+	}
+}
+
+func TestEnsureSQLiteDirCreatesMissingParent(t *testing.T) {
+	base := t.TempDir()
+	nested := filepath.Join(base, "one", "two", "three")
+	dsn := "file:" + filepath.Join(nested, "sonarr2.db") + "?_journal=WAL"
+
+	if err := ensureSQLiteDir(dsn); err != nil {
+		t.Fatalf("ensureSQLiteDir: %v", err)
+	}
+	if _, err := os.Stat(nested); err != nil {
+		t.Errorf("parent dir not created: %v", err)
+	}
+}
+
+func TestEnsureSQLiteDirMemoryIsNoop(t *testing.T) {
+	for _, dsn := range []string{":memory:", "file::memory:?cache=shared&mode=memory", ""} {
+		if err := ensureSQLiteDir(dsn); err != nil {
+			t.Errorf("ensureSQLiteDir(%q) = %v, want nil", dsn, err)
+		}
+	}
+}
+
+func TestOpenSQLiteCreatesParentDirForFileDSN(t *testing.T) {
+	base := t.TempDir()
+	path := filepath.Join(base, "fresh", "subdir", "sonarr2.db")
+	dsn := "file:" + path + "?_journal=WAL&_busy_timeout=5000"
+
+	pool, err := OpenSQLite(context.Background(), SQLiteOptions{
+		DSN:         dsn,
+		BusyTimeout: 5 * time.Second,
+	})
+	if err != nil {
+		t.Fatalf("OpenSQLite: %v", err)
+	}
+	t.Cleanup(func() { _ = pool.Close() })
+
+	if _, err := os.Stat(path); err != nil {
+		t.Errorf("db file not created at %q: %v", path, err)
+	}
+}
 
 func TestOpenSQLiteInMemory(t *testing.T) {
 	pool, err := OpenSQLite(context.Background(), SQLiteOptions{
