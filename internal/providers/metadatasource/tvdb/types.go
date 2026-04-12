@@ -41,10 +41,10 @@ type tvdbSeriesResponse struct {
 
 // tvdbSeries is the detailed series object.
 type tvdbSeries struct {
-	ID              int64    `json:"id"`
-	Name            string   `json:"name"`
-	Year            string   `json:"year"`
-	Overview        string   `json:"overview"`
+	ID              int64      `json:"id"`
+	Name            string     `json:"name"`
+	Year            string     `json:"year"`
+	Overview        string     `json:"overview"`
 	Status          tvdbStatus `json:"status"`
 	OriginalNetwork struct {
 		Name string `json:"name"`
