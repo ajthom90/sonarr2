@@ -42,14 +42,6 @@ func (c *tokenCache) get(ctx context.Context, client *http.Client, baseURL, apiK
 	return c.token, nil
 }
 
-// invalidate forces the next get() to re-login regardless of expiry.
-func (c *tokenCache) invalidate() {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	c.token = ""
-	c.expiry = time.Time{}
-}
-
 // login performs POST /v4/login and returns the JWT token.
 func (c *tokenCache) login(ctx context.Context, client *http.Client, baseURL, apiKey string) (string, error) {
 	body, err := json.Marshal(tvdbLoginRequest{APIKey: apiKey})
