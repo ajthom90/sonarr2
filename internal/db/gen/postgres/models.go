@@ -8,6 +8,34 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type Episode struct {
+	ID                    int64
+	SeriesID              int64
+	SeasonNumber          int32
+	EpisodeNumber         int32
+	AbsoluteEpisodeNumber pgtype.Int4
+	Title                 string
+	Overview              string
+	AirDateUtc            pgtype.Timestamptz
+	Monitored             bool
+	EpisodeFileID         pgtype.Int8
+	CreatedAt             pgtype.Timestamptz
+	UpdatedAt             pgtype.Timestamptz
+}
+
+type EpisodeFile struct {
+	ID           int64
+	SeriesID     int64
+	SeasonNumber int32
+	RelativePath string
+	Size         int64
+	DateAdded    pgtype.Timestamptz
+	ReleaseGroup string
+	QualityName  string
+	CreatedAt    pgtype.Timestamptz
+	UpdatedAt    pgtype.Timestamptz
+}
+
 type HostConfig struct {
 	ID             int16
 	ApiKey         string
@@ -15,4 +43,33 @@ type HostConfig struct {
 	MigrationState string
 	CreatedAt      pgtype.Timestamptz
 	UpdatedAt      pgtype.Timestamptz
+}
+
+type Season struct {
+	SeriesID     int64
+	SeasonNumber int32
+	Monitored    bool
+}
+
+type Series struct {
+	ID         int64
+	TvdbID     int64
+	Title      string
+	Slug       string
+	Status     string
+	SeriesType string
+	Path       string
+	Monitored  bool
+	Added      pgtype.Timestamptz
+	CreatedAt  pgtype.Timestamptz
+	UpdatedAt  pgtype.Timestamptz
+}
+
+type SeriesStatistic struct {
+	SeriesID              int64
+	EpisodeCount          int32
+	EpisodeFileCount      int32
+	MonitoredEpisodeCount int32
+	SizeOnDisk            int64
+	UpdatedAt             pgtype.Timestamptz
 }

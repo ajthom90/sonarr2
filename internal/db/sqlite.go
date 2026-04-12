@@ -199,6 +199,13 @@ func OpenSQLite(ctx context.Context, opts SQLiteOptions) (*SQLitePool, error) {
 		_ = writer.Close()
 		return nil, fmt.Errorf("db: set WAL mode: %w", err)
 	}
+	// Enable foreign key enforcement on the writer. SQLite disables FKs
+	// by default per connection — without this, ON DELETE CASCADE clauses
+	// in migrations are silently ignored.
+	if _, err := writer.ExecContext(ctx, `PRAGMA foreign_keys=ON`); err != nil {
+		_ = writer.Close()
+		return nil, fmt.Errorf("db: enable foreign keys on writer: %w", err)
+	}
 	if opts.BusyTimeout > 0 {
 		ms := int(opts.BusyTimeout / time.Millisecond)
 		if _, err := writer.ExecContext(ctx, fmt.Sprintf("PRAGMA busy_timeout=%d", ms)); err != nil {
@@ -211,6 +218,11 @@ func OpenSQLite(ctx context.Context, opts SQLiteOptions) (*SQLitePool, error) {
 	if err != nil {
 		_ = writer.Close()
 		return nil, fmt.Errorf("db: open sqlite reader: %w", err)
+	}
+	if _, err := reader.ExecContext(ctx, `PRAGMA foreign_keys=ON`); err != nil {
+		_ = reader.Close()
+		_ = writer.Close()
+		return nil, fmt.Errorf("db: enable foreign keys on reader: %w", err)
 	}
 	if _, err := reader.ExecContext(ctx, `PRAGMA query_only=1`); err != nil {
 		_ = reader.Close()

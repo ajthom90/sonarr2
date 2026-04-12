@@ -9,8 +9,33 @@ import (
 )
 
 type Querier interface {
+	CountEpisodesForSeries(ctx context.Context, seriesID int64) (CountEpisodesForSeriesRow, error)
+	CreateEpisode(ctx context.Context, arg CreateEpisodeParams) (Episode, error)
+	CreateEpisodeFile(ctx context.Context, arg CreateEpisodeFileParams) (EpisodeFile, error)
+	CreateSeries(ctx context.Context, arg CreateSeriesParams) (Series, error)
+	DeleteEpisode(ctx context.Context, id int64) error
+	DeleteEpisodeFile(ctx context.Context, id int64) error
+	DeleteSeason(ctx context.Context, arg DeleteSeasonParams) error
+	DeleteSeries(ctx context.Context, id int64) error
+	DeleteSeriesStatistics(ctx context.Context, seriesID int64) error
+	GetEpisode(ctx context.Context, id int64) (Episode, error)
+	GetEpisodeFile(ctx context.Context, id int64) (EpisodeFile, error)
 	GetHostConfig(ctx context.Context) (HostConfig, error)
+	GetSeason(ctx context.Context, arg GetSeasonParams) (Season, error)
+	GetSeries(ctx context.Context, id int64) (Series, error)
+	GetSeriesBySlug(ctx context.Context, slug string) (Series, error)
+	GetSeriesByTvdbID(ctx context.Context, tvdbID int64) (Series, error)
+	GetSeriesStatistics(ctx context.Context, seriesID int64) (SeriesStatistic, error)
+	ListEpisodeFilesForSeries(ctx context.Context, seriesID int64) ([]EpisodeFile, error)
+	ListEpisodesForSeries(ctx context.Context, seriesID int64) ([]Episode, error)
+	ListSeasonsForSeries(ctx context.Context, seriesID int64) ([]Season, error)
+	ListSeries(ctx context.Context) ([]Series, error)
+	SumEpisodeFileSizesForSeries(ctx context.Context, seriesID int64) (SumEpisodeFileSizesForSeriesRow, error)
+	UpdateEpisode(ctx context.Context, arg UpdateEpisodeParams) error
+	UpdateSeries(ctx context.Context, arg UpdateSeriesParams) error
 	UpsertHostConfig(ctx context.Context, arg UpsertHostConfigParams) error
+	UpsertSeason(ctx context.Context, arg UpsertSeasonParams) error
+	UpsertSeriesStatistics(ctx context.Context, arg UpsertSeriesStatisticsParams) error
 }
 
 var _ Querier = (*Queries)(nil)

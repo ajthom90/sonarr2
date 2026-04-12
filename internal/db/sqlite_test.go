@@ -179,3 +179,40 @@ func TestOpenSQLiteRejectsEmptyDSN(t *testing.T) {
 		t.Fatal("expected error for empty DSN")
 	}
 }
+
+func TestSQLiteEnforcesForeignKeys(t *testing.T) {
+	pool, err := OpenSQLite(context.Background(), SQLiteOptions{
+		DSN:         ":memory:",
+		BusyTimeout: 5 * time.Second,
+	})
+	if err != nil {
+		t.Fatalf("OpenSQLite: %v", err)
+	}
+	t.Cleanup(func() { _ = pool.Close() })
+
+	// Create parent/child tables with a FK.
+	err = pool.Write(context.Background(), func(exec Executor) error {
+		if _, err := exec.ExecContext(context.Background(),
+			`CREATE TABLE parent (id INTEGER PRIMARY KEY)`); err != nil {
+			return err
+		}
+		if _, err := exec.ExecContext(context.Background(),
+			`CREATE TABLE child (id INTEGER PRIMARY KEY, parent_id INTEGER NOT NULL REFERENCES parent(id))`); err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("create tables: %v", err)
+	}
+
+	// Inserting a child with a non-existent parent must fail.
+	err = pool.Write(context.Background(), func(exec Executor) error {
+		_, err := exec.ExecContext(context.Background(),
+			`INSERT INTO child (id, parent_id) VALUES (1, 999)`)
+		return err
+	})
+	if err == nil {
+		t.Error("expected FK violation, got nil")
+	}
+}

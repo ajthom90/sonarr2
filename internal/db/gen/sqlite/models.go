@@ -4,6 +4,38 @@
 
 package sqlite
 
+import (
+	"database/sql"
+)
+
+type Episode struct {
+	ID                    int64
+	SeriesID              int64
+	SeasonNumber          int64
+	EpisodeNumber         int64
+	AbsoluteEpisodeNumber sql.NullInt64
+	Title                 string
+	Overview              string
+	AirDateUtc            sql.NullString
+	Monitored             int64
+	EpisodeFileID         sql.NullInt64
+	CreatedAt             string
+	UpdatedAt             string
+}
+
+type EpisodeFile struct {
+	ID           int64
+	SeriesID     int64
+	SeasonNumber int64
+	RelativePath string
+	Size         int64
+	DateAdded    string
+	ReleaseGroup string
+	QualityName  string
+	CreatedAt    string
+	UpdatedAt    string
+}
+
 type HostConfig struct {
 	ID             int64
 	ApiKey         string
@@ -11,4 +43,33 @@ type HostConfig struct {
 	MigrationState string
 	CreatedAt      string
 	UpdatedAt      string
+}
+
+type Season struct {
+	SeriesID     int64
+	SeasonNumber int64
+	Monitored    int64
+}
+
+type Series struct {
+	ID         int64
+	TvdbID     int64
+	Title      string
+	Slug       string
+	Status     string
+	SeriesType string
+	Path       string
+	Monitored  int64
+	Added      string
+	CreatedAt  string
+	UpdatedAt  string
+}
+
+type SeriesStatistic struct {
+	SeriesID              int64
+	EpisodeCount          int64
+	EpisodeFileCount      int64
+	MonitoredEpisodeCount int64
+	SizeOnDisk            int64
+	UpdatedAt             string
 }
