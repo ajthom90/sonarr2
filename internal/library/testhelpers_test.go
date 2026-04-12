@@ -86,6 +86,10 @@ func newRecorder() (events.Bus, func() []any) {
 		recorder(e)
 		return nil
 	})
+	events.SubscribeSync[SeasonUpdated](bus, func(_ context.Context, e SeasonUpdated) error {
+		recorder(e)
+		return nil
+	})
 	return bus, func() []any {
 		mu.Lock()
 		defer mu.Unlock()
