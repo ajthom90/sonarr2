@@ -32,11 +32,7 @@ func (s *sqliteSeasonsStore) Upsert(ctx context.Context, in Season) error {
 	if err != nil {
 		return fmt.Errorf("library: upsert season: %w", err)
 	}
-	if err := s.bus.Publish(ctx, SeasonUpdated{
-		SeriesID:     in.SeriesID,
-		SeasonNumber: in.SeasonNumber,
-		Monitored:    in.Monitored,
-	}); err != nil {
+	if err := s.bus.Publish(ctx, SeasonUpdated(in)); err != nil {
 		return fmt.Errorf("library: publish SeasonUpdated: %w", err)
 	}
 	return nil

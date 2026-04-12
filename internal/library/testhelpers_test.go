@@ -2,7 +2,6 @@ package library
 
 import (
 	"context"
-	"reflect"
 	"sync"
 	"testing"
 	"time"
@@ -11,58 +10,10 @@ import (
 	"github.com/ajthom90/sonarr2/internal/events"
 )
 
-// recordingBus is a test Bus that records every published event for later
-// assertions. It wraps a real events.Bus so handlers still run normally.
-type recordingBus struct {
-	inner events.Bus
-	mu    sync.Mutex
-	seen  []any
-}
-
-func newRecordingBus() *recordingBus {
-	return &recordingBus{inner: events.NewBus(4)}
-}
-
-func (r *recordingBus) Publish(ctx context.Context, event any) error {
-	r.mu.Lock()
-	r.seen = append(r.seen, event)
-	r.mu.Unlock()
-	return r.inner.Publish(ctx, event)
-}
-
-// events returns a copy of all events seen so far, optionally filtered by
-// concrete type.
-func (r *recordingBus) events() []any {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	out := make([]any, len(r.seen))
-	copy(out, r.seen)
-	return out
-}
-
-// ofType returns all events matching type T.
-func eventsOfType[T any](r *recordingBus) []T {
-	all := r.events()
-	var out []T
-	for _, e := range all {
-		if t, ok := e.(T); ok {
-			out = append(out, t)
-		}
-	}
-	return out
-}
-
-// recordingBus satisfies events.Bus because register is unexported on
-// events.Bus — but we can't delegate to inner.register from outside the
-// package. Instead, recordingBus does NOT satisfy events.Bus directly;
-// store tests that need a recorder use the wrapper pattern below.
-//
-// Concrete approach: use recordingBus.inner (a real Bus) as the store's
-// bus. Subscribe a test handler that appends to r.seen. That way we
-// observe events without trying to satisfy Bus.register.
-//
-// Helper: newRecorder returns (bus, getEvents) where bus is a real
-// events.Bus and getEvents returns captured events filtered by type.
+// newRecorder returns (bus, getEvents) where bus is a real events.Bus and
+// getEvents returns a snapshot of all captured events. The recorder subscribes
+// a sync handler for every known library event type so tests can assert on
+// which events were published.
 func newRecorder() (events.Bus, func() []any) {
 	bus := events.NewBus(4)
 	var mu sync.Mutex
@@ -167,7 +118,3 @@ func assertHasEvent[T any](t *testing.T, getEvents func() []any) T {
 	}
 	return matches[0]
 }
-
-// unused import guard: reflect is imported above to silence golangci-lint
-// warnings if it becomes unused after later edits; keep it referenced.
-var _ = reflect.TypeOf
