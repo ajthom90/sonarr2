@@ -175,6 +175,11 @@ func Mount(r chi.Router, deps Deps) {
 			mountSeriesLookup(r, deps.MetadataSource)
 		}
 
+		// rootfolder
+		if deps.Series != nil {
+			mountRootFolder(r, deps.Series)
+		}
+
 		// system/status
 		mountSystemStatus(r, deps.Pool)
 
