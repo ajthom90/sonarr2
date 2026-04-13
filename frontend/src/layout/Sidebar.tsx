@@ -10,6 +10,8 @@ const navItems = [
   { to: '/wanted', label: 'Wanted', icon: '🔍' },
   { to: '/settings', label: 'Settings', icon: '⚙️', children: [
     { to: '/settings/general', label: 'General' },
+    { to: '/settings/mediamanagement', label: 'Media Management' },
+    { to: '/settings/profiles', label: 'Profiles' },
     { to: '/settings/customformats', label: 'Custom Formats' },
   ] },
   { to: '/system', label: 'System', icon: '💻' },

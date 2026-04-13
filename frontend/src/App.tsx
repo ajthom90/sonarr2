@@ -12,6 +12,8 @@ import { Wanted } from './pages/Wanted'
 import { Settings } from './pages/Settings'
 import { SettingsGeneral } from './pages/SettingsGeneral'
 import { SettingsCustomFormats } from './pages/SettingsCustomFormats'
+import { SettingsMediaManagement } from './pages/SettingsMediaManagement'
+import { SettingsProfiles } from './pages/SettingsProfiles'
 import { System } from './pages/System'
 import { AddSeries } from './pages/AddSeries'
 import { NotFound } from './pages/NotFound'
@@ -39,6 +41,8 @@ export function App() {
               <Route path="settings" element={<Settings />} />
               <Route path="settings/general" element={<SettingsGeneral />} />
               <Route path="settings/customformats" element={<SettingsCustomFormats />} />
+              <Route path="settings/mediamanagement" element={<SettingsMediaManagement />} />
+              <Route path="settings/profiles" element={<SettingsProfiles />} />
               <Route path="system" element={<System />} />
               <Route path="*" element={<NotFound />} />
             </Route>
