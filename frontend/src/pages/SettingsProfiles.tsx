@@ -7,7 +7,7 @@ import {
   useDeleteQualityProfile,
 } from '../api/hooks'
 import { Modal } from '../components/Modal'
-import type { QualityProfile, QualityDefinition, QualityProfileItem } from '../api/types'
+import type { QualityProfile, QualityDefinition } from '../api/types'
 import styles from './SettingsProfiles.module.css'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -34,7 +34,7 @@ function defaultFormState(definitions: QualityDefinition[]): FormState {
   return {
     name: '',
     upgradeAllowed: false,
-    cutoff: definitions.length > 0 ? definitions[0].id : 0,
+    cutoff: definitions[0]?.id ?? 0,
     items,
   }
 }
@@ -108,24 +108,24 @@ function ProfileFormModal({ open, onClose, initial, definitions }: ProfileFormMo
       return
     }
 
-    const items: Array<{ qualityId: number; allowed: boolean }> = []
-    for (const [qualityId, allowed] of form.items) {
-      items.push({ qualityId, allowed })
-    }
+    const items = Array.from(form.items.entries()).map(([qualityId, allowed]) => ({
+      quality: { id: qualityId, name: '' },
+      allowed,
+    }))
 
-    const body = {
+    const body: Omit<QualityProfile, 'id'> = {
       name: form.name.trim(),
       upgradeAllowed: form.upgradeAllowed,
       cutoff: form.cutoff,
       items,
       minFormatScore: 0,
       cutoffFormatScore: 0,
-      formatItems: [] as unknown[],
+      formatItems: [],
     }
 
     if (isEdit && initial) {
       updateMutation.mutate(
-        { id: initial.id, ...body },
+        { ...body, id: initial.id },
         {
           onSuccess: handleClose,
           onError: (err) =>
