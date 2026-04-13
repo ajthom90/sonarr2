@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -135,6 +136,56 @@ func TestRefreshSeriesHandlerCreatesEpisodes(t *testing.T) {
 		if !season.Monitored {
 			t.Errorf("season %d Monitored = false, want true", season.SeasonNumber)
 		}
+	}
+}
+
+// invalidatingSource is a stubSource that also tracks Invalidate calls.
+type invalidatingSource struct {
+	stubSource
+	invalidateCalls atomic.Int32
+	lastInvalidated atomic.Int64
+}
+
+func (s *invalidatingSource) Invalidate(tvdbID int64) {
+	s.invalidateCalls.Add(1)
+	s.lastInvalidated.Store(tvdbID)
+}
+
+func TestRefreshSeriesHandlerCallsInvalidate(t *testing.T) {
+	ctx := context.Background()
+	lib, _ := setupHandlerLib(t)
+
+	// Create a test series.
+	s, err := lib.Series.Create(ctx, library.Series{
+		TvdbID:     71663,
+		Title:      "The Simpsons",
+		Slug:       "the-simpsons",
+		Status:     "continuing",
+		SeriesType: "standard",
+		Path:       "/tv/The Simpsons",
+		Monitored:  true,
+	})
+	if err != nil {
+		t.Fatalf("Create series: %v", err)
+	}
+
+	source := &invalidatingSource{
+		stubSource: stubSource{
+			series:   metadatasource.SeriesInfo{TvdbID: 71663, Title: "The Simpsons", Status: "continuing"},
+			episodes: nil,
+		},
+	}
+
+	handler := NewRefreshSeriesHandler(source, lib)
+	if err := handler.Handle(ctx, makeCmd(t, s.ID)); err != nil {
+		t.Fatalf("Handle: %v", err)
+	}
+
+	if source.invalidateCalls.Load() != 1 {
+		t.Errorf("Invalidate called %d times, want 1", source.invalidateCalls.Load())
+	}
+	if source.lastInvalidated.Load() != 71663 {
+		t.Errorf("Invalidated tvdbID = %d, want 71663", source.lastInvalidated.Load())
 	}
 }
 

@@ -10,6 +10,13 @@ import (
 	"github.com/ajthom90/sonarr2/internal/providers/metadatasource"
 )
 
+// Invalidator is an optional interface for metadata sources that support
+// cache invalidation. If the source implements it, Invalidate is called
+// before fetching to ensure user-initiated refreshes bypass any cache.
+type Invalidator interface {
+	Invalidate(tvdbID int64)
+}
+
 // RefreshSeriesHandler fetches metadata for a series from the metadata source
 // and upserts seasons and episodes into the library.
 type RefreshSeriesHandler struct {
@@ -38,6 +45,11 @@ func (h *RefreshSeriesHandler) Handle(ctx context.Context, cmd commands.Command)
 	series, err := h.library.Series.Get(ctx, body.SeriesID)
 	if err != nil {
 		return fmt.Errorf("get series %d: %w", body.SeriesID, err)
+	}
+
+	// 2b. Invalidate cache if the source supports it.
+	if inv, ok := h.source.(Invalidator); ok {
+		inv.Invalidate(series.TvdbID)
 	}
 
 	// 3. Fetch metadata from source.
