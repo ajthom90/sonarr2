@@ -7,22 +7,35 @@ package postgres
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const getHostConfig = `-- name: GetHostConfig :one
-SELECT id, api_key, auth_mode, migration_state, created_at, updated_at
+SELECT id, api_key, auth_mode, migration_state, tvdb_api_key, created_at, updated_at
 FROM host_config
 WHERE id = 1
 `
 
-func (q *Queries) GetHostConfig(ctx context.Context) (HostConfig, error) {
+type GetHostConfigRow struct {
+	ID             int16
+	ApiKey         string
+	AuthMode       string
+	MigrationState string
+	TvdbApiKey     string
+	CreatedAt      pgtype.Timestamptz
+	UpdatedAt      pgtype.Timestamptz
+}
+
+func (q *Queries) GetHostConfig(ctx context.Context) (GetHostConfigRow, error) {
 	row := q.db.QueryRow(ctx, getHostConfig)
-	var i HostConfig
+	var i GetHostConfigRow
 	err := row.Scan(
 		&i.ID,
 		&i.ApiKey,
 		&i.AuthMode,
 		&i.MigrationState,
+		&i.TvdbApiKey,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -30,12 +43,13 @@ func (q *Queries) GetHostConfig(ctx context.Context) (HostConfig, error) {
 }
 
 const upsertHostConfig = `-- name: UpsertHostConfig :exec
-INSERT INTO host_config (id, api_key, auth_mode, migration_state)
-VALUES (1, $1, $2, $3)
+INSERT INTO host_config (id, api_key, auth_mode, migration_state, tvdb_api_key)
+VALUES (1, $1, $2, $3, $4)
 ON CONFLICT (id) DO UPDATE
 SET api_key = EXCLUDED.api_key,
     auth_mode = EXCLUDED.auth_mode,
     migration_state = EXCLUDED.migration_state,
+    tvdb_api_key = EXCLUDED.tvdb_api_key,
     updated_at = now()
 `
 
@@ -43,9 +57,15 @@ type UpsertHostConfigParams struct {
 	ApiKey         string
 	AuthMode       string
 	MigrationState string
+	TvdbApiKey     string
 }
 
 func (q *Queries) UpsertHostConfig(ctx context.Context, arg UpsertHostConfigParams) error {
-	_, err := q.db.Exec(ctx, upsertHostConfig, arg.ApiKey, arg.AuthMode, arg.MigrationState)
+	_, err := q.db.Exec(ctx, upsertHostConfig,
+		arg.ApiKey,
+		arg.AuthMode,
+		arg.MigrationState,
+		arg.TvdbApiKey,
+	)
 	return err
 }

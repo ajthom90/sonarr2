@@ -43,6 +43,7 @@ func (s *SQLiteStore) Get(ctx context.Context) (HostConfig, error) {
 		APIKey:         row.ApiKey,
 		AuthMode:       row.AuthMode,
 		MigrationState: row.MigrationState,
+		TvdbApiKey:     row.TvdbApiKey,
 		CreatedAt:      createdAt,
 		UpdatedAt:      updatedAt,
 	}, nil
@@ -57,6 +58,7 @@ func (s *SQLiteStore) Upsert(ctx context.Context, hc HostConfig) error {
 			ApiKey:         hc.APIKey,
 			AuthMode:       hc.AuthMode,
 			MigrationState: hc.MigrationState,
+			TvdbApiKey:     hc.TvdbApiKey,
 		})
 	})
 }

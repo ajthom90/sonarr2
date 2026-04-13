@@ -20,6 +20,7 @@ type HostConfig struct {
 	APIKey         string
 	AuthMode       string
 	MigrationState string
+	TvdbApiKey     string
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 }

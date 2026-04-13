@@ -10,19 +10,30 @@ import (
 )
 
 const getHostConfig = `-- name: GetHostConfig :one
-SELECT id, api_key, auth_mode, migration_state, created_at, updated_at
+SELECT id, api_key, auth_mode, migration_state, tvdb_api_key, created_at, updated_at
 FROM host_config
 WHERE id = 1
 `
 
-func (q *Queries) GetHostConfig(ctx context.Context) (HostConfig, error) {
+type GetHostConfigRow struct {
+	ID             int64
+	ApiKey         string
+	AuthMode       string
+	MigrationState string
+	TvdbApiKey     string
+	CreatedAt      string
+	UpdatedAt      string
+}
+
+func (q *Queries) GetHostConfig(ctx context.Context) (GetHostConfigRow, error) {
 	row := q.db.QueryRowContext(ctx, getHostConfig)
-	var i HostConfig
+	var i GetHostConfigRow
 	err := row.Scan(
 		&i.ID,
 		&i.ApiKey,
 		&i.AuthMode,
 		&i.MigrationState,
+		&i.TvdbApiKey,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -30,12 +41,13 @@ func (q *Queries) GetHostConfig(ctx context.Context) (HostConfig, error) {
 }
 
 const upsertHostConfig = `-- name: UpsertHostConfig :exec
-INSERT INTO host_config (id, api_key, auth_mode, migration_state)
-VALUES (1, ?, ?, ?)
+INSERT INTO host_config (id, api_key, auth_mode, migration_state, tvdb_api_key)
+VALUES (1, ?, ?, ?, ?)
 ON CONFLICT (id) DO UPDATE
 SET api_key = excluded.api_key,
     auth_mode = excluded.auth_mode,
     migration_state = excluded.migration_state,
+    tvdb_api_key = excluded.tvdb_api_key,
     updated_at = datetime('now')
 `
 
@@ -43,9 +55,15 @@ type UpsertHostConfigParams struct {
 	ApiKey         string
 	AuthMode       string
 	MigrationState string
+	TvdbApiKey     string
 }
 
 func (q *Queries) UpsertHostConfig(ctx context.Context, arg UpsertHostConfigParams) error {
-	_, err := q.db.ExecContext(ctx, upsertHostConfig, arg.ApiKey, arg.AuthMode, arg.MigrationState)
+	_, err := q.db.ExecContext(ctx, upsertHostConfig,
+		arg.ApiKey,
+		arg.AuthMode,
+		arg.MigrationState,
+		arg.TvdbApiKey,
+	)
 	return err
 }

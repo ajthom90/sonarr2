@@ -46,7 +46,7 @@ type Querier interface {
 	GetDueTasks(ctx context.Context) ([]ScheduledTask, error)
 	GetEpisode(ctx context.Context, id int64) (Episode, error)
 	GetEpisodeFile(ctx context.Context, id int64) (EpisodeFile, error)
-	GetHostConfig(ctx context.Context) (HostConfig, error)
+	GetHostConfig(ctx context.Context) (GetHostConfigRow, error)
 	GetIndexerByID(ctx context.Context, id int32) (Indexer, error)
 	GetNotificationByID(ctx context.Context, id int32) (Notification, error)
 	GetQualityDefinitionByID(ctx context.Context, id int32) (QualityDefinition, error)

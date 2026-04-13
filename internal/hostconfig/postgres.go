@@ -34,6 +34,7 @@ func (s *PostgresStore) Get(ctx context.Context) (HostConfig, error) {
 		APIKey:         row.ApiKey,
 		AuthMode:       row.AuthMode,
 		MigrationState: row.MigrationState,
+		TvdbApiKey:     row.TvdbApiKey,
 		CreatedAt:      row.CreatedAt.Time,
 		UpdatedAt:      row.UpdatedAt.Time,
 	}, nil
@@ -45,6 +46,7 @@ func (s *PostgresStore) Upsert(ctx context.Context, hc HostConfig) error {
 		ApiKey:         hc.APIKey,
 		AuthMode:       hc.AuthMode,
 		MigrationState: hc.MigrationState,
+		TvdbApiKey:     hc.TvdbApiKey,
 	}); err != nil {
 		return fmt.Errorf("hostconfig: postgres upsert: %w", err)
 	}

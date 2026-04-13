@@ -93,6 +93,7 @@ type HostConfig struct {
 	MigrationState string
 	CreatedAt      pgtype.Timestamptz
 	UpdatedAt      pgtype.Timestamptz
+	TvdbApiKey     string
 }
 
 type Indexer struct {
@@ -174,4 +175,19 @@ type SeriesStatistic struct {
 	MonitoredEpisodeCount int32
 	SizeOnDisk            int64
 	UpdatedAt             pgtype.Timestamptz
+}
+
+type Session struct {
+	Token     string
+	UserID    int32
+	ExpiresAt pgtype.Timestamptz
+	CreatedAt pgtype.Timestamptz
+}
+
+type User struct {
+	ID           int32
+	Username     string
+	PasswordHash string
+	CreatedAt    pgtype.Timestamptz
+	UpdatedAt    pgtype.Timestamptz
 }
