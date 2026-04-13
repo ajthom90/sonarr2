@@ -188,6 +188,46 @@ func (s *sqliteQueue) Get(ctx context.Context, id int64) (Command, error) {
 	return commandFromSqlite(row), nil
 }
 
+// ListRecent returns up to limit commands ordered by queued_at DESC.
+// Pass 0 for no limit.
+func (s *sqliteQueue) ListRecent(ctx context.Context, limit int) ([]Command, error) {
+	q := `SELECT id, name, body, priority, status, queued_at, started_at, ended_at,
+	             duration_ms, exception, trigger, message, result, worker_id,
+	             lease_until, dedup_key
+	      FROM commands ORDER BY queued_at DESC`
+	if limit > 0 {
+		q += fmt.Sprintf(" LIMIT %d", limit)
+	}
+	rows, err := s.pool.RawReader().QueryContext(ctx, q)
+	if err != nil {
+		return nil, fmt.Errorf("commands: list recent: %w", err)
+	}
+	defer rows.Close()
+
+	var out []Command
+	for rows.Next() {
+		var r sqlitegen.Command
+		var startedAt, endedAt, leaseUntil sql.NullString
+		var durationMs sql.NullInt64
+		if err := rows.Scan(
+			&r.ID, &r.Name, &r.Body, &r.Priority, &r.Status, &r.QueuedAt,
+			&startedAt, &endedAt, &durationMs, &r.Exception,
+			&r.Trigger, &r.Message, &r.Result, &r.WorkerID, &leaseUntil, &r.DedupKey,
+		); err != nil {
+			return nil, fmt.Errorf("commands: list recent scan: %w", err)
+		}
+		r.StartedAt = startedAt
+		r.EndedAt = endedAt
+		r.DurationMs = durationMs
+		r.LeaseUntil = leaseUntil
+		out = append(out, commandFromSqlite(r))
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("commands: list recent rows: %w", err)
+	}
+	return out, nil
+}
+
 // commandFromSqlite converts a sqlc-generated sqlitegen.Command row to the
 // canonical commands.Command struct.
 func commandFromSqlite(r sqlitegen.Command) Command {

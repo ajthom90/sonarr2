@@ -15,12 +15,13 @@ import (
 
 // postgresQueue implements Queue against a Postgres pool.
 type postgresQueue struct {
-	q *pggen.Queries
+	q    *pggen.Queries
+	pool *db.PostgresPool
 }
 
 // NewPostgresQueue returns a Queue backed by pool.
 func NewPostgresQueue(pool *db.PostgresPool) Queue {
-	return &postgresQueue{q: pggen.New(pool.Raw())}
+	return &postgresQueue{q: pggen.New(pool.Raw()), pool: pool}
 }
 
 func (p *postgresQueue) Enqueue(ctx context.Context, name string, body json.RawMessage, priority Priority, trigger Trigger, dedupKey string) (Command, error) {
@@ -125,6 +126,40 @@ func (p *postgresQueue) Get(ctx context.Context, id int64) (Command, error) {
 		return Command{}, fmt.Errorf("commands: get: %w", err)
 	}
 	return commandFromPostgres(row), nil
+}
+
+// ListRecent returns up to limit commands ordered by queued_at DESC.
+// Pass 0 for no limit.
+func (p *postgresQueue) ListRecent(ctx context.Context, limit int) ([]Command, error) {
+	q := `SELECT id, name, body, priority, status, queued_at, started_at, ended_at,
+	             duration_ms, exception, trigger, message, result, worker_id,
+	             lease_until, dedup_key
+	      FROM commands ORDER BY queued_at DESC`
+	if limit > 0 {
+		q += fmt.Sprintf(" LIMIT %d", limit)
+	}
+	rows, err := p.pool.Raw().Query(ctx, q)
+	if err != nil {
+		return nil, fmt.Errorf("commands: list recent: %w", err)
+	}
+	defer rows.Close()
+
+	var out []Command
+	for rows.Next() {
+		var r pggen.Command
+		if err := rows.Scan(
+			&r.ID, &r.Name, &r.Body, &r.Priority, &r.Status, &r.QueuedAt,
+			&r.StartedAt, &r.EndedAt, &r.DurationMs, &r.Exception,
+			&r.Trigger, &r.Message, &r.Result, &r.WorkerID, &r.LeaseUntil, &r.DedupKey,
+		); err != nil {
+			return nil, fmt.Errorf("commands: list recent scan: %w", err)
+		}
+		out = append(out, commandFromPostgres(r))
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("commands: list recent rows: %w", err)
+	}
+	return out, nil
 }
 
 // commandFromPostgres converts a sqlc-generated pggen.Command row to the

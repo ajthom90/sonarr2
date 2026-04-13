@@ -10,12 +10,13 @@ import (
 )
 
 type postgresStore struct {
-	q *pggen.Queries
+	q    *pggen.Queries
+	pool *db.PostgresPool
 }
 
 // NewPostgresStore returns a Store backed by a Postgres pool.
 func NewPostgresStore(pool *db.PostgresPool) Store {
-	return &postgresStore{q: pggen.New(pool.Raw())}
+	return &postgresStore{q: pggen.New(pool.Raw()), pool: pool}
 }
 
 func (s *postgresStore) Create(ctx context.Context, entry Entry) (Entry, error) {
@@ -64,6 +65,39 @@ func (s *postgresStore) DeleteForSeries(ctx context.Context, seriesID int64) err
 		return fmt.Errorf("history: delete for series: %w", err)
 	}
 	return nil
+}
+
+func (s *postgresStore) ListAll(ctx context.Context) ([]Entry, error) {
+	const q = `SELECT id, episode_id, series_id, source_title, quality_name,
+	                  event_type, date, download_id, data
+	           FROM history ORDER BY date DESC`
+	rows, err := s.pool.Raw().Query(ctx, q)
+	if err != nil {
+		return nil, fmt.Errorf("history: list all: %w", err)
+	}
+	defer rows.Close()
+
+	var out []Entry
+	for rows.Next() {
+		var e Entry
+		var data []byte
+		if err := rows.Scan(
+			&e.ID, &e.EpisodeID, &e.SeriesID, &e.SourceTitle, &e.QualityName,
+			&e.EventType, &e.Date, &e.DownloadID, &data,
+		); err != nil {
+			return nil, fmt.Errorf("history: list all scan: %w", err)
+		}
+		if len(data) == 0 {
+			e.Data = json.RawMessage("{}")
+		} else {
+			e.Data = json.RawMessage(data)
+		}
+		out = append(out, e)
+	}
+	if rows.Err() != nil {
+		return nil, fmt.Errorf("history: list all rows: %w", rows.Err())
+	}
+	return out, nil
 }
 
 // historyFromPostgres converts a sqlc-generated postgres.History row to Entry.

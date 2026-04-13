@@ -75,6 +75,7 @@ func (s *stubHistoryStore) FindByDownloadID(_ context.Context, downloadID string
 	return s.entries[downloadID], nil
 }
 func (s *stubHistoryStore) DeleteForSeries(_ context.Context, seriesID int64) error { return nil }
+func (s *stubHistoryStore) ListAll(_ context.Context) ([]history.Entry, error) { return nil, nil }
 
 // stubQueue records Enqueue calls and allows FindDuplicate to be controlled.
 type stubQueue struct {
@@ -120,6 +121,9 @@ func (q *stubQueue) DeleteOldCompleted(_ context.Context, olderThan time.Time) (
 }
 func (q *stubQueue) Get(_ context.Context, id int64) (commands.Command, error) {
 	return commands.Command{}, errors.New("not found")
+}
+func (q *stubQueue) ListRecent(_ context.Context, _ int) ([]commands.Command, error) {
+	return nil, nil
 }
 
 // --- helpers ---

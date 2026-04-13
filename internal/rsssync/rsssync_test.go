@@ -141,6 +141,9 @@ func (e *fakeEpisodesStore) Delete(_ context.Context, _ int64) error           {
 func (e *fakeEpisodesStore) CountForSeries(_ context.Context, _ int64) (int, int, error) {
 	return 0, 0, nil
 }
+func (e *fakeEpisodesStore) ListAll(_ context.Context) ([]library.Episode, error) {
+	return nil, nil
+}
 
 // ---------------------------------------------------------------------------
 // Fake quality stores
@@ -290,6 +293,7 @@ func (h *fakeHistoryStore) FindByDownloadID(_ context.Context, _ string) ([]hist
 	return nil, nil
 }
 func (h *fakeHistoryStore) DeleteForSeries(_ context.Context, _ int64) error { return nil }
+func (h *fakeHistoryStore) ListAll(_ context.Context) ([]history.Entry, error) { return nil, nil }
 
 // ---------------------------------------------------------------------------
 // Test builder

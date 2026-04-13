@@ -22,4 +22,7 @@ type Queue interface {
 	FindDuplicate(ctx context.Context, dedupKey string) (int64, bool, error)
 	DeleteOldCompleted(ctx context.Context, olderThan time.Time) (int64, error)
 	Get(ctx context.Context, id int64) (Command, error)
+	// ListRecent returns up to limit commands, ordered by queued_at descending.
+	// Pass 0 for limit to return all.
+	ListRecent(ctx context.Context, limit int) ([]Command, error)
 }

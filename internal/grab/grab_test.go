@@ -106,6 +106,9 @@ func (h *fakeHistoryStore) FindByDownloadID(_ context.Context, _ string) ([]hist
 	return nil, nil
 }
 func (h *fakeHistoryStore) DeleteForSeries(_ context.Context, _ int64) error { return nil }
+func (h *fakeHistoryStore) ListAll(_ context.Context) ([]history.Entry, error) {
+	return nil, nil
+}
 
 // ---------------------------------------------------------------------------
 // Helper

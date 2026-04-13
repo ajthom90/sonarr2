@@ -86,6 +86,41 @@ func (s *sqliteStore) DeleteForSeries(ctx context.Context, seriesID int64) error
 	return nil
 }
 
+func (s *sqliteStore) ListAll(ctx context.Context) ([]Entry, error) {
+	const q = `SELECT id, episode_id, series_id, source_title, quality_name,
+	                  event_type, date, download_id, data
+	           FROM history ORDER BY date DESC`
+	rows, err := s.pool.RawReader().QueryContext(ctx, q)
+	if err != nil {
+		return nil, fmt.Errorf("history: list all: %w", err)
+	}
+	defer rows.Close()
+
+	var out []Entry
+	for rows.Next() {
+		var e Entry
+		var dateStr string
+		var data string
+		if err := rows.Scan(
+			&e.ID, &e.EpisodeID, &e.SeriesID, &e.SourceTitle, &e.QualityName,
+			&e.EventType, &dateStr, &e.DownloadID, &data,
+		); err != nil {
+			return nil, fmt.Errorf("history: list all scan: %w", err)
+		}
+		e.Date = parseSQLiteHistoryTime(dateStr)
+		if data == "" {
+			e.Data = json.RawMessage("{}")
+		} else {
+			e.Data = json.RawMessage(data)
+		}
+		out = append(out, e)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("history: list all rows: %w", err)
+	}
+	return out, nil
+}
+
 // historyFromSQLite converts a sqlc-generated sqlite.History row to Entry.
 func historyFromSQLite(r sqlitegen.History) (Entry, error) {
 	data := json.RawMessage(r.Data)

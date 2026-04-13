@@ -54,6 +54,10 @@ type Store interface {
 
 	// DeleteForSeries deletes all history entries for the given series.
 	DeleteForSeries(ctx context.Context, seriesID int64) error
+
+	// ListAll returns all history entries ordered by date descending, used for
+	// paged API responses.
+	ListAll(ctx context.Context) ([]Entry, error)
 }
 
 // ErrNotFound is returned when a requested history entry does not exist.
