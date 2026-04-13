@@ -4,7 +4,7 @@ A feature-complete rewrite of [Sonarr](https://github.com/Sonarr/Sonarr) focused
 
 ## Current Status
 
-**Milestone 9 of 24 complete** — the core backend is functional. Not yet ready for end users.
+**Milestone 10 of 24 complete** — the core backend is functional. Not yet ready for end users.
 
 ### What's implemented
 
@@ -27,12 +27,14 @@ A feature-complete rewrite of [Sonarr](https://github.com/Sonarr/Sonarr) focused
 - **Import pipeline** — completed downloads scanned, parsed, matched to episodes, moved/hardlinked into series library with configurable naming tokens
 - **File organizer** — naming token system for episode filenames (series title, season, episode, quality, release group)
 - **HTTP API** — `/ping` liveness, `/api/v3/system/status` with database connectivity reporting
+- **Filesystem watcher** — fsnotify-based monitoring with 2-second debouncing; detects changes in series folders for instant scan
+- **Download monitoring** — 1-minute polling of download clients for completed items, auto-triggers import
 - **Docker-ready** — multi-stage Dockerfile producing a ~20MB distroless static binary
 - **CI** — GitHub Actions for lint (staticcheck + golangci-lint) and test (race detector + Postgres testcontainers)
 
 ### What's NOT yet implemented
 
-Filesystem watcher, full Sonarr v3 API compatibility, SignalR real-time updates, the React frontend, remaining ~60 providers, migration tool, and more. See the [design doc](./docs/superpowers/specs/2026-04-10-sonarr-rewrite-design.md) for the full roadmap.
+Full Sonarr v3 API compatibility, SignalR real-time updates, the React frontend, remaining ~60 providers, migration tool, and more. See the [design doc](./docs/superpowers/specs/2026-04-10-sonarr-rewrite-design.md) for the full roadmap.
 
 ## Quick Start
 
