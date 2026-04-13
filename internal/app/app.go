@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net"
+	"net/http"
 	"os"
 	"os/signal"
 	"runtime"
@@ -50,6 +51,7 @@ import (
 	"github.com/ajthom90/sonarr2/internal/providers/indexer/torrentrss"
 	"github.com/ajthom90/sonarr2/internal/providers/indexer/torznab"
 	"github.com/ajthom90/sonarr2/internal/providers/metadatasource"
+	"github.com/ajthom90/sonarr2/internal/providers/metadatasource/cached"
 	"github.com/ajthom90/sonarr2/internal/providers/metadatasource/tvdb"
 	"github.com/ajthom90/sonarr2/internal/providers/notification"
 	"github.com/ajthom90/sonarr2/internal/providers/notification/customscript"
@@ -306,10 +308,20 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 	wp := commands.NewWorkerPool(cmdQueue, reg, bus, log, numWorkers)
 	sched := scheduler.New(taskStore, cmdQueue, log)
 
-	// Create the TVDB metadata source. API key is empty by default — users
-	// configure it via the UI or SONARR2_TVDB_API_KEY env var later. The
-	// handler will return an error if called without a valid key.
-	tvdbSource := tvdb.New(tvdb.Settings{ApiKey: ""}, nil)
+	// Create the TVDB metadata source with rate limiting and caching.
+	// API key comes from config (env var SONARR2_TVDB_API_KEY or YAML).
+	// The handler will return an error if called without a valid key.
+	tvdbTransport := tvdb.NewRateLimitedTransport(http.DefaultTransport, tvdb.RateLimitOptions{
+		RequestsPerSecond: cfg.TVDB.RateLimit,
+		Burst:             cfg.TVDB.RateBurst,
+		MaxRetries:        3,
+	})
+	tvdbClient := tvdb.New(tvdb.Settings{ApiKey: cfg.TVDB.ApiKey}, &http.Client{Transport: tvdbTransport})
+	tvdbSource := cached.New(tvdbClient, cached.Options{
+		SeriesTTL:   cfg.TVDB.CacheSeriesTTL,
+		EpisodesTTL: cfg.TVDB.CacheEpisodesTTL,
+		SearchTTL:   cfg.TVDB.CacheSearchTTL,
+	})
 
 	// Register built-in command handlers.
 	cleanup := handlers.NewCleanupHandler(cmdQueue)
