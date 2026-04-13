@@ -1,6 +1,7 @@
 package v6
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -50,7 +51,10 @@ func newCustomFormatHandler(store customformats.Store, log *slog.Logger) *custom
 func mountCustomFormat(r chi.Router, h *customFormatHandler) {
 	r.Route("/customformat", func(r chi.Router) {
 		r.Get("/", h.list)
+		r.Post("/", h.create)
 		r.Get("/{id}", h.get)
+		r.Put("/{id}", h.update)
+		r.Delete("/{id}", h.delete)
 	})
 }
 
@@ -71,6 +75,38 @@ func toCustomFormatResource(cf customformats.CustomFormat) customFormatResource 
 		ID:                  cf.ID,
 		Name:                cf.Name,
 		IncludeWhenRenaming: cf.IncludeWhenRenaming,
+		Specifications:      specs,
+	}
+}
+
+// customFormatInput is the JSON body for POST and PUT requests.
+type customFormatInput struct {
+	Name                string                     `json:"name"`
+	IncludeWhenRenaming bool                       `json:"includeCustomFormatWhenRenaming"`
+	Specifications      []customFormatSpecResource `json:"specifications"`
+}
+
+func fromCustomFormatInput(input customFormatInput) customformats.CustomFormat {
+	specs := make([]customformats.Specification, 0, len(input.Specifications))
+	for _, s := range input.Specifications {
+		value := ""
+		for _, f := range s.Fields {
+			if f.Name == "value" {
+				value = f.Value
+				break
+			}
+		}
+		specs = append(specs, customformats.Specification{
+			Name:           s.Name,
+			Implementation: s.Implementation,
+			Negate:         s.Negate,
+			Required:       s.Required,
+			Value:          value,
+		})
+	}
+	return customformats.CustomFormat{
+		Name:                input.Name,
+		IncludeWhenRenaming: input.IncludeWhenRenaming,
 		Specifications:      specs,
 	}
 }
@@ -106,4 +142,77 @@ func (h *customFormatHandler) get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, toCustomFormatResource(cf))
+}
+
+func (h *customFormatHandler) create(w http.ResponseWriter, r *http.Request) {
+	var input customFormatInput
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		WriteBadRequest(w, r, "Invalid request body")
+		return
+	}
+	if input.Name == "" {
+		WriteBadRequest(w, r, "Name is required")
+		return
+	}
+	cf := fromCustomFormatInput(input)
+	created, err := h.store.Create(r.Context(), cf)
+	if err != nil {
+		h.log.Error("v6 customformat create", slog.String("err", err.Error()))
+		WriteError(w, r, http.StatusInternalServerError, "Internal Server Error")
+		return
+	}
+	writeJSON(w, http.StatusCreated, toCustomFormatResource(created))
+}
+
+func (h *customFormatHandler) update(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		WriteBadRequest(w, r, "Invalid id")
+		return
+	}
+	var input customFormatInput
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		WriteBadRequest(w, r, "Invalid request body")
+		return
+	}
+	if input.Name == "" {
+		WriteBadRequest(w, r, "Name is required")
+		return
+	}
+	cf := fromCustomFormatInput(input)
+	cf.ID = id
+	if err := h.store.Update(r.Context(), cf); err != nil {
+		if errors.Is(err, customformats.ErrNotFound) {
+			WriteNotFound(w, r, fmt.Sprintf("No custom format with id %d", id))
+			return
+		}
+		h.log.Error("v6 customformat update", slog.String("err", err.Error()))
+		WriteError(w, r, http.StatusInternalServerError, "Internal Server Error")
+		return
+	}
+	updated, err := h.store.GetByID(r.Context(), id)
+	if err != nil {
+		h.log.Error("v6 customformat update get", slog.String("err", err.Error()))
+		WriteError(w, r, http.StatusInternalServerError, "Internal Server Error")
+		return
+	}
+	writeJSON(w, http.StatusOK, toCustomFormatResource(updated))
+}
+
+func (h *customFormatHandler) delete(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		WriteBadRequest(w, r, "Invalid id")
+		return
+	}
+	if err := h.store.Delete(r.Context(), id); err != nil {
+		if errors.Is(err, customformats.ErrNotFound) {
+			WriteNotFound(w, r, fmt.Sprintf("No custom format with id %d", id))
+			return
+		}
+		h.log.Error("v6 customformat delete", slog.String("err", err.Error()))
+		WriteError(w, r, http.StatusInternalServerError, "Internal Server Error")
+		return
+	}
+	w.WriteHeader(http.StatusOK)
 }

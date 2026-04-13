@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from './client'
-import type { Series, Episode, Page, SystemStatus, Command, HistoryEntry, HealthItem, WantedEpisode, Indexer, DownloadClient, QualityProfile, SeriesLookupResult, RootFolder, AddSeriesRequest, GeneralSettings } from './types'
+import type { Series, Episode, Page, SystemStatus, Command, HistoryEntry, HealthItem, WantedEpisode, Indexer, DownloadClient, QualityProfile, SeriesLookupResult, RootFolder, AddSeriesRequest, GeneralSettings, CustomFormat } from './types'
 
 export function useSeriesList() {
   return useQuery({
@@ -183,6 +183,39 @@ export function useUpdateGeneralSettings() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['settings-general'] })
     },
+  })
+}
+
+export function useCustomFormats() {
+  return useQuery({
+    queryKey: ['customformats'],
+    queryFn: () => api.get<CustomFormat[]>('/customformat'),
+  })
+}
+
+export function useCreateCustomFormat() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (body: Omit<CustomFormat, 'id'>) =>
+      api.post<CustomFormat>('/customformat', body),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['customformats'] }),
+  })
+}
+
+export function useUpdateCustomFormat() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, ...body }: CustomFormat) =>
+      api.put<CustomFormat>(`/customformat/${id}`, body),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['customformats'] }),
+  })
+}
+
+export function useDeleteCustomFormat() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => api.delete(`/customformat/${id}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['customformats'] }),
   })
 }
 

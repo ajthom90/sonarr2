@@ -10,6 +10,7 @@ const navItems = [
   { to: '/wanted', label: 'Wanted', icon: '🔍' },
   { to: '/settings', label: 'Settings', icon: '⚙️', children: [
     { to: '/settings/general', label: 'General' },
+    { to: '/settings/customformats', label: 'Custom Formats' },
   ] },
   { to: '/system', label: 'System', icon: '💻' },
 ]

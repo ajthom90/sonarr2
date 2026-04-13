@@ -135,3 +135,23 @@ export interface GeneralSettings {
   authMode: string
   tvdbApiKey: string
 }
+
+export interface CustomFormatSpecField {
+  name: string
+  value: string
+}
+
+export interface CustomFormatSpec {
+  name: string
+  implementation: string
+  negate: boolean
+  required: boolean
+  fields: CustomFormatSpecField[]
+}
+
+export interface CustomFormat {
+  id: number
+  name: string
+  includeCustomFormatWhenRenaming: boolean
+  specifications: CustomFormatSpec[]
+}

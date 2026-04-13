@@ -11,6 +11,7 @@ import { Activity } from './pages/Activity'
 import { Wanted } from './pages/Wanted'
 import { Settings } from './pages/Settings'
 import { SettingsGeneral } from './pages/SettingsGeneral'
+import { SettingsCustomFormats } from './pages/SettingsCustomFormats'
 import { System } from './pages/System'
 import { AddSeries } from './pages/AddSeries'
 import { NotFound } from './pages/NotFound'
@@ -37,6 +38,7 @@ export function App() {
               <Route path="wanted" element={<Wanted />} />
               <Route path="settings" element={<Settings />} />
               <Route path="settings/general" element={<SettingsGeneral />} />
+              <Route path="settings/customformats" element={<SettingsCustomFormats />} />
               <Route path="system" element={<System />} />
               <Route path="*" element={<NotFound />} />
             </Route>
