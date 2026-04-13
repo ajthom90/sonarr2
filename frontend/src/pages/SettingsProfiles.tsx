@@ -108,10 +108,15 @@ function ProfileFormModal({ open, onClose, initial, definitions }: ProfileFormMo
       return
     }
 
-    const items = Array.from(form.items.entries()).map(([qualityId, allowed]) => ({
-      quality: { id: qualityId, name: '' },
-      allowed,
-    }))
+    const defs = definitions ?? []
+    const items = Array.from(form.items.entries()).map(([qualityId, allowed]) => {
+      const def = defs.find((d) => d.id === qualityId)
+      return {
+        quality: { id: qualityId, name: def?.name ?? '', source: def?.source ?? '', resolution: def?.resolution ?? '' },
+        items: [] as unknown[],
+        allowed,
+      }
+    })
 
     const body: Omit<QualityProfile, 'id'> = {
       name: form.name.trim(),
