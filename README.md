@@ -4,7 +4,7 @@ A feature-complete rewrite of [Sonarr](https://github.com/Sonarr/Sonarr) focused
 
 ## Current Status
 
-**Milestone 21 of 24 complete** — the core backend is functional with a fully connected React frontend, all providers, TVDB caching, health checks, housekeeping, backups, and a migration tool. Not yet ready for end users.
+**Milestone 22 of 24 complete** — the core backend is functional with a fully connected React frontend, all providers, TVDB caching, health checks, housekeeping, backups, a migration tool, and ops hardening. Not yet ready for end users.
 
 ### What's implemented
 
@@ -41,6 +41,7 @@ A feature-complete rewrite of [Sonarr](https://github.com/Sonarr/Sonarr) focused
 - **CI** — GitHub Actions for lint (staticcheck + golangci-lint) and test (race detector + Postgres testcontainers)
 - **Real-time push** — SignalR WebSocket transport (Sonarr-compatible) and Server-Sent Events; live updates for series, episodes, commands, and queue changes
 - **Web UI** — React + TypeScript + Vite dark-themed frontend with series list (progress bars, status badges), series detail with season/episode tables, weekly calendar, activity queue/history with live refresh, wanted/missing episodes, system status with health checks, settings for indexers/download clients/profiles, connection status indicator
+- **Ops hardening** — security headers (X-Frame-Options, nosniff), permissive CORS for API-key auth, per-IP rate limiting (30 req/s sustained, 100 burst), URLBase routing for reverse proxy support
 
 ### What's NOT yet implemented
 
