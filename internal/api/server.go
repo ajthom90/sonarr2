@@ -24,6 +24,7 @@ import (
 	"github.com/ajthom90/sonarr2/internal/profiles"
 	"github.com/ajthom90/sonarr2/internal/providers/downloadclient"
 	"github.com/ajthom90/sonarr2/internal/providers/indexer"
+	"github.com/ajthom90/sonarr2/internal/providers/metadatasource"
 	"github.com/ajthom90/sonarr2/internal/providers/notification"
 	"github.com/ajthom90/sonarr2/internal/realtime"
 	"github.com/ajthom90/sonarr2/web"
@@ -62,6 +63,7 @@ type Deps struct {
 	DCRegistry           *downloadclient.Registry
 	NotificationStore    notification.InstanceStore
 	NotificationRegistry *notification.Registry
+	MetadataSource       metadatasource.MetadataSource
 	UserStore            auth.UserStore
 	SessionStore         auth.SessionStore
 	HealthChecker        *health.Checker
@@ -234,6 +236,9 @@ func HandlerWithDeps(log *slog.Logger, deps Deps) http.Handler {
 				nh := v3.NewNotificationHandler(deps.NotificationStore, deps.NotificationRegistry, log)
 				v3.MountNotification(r, nh)
 			}
+			if deps.MetadataSource != nil {
+				v3.MountSeriesLookup(r, deps.MetadataSource)
+			}
 			if deps.Series != nil {
 				rfh := v3.NewRootFolderHandler(deps.Series, log)
 				v3.MountRootFolder(r, rfh)
@@ -276,6 +281,7 @@ func HandlerWithDeps(log *slog.Logger, deps Deps) http.Handler {
 			DCRegistry:           deps.DCRegistry,
 			NotificationStore:    deps.NotificationStore,
 			NotificationRegistry: deps.NotificationRegistry,
+			MetadataSource:       deps.MetadataSource,
 			HealthChecker:        deps.HealthChecker,
 			BackupService:        deps.BackupService,
 			Log:                  deps.Log,

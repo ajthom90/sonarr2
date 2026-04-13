@@ -596,6 +596,7 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 			DCRegistry:           dcReg,
 			NotificationStore:    notifStore,
 			NotificationRegistry: notifReg,
+			MetadataSource:       tvdbSource,
 			UserStore:            userStore,
 			SessionStore:         sessionStore,
 			HealthChecker:        checker,

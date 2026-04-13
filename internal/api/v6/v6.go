@@ -23,6 +23,7 @@ import (
 	"github.com/ajthom90/sonarr2/internal/profiles"
 	"github.com/ajthom90/sonarr2/internal/providers/downloadclient"
 	"github.com/ajthom90/sonarr2/internal/providers/indexer"
+	"github.com/ajthom90/sonarr2/internal/providers/metadatasource"
 	"github.com/ajthom90/sonarr2/internal/providers/notification"
 )
 
@@ -53,6 +54,7 @@ type Deps struct {
 	DCRegistry           *downloadclient.Registry
 	NotificationStore    notification.InstanceStore
 	NotificationRegistry *notification.Registry
+	MetadataSource       metadatasource.MetadataSource
 	SessionStore         auth.SessionStore
 	HealthChecker        *health.Checker
 	BackupService        *backup.Service
@@ -166,6 +168,11 @@ func Mount(r chi.Router, deps Deps) {
 		if deps.NotificationStore != nil && deps.NotificationRegistry != nil {
 			nh := newNotificationHandler(deps.NotificationStore, deps.NotificationRegistry, deps.Log)
 			mountNotification(r, nh)
+		}
+
+		// series/lookup
+		if deps.MetadataSource != nil {
+			mountSeriesLookup(r, deps.MetadataSource)
 		}
 
 		// system/status
