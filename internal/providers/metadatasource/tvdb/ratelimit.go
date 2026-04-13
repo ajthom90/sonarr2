@@ -130,4 +130,3 @@ func (t *RateLimitedTransport) backoffDelay(resp *http.Response, attempt int) ti
 
 // Ensure RateLimitedTransport satisfies the interface at compile time.
 var _ http.RoundTripper = (*RateLimitedTransport)(nil)
-

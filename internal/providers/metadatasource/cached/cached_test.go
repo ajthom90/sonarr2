@@ -13,9 +13,9 @@ import (
 
 // mockSource is a MetadataSource that counts calls to each method.
 type mockSource struct {
-	searchCalls   atomic.Int32
-	getCalls      atomic.Int32
-	episodeCalls  atomic.Int32
+	searchCalls  atomic.Int32
+	getCalls     atomic.Int32
+	episodeCalls atomic.Int32
 }
 
 func (m *mockSource) SearchSeries(_ context.Context, query string) ([]metadatasource.SeriesSearchResult, error) {
@@ -74,10 +74,10 @@ func TestCacheMissThenHit(t *testing.T) {
 func TestCacheExpiry(t *testing.T) {
 	mock := &mockSource{}
 	c := cached.New(mock, cached.Options{
-		SeriesTTL:  50 * time.Millisecond,
+		SeriesTTL:   50 * time.Millisecond,
 		EpisodesTTL: 50 * time.Millisecond,
-		SearchTTL:  50 * time.Millisecond,
-		SweepEvery: 10 * time.Millisecond,
+		SearchTTL:   50 * time.Millisecond,
+		SweepEvery:  10 * time.Millisecond,
 	})
 	defer c.Stop()
 
