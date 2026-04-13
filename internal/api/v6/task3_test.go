@@ -263,13 +263,16 @@ func TestV6QualityProfileList(t *testing.T) {
 	if rr.Code != http.StatusOK {
 		t.Fatalf("status = %d, want 200; body = %s", rr.Code, rr.Body.String())
 	}
-	var result []any
+	var result map[string]any
 	if err := json.NewDecoder(rr.Body).Decode(&result); err != nil {
 		t.Fatalf("decode: %v", err)
 	}
-	// Empty or seeded — just verify it's a list.
-	if result == nil {
-		t.Error("expected non-nil array")
+	// Must have "data" and "pagination" keys.
+	if _, ok := result["data"]; !ok {
+		t.Error("missing 'data' key — qualityprofile list should use cursor pagination")
+	}
+	if _, ok := result["pagination"]; !ok {
+		t.Error("missing 'pagination' key in response")
 	}
 }
 

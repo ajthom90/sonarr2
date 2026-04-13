@@ -129,6 +129,12 @@ func Mount(r chi.Router, deps Deps) {
 			mountQualityProfile(r, qph)
 		}
 
+		// qualitydefinition
+		if deps.QualityDefs != nil {
+			qdh := newQualityDefinitionHandler(deps.QualityDefs, deps.Log)
+			mountQualityDefinition(r, qdh)
+		}
+
 		// customformat
 		if deps.CustomFormats != nil {
 			cfh := newCustomFormatHandler(deps.CustomFormats, deps.Log)

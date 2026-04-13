@@ -95,11 +95,38 @@ export interface DownloadClient {
   priority: number
 }
 
+export interface QualityProfileItemQuality {
+  id: number
+  name: string
+  source: string
+  resolution: string
+}
+
+export interface QualityProfileItem {
+  quality: QualityProfileItemQuality
+  items: unknown[]
+  allowed: boolean
+}
+
 export interface QualityProfile {
   id: number
   name: string
   upgradeAllowed: boolean
-  items: Array<{ qualityId: number; allowed: boolean }>
+  cutoff: number
+  items: QualityProfileItem[]
+  minFormatScore: number
+  cutoffFormatScore: number
+  formatItems: unknown[]
+}
+
+export interface QualityDefinition {
+  id: number
+  name: string
+  source: string
+  resolution: string
+  minSize: number
+  maxSize: number
+  preferredSize: number
 }
 
 export interface SeriesLookupResult {

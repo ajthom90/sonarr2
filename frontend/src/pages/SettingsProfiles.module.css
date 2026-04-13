@@ -1,0 +1,354 @@
+.page {
+  padding: var(--space-6);
+  max-width: 1000px;
+}
+
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-6);
+}
+
+.heading {
+  font-size: var(--font-size-2xl);
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.addBtn {
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-accent);
+  color: #0f1117;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.addBtn:hover {
+  background: var(--color-accent-hover);
+}
+
+/* ── Profile cards grid ─────────────────────────────────── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--space-4);
+}
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4) var(--space-5);
+  transition: border-color 0.15s ease;
+}
+
+.card:hover {
+  border-color: var(--color-accent);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+}
+
+.cardName {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.cardActions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.editBtn {
+  padding: var(--space-1) var(--space-3);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.editBtn:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.deleteBtn {
+  padding: var(--space-1) var(--space-3);
+  background: transparent;
+  border: 1px solid rgba(244, 82, 82, 0.4);
+  border-radius: var(--radius-sm);
+  color: var(--color-danger);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.deleteBtn:hover {
+  background: rgba(244, 82, 82, 0.1);
+  border-color: var(--color-danger);
+}
+
+.deleteBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Card detail rows ───────────────────────────────────── */
+.detailRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.detailLabel {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  min-width: 120px;
+}
+
+.detailValue {
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+}
+
+.pill {
+  display: inline-block;
+  padding: 2px var(--space-2);
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.pillEnabled {
+  background: rgba(62, 207, 142, 0.15);
+  color: var(--color-success);
+  border: 1px solid rgba(62, 207, 142, 0.3);
+}
+
+.pillDisabled {
+  background: rgba(136, 146, 164, 0.15);
+  color: var(--color-text-secondary);
+  border: 1px solid rgba(136, 146, 164, 0.3);
+}
+
+/* ── Quality tags ───────────────────────────────────────── */
+.qualityTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
+}
+
+.qualityTag {
+  padding: 2px var(--space-2);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.7rem;
+  color: var(--color-text);
+}
+
+.qualityTagCutoff {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+/* ── Modal form ─────────────────────────────────────────── */
+.field {
+  margin-bottom: var(--space-4);
+}
+
+.label {
+  display: block;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: var(--space-1);
+}
+
+.input {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-sans);
+  transition: border-color 0.15s ease;
+  box-sizing: border-box;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.select {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.select:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.checkbox {
+  accent-color: var(--color-accent);
+  width: 16px;
+  height: 16px;
+}
+
+/* ── Qualities list in modal ────────────────────────────── */
+.qualitiesSection {
+  margin-bottom: var(--space-4);
+}
+
+.qualitiesTitle {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: var(--space-3);
+}
+
+.qualityList {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-raised);
+}
+
+.qualityItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--font-size-sm);
+}
+
+.qualityItem:last-child {
+  border-bottom: none;
+}
+
+.qualityItem:hover {
+  background: var(--color-bg);
+}
+
+.qualityName {
+  flex: 1;
+  color: var(--color-text);
+}
+
+.qualityMeta {
+  color: var(--color-text-secondary);
+  font-size: 0.7rem;
+}
+
+/* ── Form actions ───────────────────────────────────────── */
+.error {
+  color: var(--color-danger);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--space-4);
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-3);
+  padding-top: var(--space-2);
+}
+
+.saveBtn {
+  padding: var(--space-2) var(--space-5);
+  background: var(--color-accent);
+  color: #0f1117;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.saveBtn:hover:not(:disabled) {
+  background: var(--color-accent-hover);
+}
+
+.saveBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cancelBtn {
+  padding: var(--space-2) var(--space-5);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.cancelBtn:hover {
+  border-color: var(--color-text-secondary);
+  color: var(--color-text);
+}
+
+/* ── State messages ─────────────────────────────────────── */
+.stateMessage {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-base);
+  padding: var(--space-8) 0;
+  text-align: center;
+}
+
+.errorMessage {
+  color: var(--color-danger);
+  font-size: var(--font-size-base);
+}
+
+.muted {
+  color: var(--color-text-secondary);
+}

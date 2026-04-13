@@ -404,7 +404,7 @@ function QualityProfilesTab() {
                   </span>
                 </td>
                 <td className={styles.td}>
-                  <span className={styles.muted}>{profile.items?.length ?? 0}</span>
+                  <span className={styles.muted}>{profile.items?.filter(i => i.allowed).length ?? 0}</span>
                 </td>
               </tr>
             ))}

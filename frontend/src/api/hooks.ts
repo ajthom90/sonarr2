@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from './client'
-import type { Series, Episode, Page, SystemStatus, Command, HistoryEntry, HealthItem, WantedEpisode, Indexer, DownloadClient, QualityProfile, SeriesLookupResult, RootFolder, AddSeriesRequest, GeneralSettings, CustomFormat } from './types'
+import type { Series, Episode, Page, SystemStatus, Command, HistoryEntry, HealthItem, WantedEpisode, Indexer, DownloadClient, QualityProfile, QualityDefinition, SeriesLookupResult, RootFolder, AddSeriesRequest, GeneralSettings, CustomFormat } from './types'
 
 export function useSeriesList() {
   return useQuery({
@@ -86,6 +86,39 @@ export function useQualityProfiles() {
   return useQuery({
     queryKey: ['qualityprofiles'],
     queryFn: () => api.get<Page<QualityProfile>>('/qualityprofile'),
+  })
+}
+
+export function useQualityDefinitions() {
+  return useQuery({
+    queryKey: ['qualitydefinitions'],
+    queryFn: () => api.get<QualityDefinition[]>('/qualitydefinition'),
+  })
+}
+
+export function useCreateQualityProfile() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (body: Omit<QualityProfile, 'id'>) =>
+      api.post<QualityProfile>('/qualityprofile', body),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['qualityprofiles'] }),
+  })
+}
+
+export function useUpdateQualityProfile() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, ...body }: QualityProfile) =>
+      api.put<QualityProfile>(`/qualityprofile/${id}`, body),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['qualityprofiles'] }),
+  })
+}
+
+export function useDeleteQualityProfile() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => api.delete(`/qualityprofile/${id}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['qualityprofiles'] }),
   })
 }
 

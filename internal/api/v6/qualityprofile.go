@@ -111,7 +111,13 @@ func (h *qualityProfileHandler) list(w http.ResponseWriter, r *http.Request) {
 	for _, p := range all {
 		resources = append(resources, h.toResource(p))
 	}
-	writeJSON(w, http.StatusOK, resources)
+	writeJSON(w, http.StatusOK, Page[qualityProfileResource]{
+		Data: resources,
+		Pagination: Pagination{
+			Limit:   len(resources),
+			HasMore: false,
+		},
+	})
 }
 
 func (h *qualityProfileHandler) get(w http.ResponseWriter, r *http.Request) {
