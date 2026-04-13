@@ -369,3 +369,13 @@ func TestHistoryRetentionEnvOverride(t *testing.T) {
 		t.Errorf("HistoryRetention = %v, want 720h", cfg.HistoryRetention)
 	}
 }
+
+func TestBackupDefaults(t *testing.T) {
+	cfg := Default()
+	if cfg.BackupRetention != 7 {
+		t.Errorf("BackupRetention = %d, want 7", cfg.BackupRetention)
+	}
+	if cfg.BackupInterval != 7*24*time.Hour {
+		t.Errorf("BackupInterval = %v, want 168h", cfg.BackupInterval)
+	}
+}

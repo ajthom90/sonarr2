@@ -22,6 +22,8 @@ type Config struct {
 	DB               DBConfig       `yaml:"db"`
 	TVDB             TVDBConfig     `yaml:"tvdb"`
 	HistoryRetention time.Duration  `yaml:"history_retention"`
+	BackupRetention  int            `yaml:"backup_retention"`
+	BackupInterval   time.Duration  `yaml:"backup_interval"`
 }
 
 // HTTPConfig controls the HTTP listener.
@@ -91,6 +93,8 @@ func Default() Config {
 			RateBurst:        10,
 		},
 		HistoryRetention: 90 * 24 * time.Hour,
+		BackupRetention:  7,
+		BackupInterval:   7 * 24 * time.Hour,
 	}
 }
 
@@ -221,6 +225,20 @@ func Load(args []string, getenv func(string) string) (Config, error) {
 			return Config{}, fmt.Errorf("SONARR2_HISTORY_RETENTION must be a duration, got %q: %w", v, err)
 		}
 		cfg.HistoryRetention = d
+	}
+	if v := getenv("SONARR2_BACKUP_RETENTION"); v != "" {
+		n, err := strconv.Atoi(v)
+		if err != nil {
+			return Config{}, fmt.Errorf("SONARR2_BACKUP_RETENTION must be an integer, got %q: %w", v, err)
+		}
+		cfg.BackupRetention = n
+	}
+	if v := getenv("SONARR2_BACKUP_INTERVAL"); v != "" {
+		d, err := time.ParseDuration(v)
+		if err != nil {
+			return Config{}, fmt.Errorf("SONARR2_BACKUP_INTERVAL must be a duration, got %q: %w", v, err)
+		}
+		cfg.BackupInterval = d
 	}
 
 	// 3. CLI flags override environment.
