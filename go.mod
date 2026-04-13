@@ -3,6 +3,7 @@ module github.com/ajthom90/sonarr2
 go 1.23
 
 require (
+	github.com/fsnotify/fsnotify v1.7.0
 	github.com/go-chi/chi/v5 v5.1.0
 	github.com/jackc/pgx/v5 v5.7.1
 	github.com/pressly/goose/v3 v3.22.1
