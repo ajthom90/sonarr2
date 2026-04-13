@@ -4,7 +4,7 @@ A feature-complete rewrite of [Sonarr](https://github.com/Sonarr/Sonarr) focused
 
 ## Current Status
 
-**Milestone 7 of 24 complete** — the core backend is functional. Not yet ready for end users.
+**Milestone 8 of 24 complete** — the core backend is functional. Not yet ready for end users.
 
 ### What's implemented
 
@@ -21,13 +21,16 @@ A feature-complete rewrite of [Sonarr](https://github.com/Sonarr/Sonarr) focused
 - **SABnzbd download client** — add, queue status, and remove operations
 - **Metadata source (TVDB)** — search series by title, fetch full episode lists via TVDB v4 API with JWT auth
 - **RefreshSeriesMetadata** — command handler that syncs episodes from TVDB into the local library
+- **RSS sync pipeline** — automatic 15-min RSS feed polling → parse → series match → decision engine evaluation → ranked grab via download client
+- **Grab service** — picks the right download client by protocol and priority, sends releases, records history
+- **History tracking** — records grab events per episode for duplicate detection
 - **HTTP API** — `/ping` liveness, `/api/v3/system/status` with database connectivity reporting
 - **Docker-ready** — multi-stage Dockerfile producing a ~20MB distroless static binary
 - **CI** — GitHub Actions for lint (staticcheck + golangci-lint) and test (race detector + Postgres testcontainers)
 
 ### What's NOT yet implemented
 
-RSS sync flow, import pipeline, filesystem watcher, full Sonarr v3 API compatibility, SignalR real-time updates, the React frontend, remaining ~60 providers, migration tool, and more. See the [design doc](./docs/superpowers/specs/2026-04-10-sonarr-rewrite-design.md) for the full roadmap.
+Import pipeline, filesystem watcher, full Sonarr v3 API compatibility, SignalR real-time updates, the React frontend, remaining ~60 providers, migration tool, and more. See the [design doc](./docs/superpowers/specs/2026-04-10-sonarr-rewrite-design.md) for the full roadmap.
 
 ## Quick Start
 
