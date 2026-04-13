@@ -33,6 +33,7 @@ import (
 	"github.com/ajthom90/sonarr2/internal/health"
 	"github.com/ajthom90/sonarr2/internal/history"
 	"github.com/ajthom90/sonarr2/internal/hostconfig"
+	"github.com/ajthom90/sonarr2/internal/housekeeping"
 	"github.com/ajthom90/sonarr2/internal/importer"
 	"github.com/ajthom90/sonarr2/internal/library"
 	"github.com/ajthom90/sonarr2/internal/logging"
@@ -459,6 +460,30 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 		return nil, fmt.Errorf("app: upsert HealthCheck task: %w", err)
 	}
 
+	// Housekeeping runner.
+	housekeeper := housekeeping.New(housekeeping.Options{
+		History:          histStore,
+		EpisodeFiles:     &episodeFileAdapter{store: lib.EpisodeFiles},
+		Series:           &seriesAdapter{store: lib.Series},
+		Stats:            lib.Stats,
+		DB:               &vacuumAdapter{pool: pool},
+		Log:              log,
+		HistoryRetention: cfg.HistoryRetention,
+	})
+
+	housekeepingHandler := &housekeepingTaskHandler{runner: housekeeper}
+	reg.Register("Housekeeping", housekeepingHandler)
+
+	// Schedule Housekeeping at 24-hour interval.
+	if err := taskStore.Upsert(ctx, scheduler.ScheduledTask{
+		TypeName:      "Housekeeping",
+		IntervalSecs:  86400,
+		NextExecution: time.Now().Add(24 * time.Hour),
+	}); err != nil {
+		_ = pool.Close()
+		return nil, fmt.Errorf("app: upsert Housekeeping task: %w", err)
+	}
+
 	// Subscribe async notification dispatch on ReleasesGrabbed.
 	events.SubscribeAsync[grab.ReleasesGrabbed](bus, func(ctx context.Context, e grab.ReleasesGrabbed) {
 		dispatchGrabNotifications(ctx, notifStore, notifReg, log, notification.GrabMessage{
@@ -811,4 +836,72 @@ func dispatchGrabNotifications(
 			)
 		}
 	}
+}
+
+// episodeFileAdapter adapts library.EpisodeFilesStore for housekeeping.
+type episodeFileAdapter struct {
+	store library.EpisodeFilesStore
+}
+
+func (a *episodeFileAdapter) ListForSeries(ctx context.Context, seriesID int64) ([]housekeeping.EpisodeFileInfo, error) {
+	files, err := a.store.ListForSeries(ctx, seriesID)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]housekeeping.EpisodeFileInfo, len(files))
+	for i, f := range files {
+		result[i] = housekeeping.EpisodeFileInfo{
+			ID:           f.ID,
+			SeriesID:     f.SeriesID,
+			RelativePath: f.RelativePath,
+		}
+	}
+	return result, nil
+}
+
+func (a *episodeFileAdapter) Delete(ctx context.Context, id int64) error {
+	return a.store.Delete(ctx, id)
+}
+
+// seriesAdapter adapts library.SeriesStore for housekeeping.
+type seriesAdapter struct {
+	store library.SeriesStore
+}
+
+func (a *seriesAdapter) ListAll(ctx context.Context) ([]housekeeping.SeriesInfo, error) {
+	all, err := a.store.List(ctx)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]housekeeping.SeriesInfo, len(all))
+	for i, s := range all {
+		result[i] = housekeeping.SeriesInfo{ID: s.ID, Path: s.Path}
+	}
+	return result, nil
+}
+
+// vacuumAdapter adapts db.Pool for housekeeping.Vacuumer.
+type vacuumAdapter struct {
+	pool db.Pool
+}
+
+func (a *vacuumAdapter) Vacuum(ctx context.Context) error {
+	switch p := a.pool.(type) {
+	case *db.SQLitePool:
+		return p.Vacuum(ctx)
+	case *db.PostgresPool:
+		return p.Vacuum(ctx)
+	default:
+		return nil
+	}
+}
+
+// housekeepingTaskHandler wraps the Runner as a command handler.
+type housekeepingTaskHandler struct {
+	runner *housekeeping.Runner
+}
+
+func (h *housekeepingTaskHandler) Handle(ctx context.Context, _ commands.Command) error {
+	h.runner.Run(ctx)
+	return nil
 }
