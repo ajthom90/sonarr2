@@ -107,6 +107,18 @@ type Indexer struct {
 	Added                   pgtype.Timestamptz
 }
 
+type Notification struct {
+	ID             int32
+	Name           string
+	Implementation string
+	Settings       []byte
+	OnGrab         bool
+	OnDownload     bool
+	OnHealthIssue  bool
+	Tags           []byte
+	Added          pgtype.Timestamptz
+}
+
 type QualityDefinition struct {
 	ID            int32
 	Name          string

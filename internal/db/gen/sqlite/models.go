@@ -107,6 +107,18 @@ type Indexer struct {
 	Added                   string
 }
 
+type Notification struct {
+	ID             int64
+	Name           string
+	Implementation string
+	Settings       string
+	OnGrab         int64
+	OnDownload     int64
+	OnHealthIssue  int64
+	Tags           string
+	Added          string
+}
+
 type QualityDefinition struct {
 	ID            int64
 	Name          string

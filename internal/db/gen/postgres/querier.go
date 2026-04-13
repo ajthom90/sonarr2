@@ -20,6 +20,7 @@ type Querier interface {
 	CreateEpisodeFile(ctx context.Context, arg CreateEpisodeFileParams) (EpisodeFile, error)
 	CreateHistoryEntry(ctx context.Context, arg CreateHistoryEntryParams) (History, error)
 	CreateIndexer(ctx context.Context, arg CreateIndexerParams) (Indexer, error)
+	CreateNotification(ctx context.Context, arg CreateNotificationParams) (Notification, error)
 	CreateQualityProfile(ctx context.Context, arg CreateQualityProfileParams) (QualityProfile, error)
 	CreateSeries(ctx context.Context, arg CreateSeriesParams) (Series, error)
 	DeleteCustomFormat(ctx context.Context, id int32) error
@@ -28,6 +29,7 @@ type Querier interface {
 	DeleteEpisodeFile(ctx context.Context, id int64) error
 	DeleteForSeries(ctx context.Context, seriesID int64) error
 	DeleteIndexer(ctx context.Context, id int32) error
+	DeleteNotification(ctx context.Context, id int32) error
 	DeleteOldCompleted(ctx context.Context, endedAt pgtype.Timestamptz) (int64, error)
 	DeleteQualityProfile(ctx context.Context, id int32) error
 	DeleteSeason(ctx context.Context, arg DeleteSeasonParams) error
@@ -46,6 +48,7 @@ type Querier interface {
 	GetEpisodeFile(ctx context.Context, id int64) (EpisodeFile, error)
 	GetHostConfig(ctx context.Context) (HostConfig, error)
 	GetIndexerByID(ctx context.Context, id int32) (Indexer, error)
+	GetNotificationByID(ctx context.Context, id int32) (Notification, error)
 	GetQualityDefinitionByID(ctx context.Context, id int32) (QualityDefinition, error)
 	GetQualityProfileByID(ctx context.Context, id int32) (QualityProfile, error)
 	GetScheduledTask(ctx context.Context, typeName string) (ScheduledTask, error)
@@ -61,6 +64,7 @@ type Querier interface {
 	ListForEpisode(ctx context.Context, episodeID int64) ([]History, error)
 	ListForSeries(ctx context.Context, seriesID int64) ([]History, error)
 	ListIndexers(ctx context.Context) ([]Indexer, error)
+	ListNotifications(ctx context.Context) ([]Notification, error)
 	ListQualityProfiles(ctx context.Context) ([]QualityProfile, error)
 	ListScheduledTasks(ctx context.Context) ([]ScheduledTask, error)
 	ListSeasonsForSeries(ctx context.Context, seriesID int64) ([]Season, error)
@@ -72,6 +76,7 @@ type Querier interface {
 	UpdateDownloadClient(ctx context.Context, arg UpdateDownloadClientParams) error
 	UpdateEpisode(ctx context.Context, arg UpdateEpisodeParams) error
 	UpdateIndexer(ctx context.Context, arg UpdateIndexerParams) error
+	UpdateNotification(ctx context.Context, arg UpdateNotificationParams) error
 	UpdateQualityDefinitionSizes(ctx context.Context, arg UpdateQualityDefinitionSizesParams) error
 	UpdateQualityProfile(ctx context.Context, arg UpdateQualityProfileParams) error
 	UpdateSeries(ctx context.Context, arg UpdateSeriesParams) error
