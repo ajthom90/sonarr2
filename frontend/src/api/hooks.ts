@@ -1,6 +1,6 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from './client'
-import type { Series, Episode, Page, SystemStatus, Command, HistoryEntry, HealthItem, WantedEpisode } from './types'
+import type { Series, Episode, Page, SystemStatus, Command, HistoryEntry, HealthItem, WantedEpisode, Indexer, DownloadClient, QualityProfile } from './types'
 
 export function useSeriesList() {
   return useQuery({
@@ -65,5 +65,70 @@ export function useSystemStatus() {
   return useQuery({
     queryKey: ['system', 'status'],
     queryFn: () => api.get<SystemStatus>('/system/status'),
+  })
+}
+
+export function useIndexers() {
+  return useQuery({
+    queryKey: ['indexers'],
+    queryFn: () => api.get<Page<Indexer>>('/indexer'),
+  })
+}
+
+export function useDownloadClients() {
+  return useQuery({
+    queryKey: ['downloadclients'],
+    queryFn: () => api.get<Page<DownloadClient>>('/downloadclient'),
+  })
+}
+
+export function useQualityProfiles() {
+  return useQuery({
+    queryKey: ['qualityprofiles'],
+    queryFn: () => api.get<Page<QualityProfile>>('/qualityprofile'),
+  })
+}
+
+export function useDeleteIndexer() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => api.delete(`/indexer/${id}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['indexers'] }),
+  })
+}
+
+export function useAddIndexer() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (body: unknown) => api.post('/indexer', body),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['indexers'] }),
+  })
+}
+
+export function useDeleteDownloadClient() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => api.delete(`/downloadclient/${id}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['downloadclients'] }),
+  })
+}
+
+export function useAddDownloadClient() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (body: unknown) => api.post('/downloadclient', body),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['downloadclients'] }),
+  })
+}
+
+export function useConnectionStatus() {
+  return useQuery({
+    queryKey: ['ping'],
+    queryFn: async () => {
+      const res = await fetch('/ping')
+      return res.ok
+    },
+    refetchInterval: 30_000,
+    retry: false,
   })
 }

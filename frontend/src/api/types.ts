@@ -77,3 +77,27 @@ export interface WantedEpisode {
   airDate?: string
   series?: { title: string }
 }
+
+export interface Indexer {
+  id: number
+  name: string
+  implementation: string
+  enableRss: boolean
+  enableAutomaticSearch: boolean
+  priority: number
+}
+
+export interface DownloadClient {
+  id: number
+  name: string
+  implementation: string
+  enable: boolean
+  priority: number
+}
+
+export interface QualityProfile {
+  id: number
+  name: string
+  upgradeAllowed: boolean
+  items: Array<{ qualityId: number; allowed: boolean }>
+}
