@@ -24,6 +24,8 @@ type Config struct {
 	HistoryRetention time.Duration  `yaml:"history_retention"`
 	BackupRetention  int            `yaml:"backup_retention"`
 	BackupInterval   time.Duration  `yaml:"backup_interval"`
+	APIRateLimit     float64        `yaml:"api_rate_limit"`
+	APIRateBurst     int            `yaml:"api_rate_burst"`
 }
 
 // HTTPConfig controls the HTTP listener.
@@ -95,6 +97,8 @@ func Default() Config {
 		HistoryRetention: 90 * 24 * time.Hour,
 		BackupRetention:  7,
 		BackupInterval:   7 * 24 * time.Hour,
+		APIRateLimit:     30,
+		APIRateBurst:     100,
 	}
 }
 
@@ -239,6 +243,20 @@ func Load(args []string, getenv func(string) string) (Config, error) {
 			return Config{}, fmt.Errorf("SONARR2_BACKUP_INTERVAL must be a duration, got %q: %w", v, err)
 		}
 		cfg.BackupInterval = d
+	}
+	if v := getenv("SONARR2_API_RATE_LIMIT"); v != "" {
+		f, err := strconv.ParseFloat(v, 64)
+		if err != nil {
+			return Config{}, fmt.Errorf("SONARR2_API_RATE_LIMIT must be a number, got %q: %w", v, err)
+		}
+		cfg.APIRateLimit = f
+	}
+	if v := getenv("SONARR2_API_RATE_BURST"); v != "" {
+		n, err := strconv.Atoi(v)
+		if err != nil {
+			return Config{}, fmt.Errorf("SONARR2_API_RATE_BURST must be an integer, got %q: %w", v, err)
+		}
+		cfg.APIRateBurst = n
 	}
 
 	// 3. CLI flags override environment.
