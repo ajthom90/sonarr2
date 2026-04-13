@@ -25,6 +25,13 @@ export function useEpisodes(seriesId: number) {
   })
 }
 
+export function useCalendar(start: string, end: string) {
+  return useQuery({
+    queryKey: ['calendar', start, end],
+    queryFn: () => api.get<Page<Episode>>(`/calendar?start=${start}&end=${end}`),
+  })
+}
+
 export function useSystemStatus() {
   return useQuery({
     queryKey: ['system', 'status'],
