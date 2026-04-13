@@ -1,0 +1,184 @@
+.page {
+  padding: var(--space-6);
+  max-width: 900px;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0 0 var(--space-4) 0;
+}
+
+.searchBox {
+  margin-bottom: var(--space-4);
+}
+
+.searchInput {
+  width: 100%;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  padding: var(--space-3) var(--space-4);
+  font-size: 1rem;
+  outline: none;
+}
+
+.searchInput:focus {
+  border-color: var(--color-accent);
+}
+
+.hint {
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+}
+
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.resultCard {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  cursor: pointer;
+  color: var(--color-text);
+  transition: border-color 0.15s;
+}
+
+.resultCard:hover {
+  border-color: var(--color-accent);
+}
+
+.resultTitle {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.resultYear {
+  color: var(--color-text-secondary);
+  font-weight: 400;
+}
+
+.resultMeta {
+  display: flex;
+  gap: var(--space-3);
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+  margin-top: var(--space-1);
+}
+
+.resultOverview {
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+  margin-top: var(--space-2);
+  line-height: 1.4;
+}
+
+.addForm {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-6);
+}
+
+.selectedInfo {
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.selectedInfo h2 {
+  margin: 0 0 var(--space-2) 0;
+  font-size: 1.25rem;
+  color: var(--color-text);
+}
+
+.changeBtn {
+  background: none;
+  border: none;
+  color: var(--color-accent);
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 0;
+  margin-top: var(--space-2);
+}
+
+.changeBtn:hover {
+  color: var(--color-accent-hover);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+}
+
+.select,
+.input {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  padding: var(--space-2) var(--space-3);
+  font-size: 0.875rem;
+  outline: none;
+}
+
+.select:focus,
+.input:focus {
+  border-color: var(--color-accent);
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text);
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.error {
+  background: rgba(244, 82, 82, 0.1);
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-sm);
+  color: var(--color-danger);
+  padding: var(--space-2) var(--space-3);
+  font-size: 0.875rem;
+}
+
+.addButton {
+  background: var(--color-accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-4);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.addButton:hover:not(:disabled) {
+  background: var(--color-accent-hover);
+}
+
+.addButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
