@@ -7,6 +7,11 @@ on:
 
 permissions:
   contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ghcr.io/${{ github.repository }}
 
 jobs:
   build:
@@ -19,23 +24,100 @@ jobs:
           - runner: ubuntu-24.04-arm
             platform: linux/arm64
     runs-on: ${{ matrix.runner }}
-    env:
-      BUILD_SHA: ${{ github.sha }}
+    outputs:
+      # Export digests so the merge job can reference them.
+      digest-amd64: ${{ steps.build.outputs.digest }}
+      digest-arm64: ${{ steps.build.outputs.digest }}
     steps:
       - uses: actions/checkout@v4
 
       - name: set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: build (${{ matrix.platform }})
+      - name: log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_NAME }}
+
+      - name: build and push by digest
+        id: build
         uses: docker/build-push-action@v6
+        env:
+          BUILD_SHA: ${{ github.sha }}
         with:
           context: .
           file: docker/Dockerfile
           platforms: ${{ matrix.platform }}
-          push: false
           build-args: |
             VERSION=${{ env.BUILD_SHA }}
             COMMIT=${{ env.BUILD_SHA }}
+          labels: ${{ steps.meta.outputs.labels }}
+          outputs: type=image,name=${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=${{ github.event_name == 'push' }}
           cache-from: type=gha,scope=${{ matrix.platform }}
           cache-to: type=gha,mode=max,scope=${{ matrix.platform }}
+
+      - name: export digest
+        if: github.event_name == 'push'
+        run: |
+          mkdir -p /tmp/digests
+          digest="${{ steps.build.outputs.digest }}"
+          touch "/tmp/digests/${digest#sha256:}"
+
+      - name: upload digest
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: digests-${{ matrix.runner }}
+          path: /tmp/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  merge:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    needs: [build]
+    steps:
+      - name: download digests
+        uses: actions/download-artifact@v4
+        with:
+          path: /tmp/digests
+          pattern: digests-*
+          merge-multiple: true
+
+      - name: set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,prefix=
+
+      - name: create manifest list and push
+        working-directory: /tmp/digests
+        run: |
+          docker buildx imagetools create \
+            $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+            $(printf '${{ env.IMAGE_NAME }}@sha256:%s ' *)
+
+      - name: inspect image
+        run: |
+          docker buildx imagetools inspect ${{ env.IMAGE_NAME }}:latest
