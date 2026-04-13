@@ -297,3 +297,57 @@ func TestValidateDBConfig(t *testing.T) {
 		})
 	}
 }
+
+func TestLoadTVDBEnvOverrides(t *testing.T) {
+	env := map[string]string{
+		"SONARR2_TVDB_API_KEY":            "my-key",
+		"SONARR2_TVDB_CACHE_SERIES_TTL":   "48h",
+		"SONARR2_TVDB_CACHE_EPISODES_TTL": "12h",
+		"SONARR2_TVDB_CACHE_SEARCH_TTL":   "2h",
+		"SONARR2_TVDB_RATE_LIMIT":         "10",
+		"SONARR2_TVDB_RATE_BURST":         "20",
+	}
+	getenv := func(k string) string { return env[k] }
+
+	cfg, err := Load(nil, getenv)
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+	if cfg.TVDB.ApiKey != "my-key" {
+		t.Errorf("TVDB.ApiKey = %q, want my-key", cfg.TVDB.ApiKey)
+	}
+	if cfg.TVDB.CacheSeriesTTL != 48*time.Hour {
+		t.Errorf("CacheSeriesTTL = %v, want 48h", cfg.TVDB.CacheSeriesTTL)
+	}
+	if cfg.TVDB.CacheEpisodesTTL != 12*time.Hour {
+		t.Errorf("CacheEpisodesTTL = %v, want 12h", cfg.TVDB.CacheEpisodesTTL)
+	}
+	if cfg.TVDB.CacheSearchTTL != 2*time.Hour {
+		t.Errorf("CacheSearchTTL = %v, want 2h", cfg.TVDB.CacheSearchTTL)
+	}
+	if cfg.TVDB.RateLimit != 10 {
+		t.Errorf("RateLimit = %v, want 10", cfg.TVDB.RateLimit)
+	}
+	if cfg.TVDB.RateBurst != 20 {
+		t.Errorf("RateBurst = %d, want 20", cfg.TVDB.RateBurst)
+	}
+}
+
+func TestTVDBDefaults(t *testing.T) {
+	cfg := Default()
+	if cfg.TVDB.CacheSeriesTTL != 24*time.Hour {
+		t.Errorf("default CacheSeriesTTL = %v, want 24h", cfg.TVDB.CacheSeriesTTL)
+	}
+	if cfg.TVDB.CacheEpisodesTTL != 6*time.Hour {
+		t.Errorf("default CacheEpisodesTTL = %v, want 6h", cfg.TVDB.CacheEpisodesTTL)
+	}
+	if cfg.TVDB.CacheSearchTTL != time.Hour {
+		t.Errorf("default CacheSearchTTL = %v, want 1h", cfg.TVDB.CacheSearchTTL)
+	}
+	if cfg.TVDB.RateLimit != 5 {
+		t.Errorf("default RateLimit = %v, want 5", cfg.TVDB.RateLimit)
+	}
+	if cfg.TVDB.RateBurst != 10 {
+		t.Errorf("default RateBurst = %d, want 10", cfg.TVDB.RateBurst)
+	}
+}

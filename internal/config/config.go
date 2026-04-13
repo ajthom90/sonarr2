@@ -20,6 +20,7 @@ type Config struct {
 	Logging logging.Config `yaml:"logging"`
 	Paths   PathsConfig    `yaml:"paths"`
 	DB      DBConfig       `yaml:"db"`
+	TVDB    TVDBConfig     `yaml:"tvdb"`
 }
 
 // HTTPConfig controls the HTTP listener.
@@ -46,6 +47,16 @@ type DBConfig struct {
 	BusyTimeout     time.Duration `yaml:"busy_timeout"`
 }
 
+// TVDBConfig controls the TVDB metadata source.
+type TVDBConfig struct {
+	ApiKey           string        `yaml:"api_key"`
+	CacheSeriesTTL   time.Duration `yaml:"cache_series_ttl"`
+	CacheEpisodesTTL time.Duration `yaml:"cache_episodes_ttl"`
+	CacheSearchTTL   time.Duration `yaml:"cache_search_ttl"`
+	RateLimit        float64       `yaml:"rate_limit"`
+	RateBurst        int           `yaml:"rate_burst"`
+}
+
 // Default returns the built-in defaults.
 func Default() Config {
 	return Config{
@@ -70,6 +81,13 @@ func Default() Config {
 			MaxIdleConns:    2,
 			ConnMaxLifetime: 30 * time.Minute,
 			BusyTimeout:     5 * time.Second,
+		},
+		TVDB: TVDBConfig{
+			CacheSeriesTTL:   24 * time.Hour,
+			CacheEpisodesTTL: 6 * time.Hour,
+			CacheSearchTTL:   time.Hour,
+			RateLimit:        5,
+			RateBurst:        10,
 		},
 	}
 }
@@ -156,6 +174,44 @@ func Load(args []string, getenv func(string) string) (Config, error) {
 			return Config{}, fmt.Errorf("SONARR2_DB_BUSY_TIMEOUT must be a duration, got %q: %w", v, err)
 		}
 		cfg.DB.BusyTimeout = d
+	}
+	if v := getenv("SONARR2_TVDB_API_KEY"); v != "" {
+		cfg.TVDB.ApiKey = v
+	}
+	if v := getenv("SONARR2_TVDB_CACHE_SERIES_TTL"); v != "" {
+		d, err := time.ParseDuration(v)
+		if err != nil {
+			return Config{}, fmt.Errorf("SONARR2_TVDB_CACHE_SERIES_TTL must be a duration, got %q: %w", v, err)
+		}
+		cfg.TVDB.CacheSeriesTTL = d
+	}
+	if v := getenv("SONARR2_TVDB_CACHE_EPISODES_TTL"); v != "" {
+		d, err := time.ParseDuration(v)
+		if err != nil {
+			return Config{}, fmt.Errorf("SONARR2_TVDB_CACHE_EPISODES_TTL must be a duration, got %q: %w", v, err)
+		}
+		cfg.TVDB.CacheEpisodesTTL = d
+	}
+	if v := getenv("SONARR2_TVDB_CACHE_SEARCH_TTL"); v != "" {
+		d, err := time.ParseDuration(v)
+		if err != nil {
+			return Config{}, fmt.Errorf("SONARR2_TVDB_CACHE_SEARCH_TTL must be a duration, got %q: %w", v, err)
+		}
+		cfg.TVDB.CacheSearchTTL = d
+	}
+	if v := getenv("SONARR2_TVDB_RATE_LIMIT"); v != "" {
+		f, err := strconv.ParseFloat(v, 64)
+		if err != nil {
+			return Config{}, fmt.Errorf("SONARR2_TVDB_RATE_LIMIT must be a number, got %q: %w", v, err)
+		}
+		cfg.TVDB.RateLimit = f
+	}
+	if v := getenv("SONARR2_TVDB_RATE_BURST"); v != "" {
+		n, err := strconv.Atoi(v)
+		if err != nil {
+			return Config{}, fmt.Errorf("SONARR2_TVDB_RATE_BURST must be an integer, got %q: %w", v, err)
+		}
+		cfg.TVDB.RateBurst = n
 	}
 
 	// 3. CLI flags override environment.
