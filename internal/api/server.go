@@ -10,6 +10,7 @@ import (
 	"time"
 
 	v3 "github.com/ajthom90/sonarr2/internal/api/v3"
+	v6 "github.com/ajthom90/sonarr2/internal/api/v6"
 	"github.com/ajthom90/sonarr2/internal/buildinfo"
 	"github.com/ajthom90/sonarr2/internal/commands"
 	"github.com/ajthom90/sonarr2/internal/customformats"
@@ -210,6 +211,27 @@ func HandlerWithDeps(log *slog.Logger, deps Deps) http.Handler {
 		if deps.Broker != nil {
 			r.Get("/api/v6/stream", deps.Broker.SSEHandler)
 		}
+	})
+
+	// v6 routes — mounted separately under /api/v6 with their own auth group.
+	v6.Mount(r, v6.Deps{
+		Pool:            deps.Pool,
+		HostConfig:      deps.HostConfig,
+		Series:          deps.Series,
+		Seasons:         deps.Seasons,
+		Stats:           deps.Stats,
+		Episodes:        deps.Episodes,
+		EpisodeFiles:    deps.EpisodeFiles,
+		QualityProfiles: deps.QualityProfiles,
+		QualityDefs:     deps.QualityDefs,
+		CustomFormats:   deps.CustomFormats,
+		Commands:        deps.Commands,
+		History:         deps.History,
+		IndexerStore:    deps.IndexerStore,
+		IndexerRegistry: deps.IndexerRegistry,
+		DCStore:         deps.DCStore,
+		DCRegistry:      deps.DCRegistry,
+		Log:             deps.Log,
 	})
 
 	return r
