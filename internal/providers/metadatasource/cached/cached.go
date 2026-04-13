@@ -12,8 +12,8 @@ import (
 	"github.com/ajthom90/sonarr2/internal/providers/metadatasource"
 )
 
-// Compile-time check: CachedMetadataSource implements MetadataSource.
-var _ metadatasource.MetadataSource = (*CachedMetadataSource)(nil)
+// Compile-time check: Source implements MetadataSource.
+var _ metadatasource.MetadataSource = (*Source)(nil)
 
 // Options configures TTLs and the background sweep interval.
 // Zero values are replaced with sensible defaults by withDefaults.
@@ -50,8 +50,8 @@ type cacheEntry struct {
 	expiresAt time.Time
 }
 
-// CachedMetadataSource wraps a MetadataSource and caches results with per-type TTLs.
-type CachedMetadataSource struct {
+// Source wraps a MetadataSource and caches results with per-type TTLs.
+type Source struct {
 	inner    metadatasource.MetadataSource
 	opts     Options
 	mu       sync.RWMutex
@@ -60,10 +60,10 @@ type CachedMetadataSource struct {
 	stopCh   chan struct{}
 }
 
-// New creates a CachedMetadataSource wrapping inner. A background goroutine
+// New creates a Source wrapping inner. A background goroutine
 // sweeps expired entries every opts.SweepEvery. Call Stop to terminate it.
-func New(inner metadatasource.MetadataSource, opts Options) *CachedMetadataSource {
-	c := &CachedMetadataSource{
+func New(inner metadatasource.MetadataSource, opts Options) *Source {
+	c := &Source{
 		inner:  inner,
 		opts:   opts.withDefaults(),
 		cache:  make(map[string]cacheEntry),
@@ -74,7 +74,7 @@ func New(inner metadatasource.MetadataSource, opts Options) *CachedMetadataSourc
 }
 
 // Stop halts the background sweep goroutine. Safe to call multiple times.
-func (c *CachedMetadataSource) Stop() {
+func (c *Source) Stop() {
 	c.stopOnce.Do(func() {
 		close(c.stopCh)
 	})
@@ -82,7 +82,7 @@ func (c *CachedMetadataSource) Stop() {
 
 // Invalidate removes the cached series and episodes entries for tvdbID so the
 // next request re-fetches from the inner source.
-func (c *CachedMetadataSource) Invalidate(tvdbID int64) {
+func (c *Source) Invalidate(tvdbID int64) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	delete(c.cache, fmt.Sprintf("series:%d", tvdbID))
@@ -90,7 +90,7 @@ func (c *CachedMetadataSource) Invalidate(tvdbID int64) {
 }
 
 // SearchSeries returns cached results or delegates to the inner source.
-func (c *CachedMetadataSource) SearchSeries(ctx context.Context, query string) ([]metadatasource.SeriesSearchResult, error) {
+func (c *Source) SearchSeries(ctx context.Context, query string) ([]metadatasource.SeriesSearchResult, error) {
 	key := "search:" + query
 	if v, ok := c.get(key); ok {
 		return v.([]metadatasource.SeriesSearchResult), nil
@@ -104,7 +104,7 @@ func (c *CachedMetadataSource) SearchSeries(ctx context.Context, query string) (
 }
 
 // GetSeries returns cached series metadata or delegates to the inner source.
-func (c *CachedMetadataSource) GetSeries(ctx context.Context, tvdbID int64) (metadatasource.SeriesInfo, error) {
+func (c *Source) GetSeries(ctx context.Context, tvdbID int64) (metadatasource.SeriesInfo, error) {
 	key := fmt.Sprintf("series:%d", tvdbID)
 	if v, ok := c.get(key); ok {
 		return v.(metadatasource.SeriesInfo), nil
@@ -118,7 +118,7 @@ func (c *CachedMetadataSource) GetSeries(ctx context.Context, tvdbID int64) (met
 }
 
 // GetEpisodes returns cached episode metadata or delegates to the inner source.
-func (c *CachedMetadataSource) GetEpisodes(ctx context.Context, tvdbID int64) ([]metadatasource.EpisodeInfo, error) {
+func (c *Source) GetEpisodes(ctx context.Context, tvdbID int64) ([]metadatasource.EpisodeInfo, error) {
 	key := fmt.Sprintf("episodes:%d", tvdbID)
 	if v, ok := c.get(key); ok {
 		return v.([]metadatasource.EpisodeInfo), nil
@@ -132,7 +132,7 @@ func (c *CachedMetadataSource) GetEpisodes(ctx context.Context, tvdbID int64) ([
 }
 
 // get retrieves a non-expired value from the cache.
-func (c *CachedMetadataSource) get(key string) (any, bool) {
+func (c *Source) get(key string) (any, bool) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	e, ok := c.cache[key]
@@ -143,7 +143,7 @@ func (c *CachedMetadataSource) get(key string) (any, bool) {
 }
 
 // set stores value in the cache with the given TTL.
-func (c *CachedMetadataSource) set(key string, value any, ttl time.Duration) {
+func (c *Source) set(key string, value any, ttl time.Duration) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.cache[key] = cacheEntry{
@@ -153,7 +153,7 @@ func (c *CachedMetadataSource) set(key string, value any, ttl time.Duration) {
 }
 
 // sweepLoop runs on a ticker and purges expired entries until Stop is called.
-func (c *CachedMetadataSource) sweepLoop() {
+func (c *Source) sweepLoop() {
 	ticker := time.NewTicker(c.opts.SweepEvery)
 	defer ticker.Stop()
 	for {
@@ -167,7 +167,7 @@ func (c *CachedMetadataSource) sweepLoop() {
 }
 
 // sweep removes all expired entries from the cache under a write lock.
-func (c *CachedMetadataSource) sweep() {
+func (c *Source) sweep() {
 	now := time.Now()
 	c.mu.Lock()
 	defer c.mu.Unlock()

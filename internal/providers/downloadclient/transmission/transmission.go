@@ -94,7 +94,9 @@ func (t *Transmission) Items(ctx context.Context) ([]downloadclient.Item, error)
 // Remove removes a torrent from Transmission.
 func (t *Transmission) Remove(ctx context.Context, downloadID string, deleteData bool) error {
 	var id int64
-	fmt.Sscan(downloadID, &id)
+	if _, err := fmt.Sscan(downloadID, &id); err != nil {
+		return fmt.Errorf("transmission: parse download ID %q: %w", downloadID, err)
+	}
 	args := map[string]interface{}{
 		"ids":               []int64{id},
 		"delete-local-data": deleteData,
