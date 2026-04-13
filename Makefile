@@ -25,6 +25,11 @@ build-backend:
 	@mkdir -p $(OUT)
 	CGO_ENABLED=0 go build -ldflags='$(LDFLAGS)' -o $(OUT)/$(BIN) ./cmd/sonarr
 
+## build-migrate: build the sonarr-migrate CLI tool
+build-migrate:
+	@mkdir -p $(OUT)
+	CGO_ENABLED=0 go build -ldflags='$(LDFLAGS)' -o $(OUT)/sonarr-migrate ./cmd/sonarr-migrate
+
 test:
 	go test -race -count=1 ./...
 
