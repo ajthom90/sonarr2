@@ -12,6 +12,7 @@ import (
 
 	v3 "github.com/ajthom90/sonarr2/internal/api/v3"
 	v6 "github.com/ajthom90/sonarr2/internal/api/v6"
+	"github.com/ajthom90/sonarr2/internal/backup"
 	"github.com/ajthom90/sonarr2/internal/buildinfo"
 	"github.com/ajthom90/sonarr2/internal/commands"
 	"github.com/ajthom90/sonarr2/internal/customformats"
@@ -62,6 +63,7 @@ type Deps struct {
 	NotificationRegistry *notification.Registry
 	HealthChecker        *health.Checker
 	Broker               *realtime.Broker
+	BackupService        *backup.Service
 	Log                  *slog.Logger
 }
 
@@ -217,6 +219,9 @@ func HandlerWithDeps(log *slog.Logger, deps Deps) http.Handler {
 			wh := v3.NewWantedHandler(deps.Episodes, log)
 			v3.MountWanted(r, wh)
 		}
+		if deps.BackupService != nil {
+			v3.MountBackup(r, deps.BackupService)
+		}
 
 		// SSE transport — behind auth so only authenticated clients connect.
 		if deps.Broker != nil {
@@ -245,6 +250,7 @@ func HandlerWithDeps(log *slog.Logger, deps Deps) http.Handler {
 		NotificationStore:    deps.NotificationStore,
 		NotificationRegistry: deps.NotificationRegistry,
 		HealthChecker:        deps.HealthChecker,
+		BackupService:        deps.BackupService,
 		Log:                  deps.Log,
 	})
 

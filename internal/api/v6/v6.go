@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	"github.com/ajthom90/sonarr2/internal/backup"
 	"github.com/ajthom90/sonarr2/internal/commands"
 	"github.com/ajthom90/sonarr2/internal/customformats"
 	"github.com/ajthom90/sonarr2/internal/health"
@@ -51,6 +52,7 @@ type Deps struct {
 	NotificationStore    notification.InstanceStore
 	NotificationRegistry *notification.Registry
 	HealthChecker        *health.Checker
+	BackupService        *backup.Service
 	Log                  *slog.Logger
 }
 
@@ -160,6 +162,11 @@ func Mount(r chi.Router, deps Deps) {
 		// health
 		if deps.HealthChecker != nil {
 			mountHealth(r, deps.HealthChecker)
+		}
+
+		// backup
+		if deps.BackupService != nil {
+			mountBackup(r, deps.BackupService)
 		}
 
 		// parse
