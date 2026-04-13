@@ -602,6 +602,7 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 			HealthChecker:        checker,
 			Broker:               rtBroker,
 			BackupService:        backupSvc,
+			OnTvdbKeyChanged:     func(key string) { tvdbClient.SetApiKey(key) },
 			Log:                  log,
 		}),
 		pool:            pool,

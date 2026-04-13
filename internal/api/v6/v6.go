@@ -58,6 +58,7 @@ type Deps struct {
 	SessionStore         auth.SessionStore
 	HealthChecker        *health.Checker
 	BackupService        *backup.Service
+	OnTvdbKeyChanged     func(string)
 	Log                  *slog.Logger
 }
 
@@ -178,6 +179,11 @@ func Mount(r chi.Router, deps Deps) {
 		// rootfolder
 		if deps.Series != nil {
 			mountRootFolder(r, deps.Series)
+		}
+
+		// settings
+		if deps.HostConfig != nil {
+			mountSettings(r, deps.HostConfig, deps.OnTvdbKeyChanged)
 		}
 
 		// system/status

@@ -69,6 +69,7 @@ type Deps struct {
 	HealthChecker        *health.Checker
 	Broker               *realtime.Broker
 	BackupService        *backup.Service
+	OnTvdbKeyChanged     func(string)
 	Log                  *slog.Logger
 	URLBase              string
 	RateLimit            float64
@@ -254,6 +255,11 @@ func HandlerWithDeps(log *slog.Logger, deps Deps) http.Handler {
 				v3.MountBackup(r, deps.BackupService)
 			}
 
+			// General settings.
+			if deps.HostConfig != nil {
+				v3.MountSettings(r, deps.HostConfig, deps.OnTvdbKeyChanged)
+			}
+
 			// SSE transport — behind auth so only authenticated clients connect.
 			if deps.Broker != nil {
 				r.Get("/api/v6/stream", deps.Broker.SSEHandler)
@@ -284,6 +290,7 @@ func HandlerWithDeps(log *slog.Logger, deps Deps) http.Handler {
 			MetadataSource:       deps.MetadataSource,
 			HealthChecker:        deps.HealthChecker,
 			BackupService:        deps.BackupService,
+			OnTvdbKeyChanged:     deps.OnTvdbKeyChanged,
 			Log:                  deps.Log,
 		})
 
