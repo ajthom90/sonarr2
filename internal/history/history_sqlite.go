@@ -12,18 +12,18 @@ import (
 	sqlitegen "github.com/ajthom90/sonarr2/internal/db/gen/sqlite"
 )
 
-type sqliteHistoryStore struct {
+type sqliteStore struct {
 	pool *db.SQLitePool
 }
 
-// NewSQLiteHistoryStore returns a HistoryStore backed by a SQLite pool.
-func NewSQLiteHistoryStore(pool *db.SQLitePool) HistoryStore {
-	return &sqliteHistoryStore{pool: pool}
+// NewSQLiteStore returns a Store backed by a SQLite pool.
+func NewSQLiteStore(pool *db.SQLitePool) Store {
+	return &sqliteStore{pool: pool}
 }
 
-func (s *sqliteHistoryStore) Create(ctx context.Context, entry HistoryEntry) (HistoryEntry, error) {
+func (s *sqliteStore) Create(ctx context.Context, entry Entry) (Entry, error) {
 	data := historyDataSQLite(entry.Data)
-	var out HistoryEntry
+	var out Entry
 	err := s.pool.Write(ctx, func(exec db.Executor) error {
 		queries := sqlitegen.New(&sqliteHistoryExec{exec: exec})
 		row, err := queries.CreateHistoryEntry(ctx, sqlitegen.CreateHistoryEntryParams{
@@ -43,12 +43,12 @@ func (s *sqliteHistoryStore) Create(ctx context.Context, entry HistoryEntry) (Hi
 		return convErr
 	})
 	if err != nil {
-		return HistoryEntry{}, err
+		return Entry{}, err
 	}
 	return out, nil
 }
 
-func (s *sqliteHistoryStore) ListForSeries(ctx context.Context, seriesID int64) ([]HistoryEntry, error) {
+func (s *sqliteStore) ListForSeries(ctx context.Context, seriesID int64) ([]Entry, error) {
 	queries := sqlitegen.New(sqliteHistoryQuery{q: s.pool.RawReader()})
 	rows, err := queries.ListForSeries(ctx, seriesID)
 	if err != nil {
@@ -57,7 +57,7 @@ func (s *sqliteHistoryStore) ListForSeries(ctx context.Context, seriesID int64) 
 	return historySliceFromSQLite(rows)
 }
 
-func (s *sqliteHistoryStore) ListForEpisode(ctx context.Context, episodeID int64) ([]HistoryEntry, error) {
+func (s *sqliteStore) ListForEpisode(ctx context.Context, episodeID int64) ([]Entry, error) {
 	queries := sqlitegen.New(sqliteHistoryQuery{q: s.pool.RawReader()})
 	rows, err := queries.ListForEpisode(ctx, episodeID)
 	if err != nil {
@@ -66,7 +66,7 @@ func (s *sqliteHistoryStore) ListForEpisode(ctx context.Context, episodeID int64
 	return historySliceFromSQLite(rows)
 }
 
-func (s *sqliteHistoryStore) FindByDownloadID(ctx context.Context, downloadID string) ([]HistoryEntry, error) {
+func (s *sqliteStore) FindByDownloadID(ctx context.Context, downloadID string) ([]Entry, error) {
 	queries := sqlitegen.New(sqliteHistoryQuery{q: s.pool.RawReader()})
 	rows, err := queries.FindByDownloadID(ctx, downloadID)
 	if err != nil {
@@ -75,7 +75,7 @@ func (s *sqliteHistoryStore) FindByDownloadID(ctx context.Context, downloadID st
 	return historySliceFromSQLite(rows)
 }
 
-func (s *sqliteHistoryStore) DeleteForSeries(ctx context.Context, seriesID int64) error {
+func (s *sqliteStore) DeleteForSeries(ctx context.Context, seriesID int64) error {
 	err := s.pool.Write(ctx, func(exec db.Executor) error {
 		queries := sqlitegen.New(&sqliteHistoryExec{exec: exec})
 		return queries.DeleteForSeries(ctx, seriesID)
@@ -86,13 +86,13 @@ func (s *sqliteHistoryStore) DeleteForSeries(ctx context.Context, seriesID int64
 	return nil
 }
 
-// historyFromSQLite converts a sqlc-generated sqlite.History row to HistoryEntry.
-func historyFromSQLite(r sqlitegen.History) (HistoryEntry, error) {
+// historyFromSQLite converts a sqlc-generated sqlite.History row to Entry.
+func historyFromSQLite(r sqlitegen.History) (Entry, error) {
 	data := json.RawMessage(r.Data)
 	if len(data) == 0 {
 		data = json.RawMessage("{}")
 	}
-	return HistoryEntry{
+	return Entry{
 		ID:          r.ID,
 		EpisodeID:   r.EpisodeID,
 		SeriesID:    r.SeriesID,
@@ -106,8 +106,8 @@ func historyFromSQLite(r sqlitegen.History) (HistoryEntry, error) {
 }
 
 // historySliceFromSQLite converts a slice of sqlite.History rows.
-func historySliceFromSQLite(rows []sqlitegen.History) ([]HistoryEntry, error) {
-	out := make([]HistoryEntry, 0, len(rows))
+func historySliceFromSQLite(rows []sqlitegen.History) ([]Entry, error) {
+	out := make([]Entry, 0, len(rows))
 	for _, r := range rows {
 		e, err := historyFromSQLite(r)
 		if err != nil {

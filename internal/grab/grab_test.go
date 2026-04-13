@@ -88,21 +88,21 @@ func (s *fakeDCStore) Delete(_ context.Context, _ int) error                    
 // ---------------------------------------------------------------------------
 
 type fakeHistoryStore struct {
-	entries []history.HistoryEntry
+	entries []history.Entry
 }
 
-func (h *fakeHistoryStore) Create(_ context.Context, e history.HistoryEntry) (history.HistoryEntry, error) {
+func (h *fakeHistoryStore) Create(_ context.Context, e history.Entry) (history.Entry, error) {
 	e.ID = int64(len(h.entries) + 1)
 	h.entries = append(h.entries, e)
 	return e, nil
 }
-func (h *fakeHistoryStore) ListForSeries(_ context.Context, _ int64) ([]history.HistoryEntry, error) {
+func (h *fakeHistoryStore) ListForSeries(_ context.Context, _ int64) ([]history.Entry, error) {
 	return nil, nil
 }
-func (h *fakeHistoryStore) ListForEpisode(_ context.Context, _ int64) ([]history.HistoryEntry, error) {
+func (h *fakeHistoryStore) ListForEpisode(_ context.Context, _ int64) ([]history.Entry, error) {
 	return nil, nil
 }
-func (h *fakeHistoryStore) FindByDownloadID(_ context.Context, _ string) ([]history.HistoryEntry, error) {
+func (h *fakeHistoryStore) FindByDownloadID(_ context.Context, _ string) ([]history.Entry, error) {
 	return nil, nil
 }
 func (h *fakeHistoryStore) DeleteForSeries(_ context.Context, _ int64) error { return nil }

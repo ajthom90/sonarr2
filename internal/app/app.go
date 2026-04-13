@@ -61,7 +61,7 @@ type App struct {
 	indexerStore    indexer.InstanceStore
 	dcStore         downloadclient.InstanceStore
 	metadataSource  metadatasource.MetadataSource
-	historyStore    history.HistoryStore
+	historyStore    history.Store
 	grabService     *grab.Service
 	engine          *decisionengine.Engine
 }
@@ -237,12 +237,12 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 	}
 
 	// History store (dialect-dispatched).
-	var histStore history.HistoryStore
+	var histStore history.Store
 	switch p := pool.(type) {
 	case *db.PostgresPool:
-		histStore = history.NewPostgresHistoryStore(p)
+		histStore = history.NewPostgresStore(p)
 	case *db.SQLitePool:
-		histStore = history.NewSQLiteHistoryStore(p)
+		histStore = history.NewSQLiteStore(p)
 	}
 
 	// Load quality definitions for specs that need them.

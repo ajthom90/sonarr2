@@ -29,7 +29,7 @@ type ReleasesGrabbed struct {
 type Service struct {
 	dcStore    downloadclient.InstanceStore
 	dcRegistry *downloadclient.Registry
-	history    history.HistoryStore
+	history    history.Store
 	bus        events.Bus
 	log        *slog.Logger
 }
@@ -38,7 +38,7 @@ type Service struct {
 func New(
 	dcStore downloadclient.InstanceStore,
 	dcRegistry *downloadclient.Registry,
-	historyStore history.HistoryStore,
+	historyStore history.Store,
 	bus events.Bus,
 	log *slog.Logger,
 ) *Service {
@@ -123,7 +123,7 @@ func (s *Service) Grab(
 
 	// 6. Record a history entry for each episode.
 	for _, epID := range episodeIDs {
-		entry := history.HistoryEntry{
+		entry := history.Entry{
 			EpisodeID:   epID,
 			SeriesID:    seriesID,
 			SourceTitle: release.Title,

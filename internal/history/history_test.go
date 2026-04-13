@@ -10,7 +10,7 @@ import (
 	"github.com/ajthom90/sonarr2/internal/history"
 )
 
-func newTestStore(t *testing.T) history.HistoryStore {
+func newTestStore(t *testing.T) history.Store {
 	t.Helper()
 	ctx := context.Background()
 	pool, err := db.OpenSQLite(ctx, db.SQLiteOptions{
@@ -24,14 +24,14 @@ func newTestStore(t *testing.T) history.HistoryStore {
 	if err := db.Migrate(ctx, pool); err != nil {
 		t.Fatalf("Migrate: %v", err)
 	}
-	return history.NewSQLiteHistoryStore(pool)
+	return history.NewSQLiteStore(pool)
 }
 
 func TestHistoryCreateAndListForSeries(t *testing.T) {
 	store := newTestStore(t)
 	ctx := context.Background()
 
-	e1 := history.HistoryEntry{
+	e1 := history.Entry{
 		EpisodeID:   1,
 		SeriesID:    10,
 		SourceTitle: "Show.S01E01.720p",
@@ -40,7 +40,7 @@ func TestHistoryCreateAndListForSeries(t *testing.T) {
 		DownloadID:  "abc123",
 		Data:        json.RawMessage(`{"indexer":"NZBGeek"}`),
 	}
-	e2 := history.HistoryEntry{
+	e2 := history.Entry{
 		EpisodeID:   2,
 		SeriesID:    10,
 		SourceTitle: "Show.S01E02.1080p",
@@ -103,7 +103,7 @@ func TestHistoryListForEpisode(t *testing.T) {
 	ctx := context.Background()
 
 	// Two entries for different episodes under the same series.
-	_, err := store.Create(ctx, history.HistoryEntry{
+	_, err := store.Create(ctx, history.Entry{
 		EpisodeID:   100,
 		SeriesID:    20,
 		SourceTitle: "Show.S02E01",
@@ -113,7 +113,7 @@ func TestHistoryListForEpisode(t *testing.T) {
 		t.Fatalf("Create ep100: %v", err)
 	}
 
-	_, err = store.Create(ctx, history.HistoryEntry{
+	_, err = store.Create(ctx, history.Entry{
 		EpisodeID:   101,
 		SeriesID:    20,
 		SourceTitle: "Show.S02E02",
@@ -155,7 +155,7 @@ func TestHistoryFindByDownloadID(t *testing.T) {
 	store := newTestStore(t)
 	ctx := context.Background()
 
-	_, err := store.Create(ctx, history.HistoryEntry{
+	_, err := store.Create(ctx, history.Entry{
 		EpisodeID:   200,
 		SeriesID:    30,
 		SourceTitle: "Show.S03E01",
@@ -167,7 +167,7 @@ func TestHistoryFindByDownloadID(t *testing.T) {
 	}
 
 	// Another entry with a different download_id.
-	_, err = store.Create(ctx, history.HistoryEntry{
+	_, err = store.Create(ctx, history.Entry{
 		EpisodeID:   201,
 		SeriesID:    30,
 		SourceTitle: "Show.S03E02",
@@ -208,7 +208,7 @@ func TestHistoryDeleteForSeries(t *testing.T) {
 
 	// Create two entries for series 40 and one for series 41.
 	for _, ep := range []int64{300, 301} {
-		_, err := store.Create(ctx, history.HistoryEntry{
+		_, err := store.Create(ctx, history.Entry{
 			EpisodeID:   ep,
 			SeriesID:    40,
 			SourceTitle: "Show.S04E0x",
@@ -218,7 +218,7 @@ func TestHistoryDeleteForSeries(t *testing.T) {
 			t.Fatalf("Create ep%d: %v", ep, err)
 		}
 	}
-	_, err := store.Create(ctx, history.HistoryEntry{
+	_, err := store.Create(ctx, history.Entry{
 		EpisodeID:   400,
 		SeriesID:    41,
 		SourceTitle: "Other.S01E01",
