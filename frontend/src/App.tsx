@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AppShell } from './layout/AppShell'
 import { SeriesIndex } from './pages/SeriesIndex'
+import { SeriesDetail } from './pages/SeriesDetail'
 import { Calendar } from './pages/Calendar'
 import { Activity } from './pages/Activity'
 import { Wanted } from './pages/Wanted'
@@ -20,6 +21,7 @@ export function App() {
         <Routes>
           <Route element={<AppShell />}>
             <Route index element={<SeriesIndex />} />
+            <Route path="series/:id" element={<SeriesDetail />} />
             <Route path="series" element={<SeriesIndex />} />
             <Route path="calendar" element={<Calendar />} />
             <Route path="activity" element={<Activity />} />
