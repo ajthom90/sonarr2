@@ -10,27 +10,39 @@ permissions:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-latest
+            platform: linux/amd64
+          - runner: ubuntu-24.04-arm
+            platform: linux/arm64
+          - runner: ubuntu-latest
+            platform: linux/arm/v7
+            qemu: true
+    runs-on: ${{ matrix.runner }}
     env:
       BUILD_SHA: ${{ github.sha }}
     steps:
       - uses: actions/checkout@v4
 
       - name: set up QEMU
+        if: matrix.qemu
         uses: docker/setup-qemu-action@v3
 
       - name: set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: build multi-arch (no push)
+      - name: build (${{ matrix.platform }})
         uses: docker/build-push-action@v6
         with:
           context: .
           file: docker/Dockerfile
-          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          platforms: ${{ matrix.platform }}
           push: false
           build-args: |
             VERSION=${{ env.BUILD_SHA }}
             COMMIT=${{ env.BUILD_SHA }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=${{ matrix.platform }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.platform }}
