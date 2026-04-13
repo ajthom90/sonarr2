@@ -8,9 +8,11 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 
+	"github.com/ajthom90/sonarr2/internal/auth"
 	"github.com/ajthom90/sonarr2/internal/backup"
 	"github.com/ajthom90/sonarr2/internal/commands"
 	"github.com/ajthom90/sonarr2/internal/customformats"
@@ -51,34 +53,44 @@ type Deps struct {
 	DCRegistry           *downloadclient.Registry
 	NotificationStore    notification.InstanceStore
 	NotificationRegistry *notification.Registry
+	SessionStore         auth.SessionStore
 	HealthChecker        *health.Checker
 	BackupService        *backup.Service
 	Log                  *slog.Logger
 }
 
-// apiKeyAuth is a local copy of the auth middleware to avoid importing the
-// parent api package (which would create an import cycle).
-func apiKeyAuth(store hostconfig.Store) func(http.Handler) http.Handler {
+// combinedAuth accepts either a valid API key or a valid session cookie.
+func combinedAuth(hcStore hostconfig.Store, sessionStore auth.SessionStore) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// 1. Check API key.
 			key := r.Header.Get("X-Api-Key")
 			if key == "" {
 				key = r.URL.Query().Get("apikey")
 			}
-			if key == "" {
-				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(http.StatusUnauthorized)
-				_, _ = w.Write([]byte(`{"message":"Unauthorized"}`))
-				return
+			if key != "" {
+				hc, err := hcStore.Get(r.Context())
+				if err == nil && hc.APIKey == key {
+					next.ServeHTTP(w, r)
+					return
+				}
 			}
-			hc, err := store.Get(r.Context())
-			if err != nil || hc.APIKey != key {
-				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(http.StatusUnauthorized)
-				_, _ = w.Write([]byte(`{"message":"Unauthorized"}`))
-				return
+
+			// 2. Check session cookie.
+			if sessionStore != nil {
+				cookie, err := r.Cookie("sonarr2_session")
+				if err == nil && cookie.Value != "" {
+					session, err := sessionStore.GetByToken(r.Context(), cookie.Value)
+					if err == nil && time.Now().Before(session.ExpiresAt) {
+						next.ServeHTTP(w, r)
+						return
+					}
+				}
 			}
-			next.ServeHTTP(w, r)
+
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusUnauthorized)
+			_, _ = w.Write([]byte(`{"message":"Unauthorized"}`))
 		})
 	}
 }
@@ -87,7 +99,7 @@ func apiKeyAuth(store hostconfig.Store) func(http.Handler) http.Handler {
 func Mount(r chi.Router, deps Deps) {
 	r.Route("/api/v6", func(r chi.Router) {
 		if deps.HostConfig != nil {
-			r.Use(apiKeyAuth(deps.HostConfig))
+			r.Use(combinedAuth(deps.HostConfig, deps.SessionStore))
 		}
 
 		// series

@@ -9,6 +9,12 @@ export function AuthGuard({ children }: { children: ReactNode }) {
   const location = useLocation()
 
   useEffect(() => {
+    // Skip auth checks on login and setup pages.
+    if (location.pathname === '/login' || location.pathname === '/setup') {
+      setState('authenticated') // Let these pages render without redirect
+      return
+    }
+
     async function check() {
       try {
         // Check if initialized.
@@ -36,7 +42,7 @@ export function AuthGuard({ children }: { children: ReactNode }) {
     }
 
     check()
-  }, [])
+  }, [location.pathname])
 
   useEffect(() => {
     if (state === 'needs-setup' && location.pathname !== '/setup') {

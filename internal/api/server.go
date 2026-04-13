@@ -259,6 +259,7 @@ func HandlerWithDeps(log *slog.Logger, deps Deps) http.Handler {
 		v6.Mount(r, v6.Deps{
 			Pool:                 deps.Pool,
 			HostConfig:           deps.HostConfig,
+			SessionStore:         deps.SessionStore,
 			Series:               deps.Series,
 			Seasons:              deps.Seasons,
 			Stats:                deps.Stats,
