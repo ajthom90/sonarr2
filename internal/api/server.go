@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/ajthom90/sonarr2/internal/api/v3"
+	v3 "github.com/ajthom90/sonarr2/internal/api/v3"
 	"github.com/ajthom90/sonarr2/internal/buildinfo"
 	"github.com/ajthom90/sonarr2/internal/commands"
 	"github.com/ajthom90/sonarr2/internal/customformats"
