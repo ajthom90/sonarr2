@@ -47,6 +47,14 @@ func (c *Client) WithBaseURL(u string) *Client {
 	return c
 }
 
+// SetApiKey updates the API key used for authentication. This causes the
+// next request to re-authenticate with the new key.
+func (c *Client) SetApiKey(key string) {
+	c.settings.ApiKey = key
+	// Clear the cached token so the next request uses the new key.
+	c.auth = tokenCache{}
+}
+
 // SearchSeries implements metadatasource.MetadataSource.
 // GET /v4/search?query={query}&type=series
 func (c *Client) SearchSeries(ctx context.Context, query string) ([]metadatasource.SeriesSearchResult, error) {
