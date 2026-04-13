@@ -4,7 +4,7 @@ A feature-complete rewrite of [Sonarr](https://github.com/Sonarr/Sonarr) focused
 
 ## Current Status
 
-**Milestone 15 of 24 complete** — the core backend is functional with a fully connected React frontend. Not yet ready for end users.
+**Milestone 16 of 24 complete** — the core backend is functional with a fully connected React frontend and all remaining providers wired up. Not yet ready for end users.
 
 ### What's implemented
 
@@ -17,8 +17,9 @@ A feature-complete rewrite of [Sonarr](https://github.com/Sonarr/Sonarr) focused
 - **Custom formats** — regex-based format matching with weighted scoring (compatible with TRaSH Guides JSON)
 - **Decision engine** — evaluates releases against quality profiles with 8 core specs; ranks accepted releases by CF score, quality, and size
 - **Provider SDK** — pluggable integration architecture with reflection-based settings schema generation
-- **Newznab indexer** — search and RSS feed support for Newznab-compatible indexers
-- **SABnzbd download client** — add, queue status, and remove operations
+- **Indexers (6)** — Newznab, Torznab, TorrentRss (full implementations); IPTorrents, Nyaa, BroadcastheNet (stubs)
+- **Download clients (6)** — SABnzbd, NZBGet, qBittorrent, Transmission, Deluge, Blackhole
+- **Notification providers (8)** — Discord, Slack, Telegram, Email, Webhook, Pushover, Gotify, CustomScript; event-driven dispatch on grab/download/health events
 - **Metadata source (TVDB)** — search series by title, fetch full episode lists via TVDB v4 API with JWT auth
 - **RefreshSeriesMetadata** — command handler that syncs episodes from TVDB into the local library
 - **RSS sync pipeline** — automatic 15-min RSS feed polling → parse → series match → decision engine evaluation → ranked grab via download client
@@ -26,8 +27,8 @@ A feature-complete rewrite of [Sonarr](https://github.com/Sonarr/Sonarr) focused
 - **History tracking** — records grab events per episode for duplicate detection
 - **Import pipeline** — completed downloads scanned, parsed, matched to episodes, moved/hardlinked into series library with configurable naming tokens
 - **File organizer** — naming token system for episode filenames (series title, season, episode, quality, release group)
-- **Sonarr v3 API** — 35+ endpoints with wire-compatible JSON: series CRUD, episodes, episode files, quality profiles, quality definitions, custom formats, commands, history (paged), calendar, indexer/download client CRUD + schema, root folders, parse, health, wanted/missing, system status
-- **API v6** — clean REST surface alongside v3: cursor pagination, RFC 9457 error envelopes, ~42 endpoints for series, episodes, profiles, commands, history, providers
+- **Sonarr v3 API** — 35+ endpoints with wire-compatible JSON: series CRUD, episodes, episode files, quality profiles, quality definitions, custom formats, commands, history (paged), calendar, indexer/download client/notification CRUD + schema, root folders, parse, health, wanted/missing, system status
+- **API v6** — clean REST surface alongside v3: cursor pagination, RFC 9457 error envelopes, ~48 endpoints for series, episodes, profiles, commands, history, providers, notifications
 - **API key authentication** — `X-Api-Key` header or `?apikey=` query param, matching Sonarr's convention
 - **Filesystem watcher** — fsnotify-based monitoring with 2-second debouncing; detects changes in series folders for instant scan
 - **Download monitoring** — 1-minute polling of download clients for completed items, auto-triggers import
@@ -38,7 +39,7 @@ A feature-complete rewrite of [Sonarr](https://github.com/Sonarr/Sonarr) focused
 
 ### What's NOT yet implemented
 
-Filled-in page content (M15+), remaining ~60 providers, migration tool, and more. See the [design doc](./docs/superpowers/specs/2026-04-10-sonarr-rewrite-design.md) for the full roadmap.
+Remaining provider implementations, migration tool, and more. See the [design doc](./docs/superpowers/specs/2026-04-10-sonarr-rewrite-design.md) for the full roadmap.
 
 ## Quick Start
 
