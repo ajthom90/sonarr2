@@ -123,6 +123,23 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 		return nil, fmt.Errorf("app: seed host config: %w", err)
 	}
 
+	// Read back the auth mode for the AuthCheck health check.
+	authMode := "forms"
+	{
+		var hcStoreEarly hostconfig.Store
+		switch p := pool.(type) {
+		case *db.PostgresPool:
+			hcStoreEarly = hostconfig.NewPostgresStore(p)
+		case *db.SQLitePool:
+			hcStoreEarly = hostconfig.NewSQLiteStore(p)
+		}
+		if hcStoreEarly != nil {
+			if hc, err := hcStoreEarly.Get(ctx); err == nil && hc.AuthMode != "" {
+				authMode = hc.AuthMode
+			}
+		}
+	}
+
 	bus := events.NewBus(16)
 
 	rtBroker := realtime.NewBroker(256)
@@ -439,6 +456,7 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 		health.NewIndexerCheck(&indexerCountAdapter{store: idxStore}),
 		health.NewDownloadClientCheck(&dcCountAdapter{store: dcStore}),
 		health.NewMetadataSourceCheck(cfg.TVDB.ApiKey),
+		health.NewAuthCheck(authMode),
 	)
 
 	// Run initial health check.
@@ -547,6 +565,9 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 			Commands:             cmdQueue,
 			History:              histStore,
 			IndexerStore:         idxStore,
+			URLBase:              cfg.HTTP.URLBase,
+			RateLimit:            cfg.APIRateLimit,
+			RateBurst:            cfg.APIRateBurst,
 			IndexerRegistry:      idxReg,
 			DCStore:              dcStore,
 			DCRegistry:           dcReg,
