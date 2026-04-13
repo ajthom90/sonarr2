@@ -12,6 +12,7 @@ import (
 
 	v3 "github.com/ajthom90/sonarr2/internal/api/v3"
 	v6 "github.com/ajthom90/sonarr2/internal/api/v6"
+	"github.com/ajthom90/sonarr2/internal/auth"
 	"github.com/ajthom90/sonarr2/internal/backup"
 	"github.com/ajthom90/sonarr2/internal/buildinfo"
 	"github.com/ajthom90/sonarr2/internal/commands"
@@ -61,6 +62,8 @@ type Deps struct {
 	DCRegistry           *downloadclient.Registry
 	NotificationStore    notification.InstanceStore
 	NotificationRegistry *notification.Registry
+	UserStore            auth.UserStore
+	SessionStore         auth.SessionStore
 	HealthChecker        *health.Checker
 	Broker               *realtime.Broker
 	BackupService        *backup.Service
@@ -160,8 +163,17 @@ func HandlerWithDeps(log *slog.Logger, deps Deps) http.Handler {
 			return
 		}
 
+		// Auth endpoints — outside auth group (must be accessible without auth).
+		if deps.UserStore != nil && deps.SessionStore != nil {
+			v3.MountAuth(r, deps.UserStore, deps.SessionStore, deps.HostConfig)
+		}
+
 		r.Group(func(r chi.Router) {
-			r.Use(apiKeyAuth(deps.HostConfig))
+			if deps.SessionStore != nil {
+				r.Use(combinedAuth(deps.HostConfig, deps.SessionStore))
+			} else {
+				r.Use(apiKeyAuth(deps.HostConfig))
+			}
 
 			// system/status: uses the richer v3 handler with full Sonarr field parity.
 			ssh := v3.NewSystemStatusHandler(deps.Pool)

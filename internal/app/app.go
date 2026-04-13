@@ -21,6 +21,7 @@ import (
 	"path/filepath"
 
 	"github.com/ajthom90/sonarr2/internal/api"
+	"github.com/ajthom90/sonarr2/internal/auth"
 	"github.com/ajthom90/sonarr2/internal/backup"
 	"github.com/ajthom90/sonarr2/internal/buildinfo"
 	"github.com/ajthom90/sonarr2/internal/commands"
@@ -558,6 +559,18 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 		hcStore = hostconfig.NewSQLiteStore(p)
 	}
 
+	// Auth stores.
+	var userStore auth.UserStore
+	var sessionStore auth.SessionStore
+	switch p := pool.(type) {
+	case *db.PostgresPool:
+		userStore = auth.NewPostgresUserStore(p)
+		sessionStore = auth.NewPostgresSessionStore(p)
+	case *db.SQLitePool:
+		userStore = auth.NewSQLiteUserStore(p)
+		sessionStore = auth.NewSQLiteSessionStore(p)
+	}
+
 	addr := net.JoinHostPort(cfg.HTTP.BindAddress, strconv.Itoa(cfg.HTTP.Port))
 	return &App{
 		log: log,
@@ -583,6 +596,8 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 			DCRegistry:           dcReg,
 			NotificationStore:    notifStore,
 			NotificationRegistry: notifReg,
+			UserStore:            userStore,
+			SessionStore:         sessionStore,
 			HealthChecker:        checker,
 			Broker:               rtBroker,
 			BackupService:        backupSvc,
