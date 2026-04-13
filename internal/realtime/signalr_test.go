@@ -138,8 +138,8 @@ func TestSignalRConnectDisconnectsCleanly(t *testing.T) {
 	}
 
 	// Close from the client side.
-	conn.WriteMessage(websocket.CloseMessage,
-		websocket.FormatCloseMessage(websocket.CloseNormalClosure, "bye")) //nolint:errcheck
+	_ = conn.WriteMessage(websocket.CloseMessage,
+		websocket.FormatCloseMessage(websocket.CloseNormalClosure, "bye"))
 	conn.Close()
 
 	// Allow the server-side handler to detect the close and unsubscribe.
