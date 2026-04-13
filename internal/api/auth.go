@@ -6,9 +6,9 @@ import (
 	"github.com/ajthom90/sonarr2/internal/hostconfig"
 )
 
-// ApiKeyAuth returns a middleware that enforces API key authentication.
-// It is exported so that sub-packages (e.g. v6) can use it directly.
-func ApiKeyAuth(store hostconfig.Store) func(http.Handler) http.Handler {
+// KeyAuth returns a middleware that enforces API key authentication.
+// Exported so sub-packages (e.g. v6) can use it directly.
+func KeyAuth(store hostconfig.Store) func(http.Handler) http.Handler {
 	return apiKeyAuth(store)
 }
 
