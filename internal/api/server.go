@@ -11,8 +11,14 @@ import (
 
 	"github.com/ajthom90/sonarr2/internal/api/v3"
 	"github.com/ajthom90/sonarr2/internal/buildinfo"
+	"github.com/ajthom90/sonarr2/internal/commands"
+	"github.com/ajthom90/sonarr2/internal/customformats"
+	"github.com/ajthom90/sonarr2/internal/history"
 	"github.com/ajthom90/sonarr2/internal/hostconfig"
 	"github.com/ajthom90/sonarr2/internal/library"
+	"github.com/ajthom90/sonarr2/internal/profiles"
+	"github.com/ajthom90/sonarr2/internal/providers/downloadclient"
+	"github.com/ajthom90/sonarr2/internal/providers/indexer"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
@@ -30,11 +36,23 @@ type PoolPinger interface {
 // nil; if nil the corresponding v3 routes are not mounted. Task 7 will
 // consolidate this into a proper v3.Dependencies struct.
 type Deps struct {
-	Pool       PoolPinger
-	HostConfig hostconfig.Store
-	Series     library.SeriesStore
-	Seasons    library.SeasonsStore
-	Stats      library.SeriesStatsStore
+	Pool            PoolPinger
+	HostConfig      hostconfig.Store
+	Series          library.SeriesStore
+	Seasons         library.SeasonsStore
+	Stats           library.SeriesStatsStore
+	Episodes        library.EpisodesStore
+	EpisodeFiles    library.EpisodeFilesStore
+	QualityProfiles profiles.QualityProfileStore
+	QualityDefs     profiles.QualityDefinitionStore
+	CustomFormats   customformats.Store
+	Commands        commands.Queue
+	History         history.Store
+	IndexerStore    indexer.InstanceStore
+	IndexerRegistry *indexer.Registry
+	DCStore         downloadclient.InstanceStore
+	DCRegistry      *downloadclient.Registry
+	Log             *slog.Logger
 }
 
 // Server wraps a net/http server configured with the sonarr2 router.
@@ -89,6 +107,10 @@ func (s *Server) Shutdown(ctx context.Context) error {
 // routes. Use this in production; use HandlerWithPool / Handler for tests
 // that only need the status or ping endpoints.
 func HandlerWithDeps(log *slog.Logger, deps Deps) http.Handler {
+	if deps.Log != nil {
+		log = deps.Log
+	}
+
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
 	r.Use(requestLogger(log))
@@ -97,14 +119,77 @@ func HandlerWithDeps(log *slog.Logger, deps Deps) http.Handler {
 	r.Get("/ping", pingHandler)
 	r.Get("/api/v3/system/status", statusHandlerWithPool(deps.Pool))
 
-	// Mount v3 series routes under API key auth when stores are available.
-	if deps.Series != nil && deps.Seasons != nil && deps.Stats != nil && deps.HostConfig != nil {
-		sh := v3.NewSeriesHandler(deps.Series, deps.Seasons, deps.Stats, log)
-		r.Group(func(r chi.Router) {
-			r.Use(apiKeyAuth(deps.HostConfig))
-			v3.MountSeries(r, sh)
-		})
+	// All v3 routes are gated behind API key auth when HostConfig is set.
+	if deps.HostConfig == nil {
+		return r
 	}
+
+	r.Group(func(r chi.Router) {
+		r.Use(apiKeyAuth(deps.HostConfig))
+
+		// Task 3 — series.
+		if deps.Series != nil && deps.Seasons != nil && deps.Stats != nil {
+			sh := v3.NewSeriesHandler(deps.Series, deps.Seasons, deps.Stats, log)
+			v3.MountSeries(r, sh)
+		}
+
+		// Task 4 — episode + episodefile.
+		if deps.Episodes != nil {
+			eh := v3.NewEpisodeHandler(deps.Episodes, log)
+			v3.MountEpisode(r, eh)
+		}
+		if deps.EpisodeFiles != nil && deps.Series != nil {
+			efh := v3.NewEpisodeFileHandler(deps.EpisodeFiles, deps.Series, log)
+			v3.MountEpisodeFile(r, efh)
+		}
+
+		// Task 5 — quality, customformats, command, history, calendar.
+		if deps.QualityProfiles != nil && deps.QualityDefs != nil {
+			qph := v3.NewQualityProfileHandler(deps.QualityProfiles, deps.QualityDefs, log)
+			v3.MountQualityProfile(r, qph)
+		}
+		if deps.QualityDefs != nil {
+			qdh := v3.NewQualityDefinitionHandler(deps.QualityDefs, log)
+			v3.MountQualityDefinition(r, qdh)
+		}
+		if deps.CustomFormats != nil {
+			cfh := v3.NewCustomFormatHandler(deps.CustomFormats, log)
+			v3.MountCustomFormat(r, cfh)
+		}
+		if deps.Commands != nil {
+			ch := v3.NewCommandHandler(deps.Commands, log)
+			v3.MountCommand(r, ch)
+		}
+		if deps.History != nil {
+			hh := v3.NewHistoryHandler(deps.History, log)
+			v3.MountHistory(r, hh)
+		}
+		if deps.Episodes != nil {
+			cal := v3.NewCalendarHandler(deps.Episodes, log)
+			v3.MountCalendar(r, cal)
+		}
+
+		// Task 6 — providers + utility.
+		if deps.IndexerStore != nil && deps.IndexerRegistry != nil {
+			ih := v3.NewIndexerHandler(deps.IndexerStore, deps.IndexerRegistry, log)
+			v3.MountIndexer(r, ih)
+		}
+		if deps.DCStore != nil && deps.DCRegistry != nil {
+			dch := v3.NewDownloadClientHandler(deps.DCStore, deps.DCRegistry, log)
+			v3.MountDownloadClient(r, dch)
+		}
+		if deps.Series != nil {
+			rfh := v3.NewRootFolderHandler(deps.Series, log)
+			v3.MountRootFolder(r, rfh)
+		}
+		v3.MountTag(r)
+		v3.MountHealth(r)
+		v3.MountParse(r)
+		if deps.Episodes != nil {
+			wh := v3.NewWantedHandler(deps.Episodes, log)
+			v3.MountWanted(r, wh)
+		}
+	})
 
 	return r
 }
