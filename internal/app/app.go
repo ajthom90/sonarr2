@@ -70,6 +70,7 @@ import (
 	"github.com/ajthom90/sonarr2/internal/realtime"
 	"github.com/ajthom90/sonarr2/internal/rsssync"
 	"github.com/ajthom90/sonarr2/internal/scheduler"
+	"github.com/ajthom90/sonarr2/internal/updatecheck"
 )
 
 // App is the running sonarr2 process.
@@ -449,6 +450,14 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 		return histStore.DeleteForSeries(ctx, e.ID)
 	})
 
+	// Update checker — queries GitHub Releases API for newer versions.
+	updateChecker := updatecheck.New(
+		buildinfo.Get().Version,
+		"ajthom90",
+		"sonarr2",
+		nil, // default HTTP client
+	)
+
 	// Health checks.
 	checker := health.NewChecker(
 		health.NewDatabaseCheck(pool),
@@ -457,6 +466,7 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 		health.NewDownloadClientCheck(&dcCountAdapter{store: dcStore}),
 		health.NewMetadataSourceCheck(cfg.TVDB.ApiKey),
 		health.NewAuthCheck(authMode),
+		health.NewUpdateCheck(updateChecker),
 	)
 
 	// Run initial health check.
