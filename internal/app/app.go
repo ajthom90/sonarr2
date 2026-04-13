@@ -30,6 +30,7 @@ import (
 	"github.com/ajthom90/sonarr2/internal/events"
 	"github.com/ajthom90/sonarr2/internal/fswatcher"
 	"github.com/ajthom90/sonarr2/internal/grab"
+	"github.com/ajthom90/sonarr2/internal/health"
 	"github.com/ajthom90/sonarr2/internal/history"
 	"github.com/ajthom90/sonarr2/internal/hostconfig"
 	"github.com/ajthom90/sonarr2/internal/importer"
@@ -93,6 +94,7 @@ type App struct {
 	grabService     *grab.Service
 	engine          *decisionengine.Engine
 	fsWatcher       *fswatcher.Watcher
+	checker         *health.Checker
 }
 
 // New constructs an App from the given config. It opens the database,
@@ -426,6 +428,37 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 		return histStore.DeleteForSeries(ctx, e.ID)
 	})
 
+	// Health checks.
+	checker := health.NewChecker(
+		health.NewDatabaseCheck(pool),
+		health.NewRootFolderCheck(&rootPathAdapter{series: lib.Series}),
+		health.NewIndexerCheck(&indexerCountAdapter{store: idxStore}),
+		health.NewDownloadClientCheck(&dcCountAdapter{store: dcStore}),
+		health.NewMetadataSourceCheck(cfg.TVDB.ApiKey),
+	)
+
+	// Run initial health check.
+	checker.RunAll(ctx)
+
+	// HealthCheck command handler — runs checks and dispatches notifications.
+	healthHandler := &healthCheckHandler{
+		checker:    checker,
+		notifStore: notifStore,
+		notifReg:   notifReg,
+		log:        log,
+	}
+	reg.Register("HealthCheck", healthHandler)
+
+	// Schedule HealthCheck at 30-minute interval.
+	if err := taskStore.Upsert(ctx, scheduler.ScheduledTask{
+		TypeName:      "HealthCheck",
+		IntervalSecs:  1800,
+		NextExecution: time.Now().Add(30 * time.Minute),
+	}); err != nil {
+		_ = pool.Close()
+		return nil, fmt.Errorf("app: upsert HealthCheck task: %w", err)
+	}
+
 	// Subscribe async notification dispatch on ReleasesGrabbed.
 	events.SubscribeAsync[grab.ReleasesGrabbed](bus, func(ctx context.Context, e grab.ReleasesGrabbed) {
 		dispatchGrabNotifications(ctx, notifStore, notifReg, log, notification.GrabMessage{
@@ -464,6 +497,7 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 			DCRegistry:           dcReg,
 			NotificationStore:    notifStore,
 			NotificationRegistry: notifReg,
+			HealthChecker:        checker,
 			Broker:               rtBroker,
 			Log:                  log,
 		}),
@@ -489,6 +523,7 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 		grabService:     grabSvc,
 		engine:          engine,
 		fsWatcher:       fsWatch,
+		checker:         checker,
 	}, nil
 }
 
@@ -622,6 +657,122 @@ type queueEnqueuer struct {
 func (q *queueEnqueuer) Enqueue(ctx context.Context, name string, body []byte) error {
 	_, err := q.queue.Enqueue(ctx, name, body, commands.PriorityNormal, commands.TriggerScheduled, "")
 	return err
+}
+
+// rootPathAdapter adapts library.SeriesStore for health.SeriesPathLister.
+type rootPathAdapter struct {
+	series library.SeriesStore
+}
+
+func (a *rootPathAdapter) ListRootPaths(ctx context.Context) ([]string, error) {
+	all, err := a.series.List(ctx)
+	if err != nil {
+		return nil, err
+	}
+	paths := make([]string, len(all))
+	for i, s := range all {
+		paths[i] = s.Path
+	}
+	return paths, nil
+}
+
+// indexerCountAdapter adapts indexer.InstanceStore for health.EnabledCounter.
+type indexerCountAdapter struct {
+	store indexer.InstanceStore
+}
+
+func (a *indexerCountAdapter) CountEnabled(ctx context.Context) (int, error) {
+	all, err := a.store.List(ctx)
+	if err != nil {
+		return 0, err
+	}
+	n := 0
+	for _, inst := range all {
+		if inst.EnableRss || inst.EnableAutomaticSearch || inst.EnableInteractiveSearch {
+			n++
+		}
+	}
+	return n, nil
+}
+
+// dcCountAdapter adapts downloadclient.InstanceStore for health.EnabledCounter.
+type dcCountAdapter struct {
+	store downloadclient.InstanceStore
+}
+
+func (a *dcCountAdapter) CountEnabled(ctx context.Context) (int, error) {
+	all, err := a.store.List(ctx)
+	if err != nil {
+		return 0, err
+	}
+	n := 0
+	for _, inst := range all {
+		if inst.Enable {
+			n++
+		}
+	}
+	return n, nil
+}
+
+// healthCheckHandler runs health checks and dispatches notifications for new issues.
+type healthCheckHandler struct {
+	checker    *health.Checker
+	notifStore notification.InstanceStore
+	notifReg   *notification.Registry
+	log        *slog.Logger
+	lastIssues map[string]bool
+}
+
+func (h *healthCheckHandler) Handle(ctx context.Context, _ commands.Command) error {
+	results := h.checker.RunAll(ctx)
+
+	currentIssues := map[string]bool{}
+	for _, r := range results {
+		if r.Type == health.LevelWarning || r.Type == health.LevelError {
+			key := r.Source + ":" + r.Message
+			currentIssues[key] = true
+			if h.lastIssues != nil && h.lastIssues[key] {
+				continue // already reported
+			}
+			dispatchHealthNotifications(ctx, h.notifStore, h.notifReg, h.log, notification.HealthMessage{
+				Type:    string(r.Type),
+				Message: r.Message,
+			})
+		}
+	}
+	h.lastIssues = currentIssues
+	return nil
+}
+
+// dispatchHealthNotifications sends health issue notifications to enabled providers.
+func dispatchHealthNotifications(
+	ctx context.Context,
+	store notification.InstanceStore,
+	reg *notification.Registry,
+	log *slog.Logger,
+	msg notification.HealthMessage,
+) {
+	instances, err := store.List(ctx)
+	if err != nil {
+		log.Error("health notification dispatch: list instances", slog.String("err", err.Error()))
+		return
+	}
+	for _, inst := range instances {
+		if !inst.OnHealthIssue {
+			continue
+		}
+		factory, err := reg.Get(inst.Implementation)
+		if err != nil {
+			continue
+		}
+		provider := factory()
+		if err := provider.OnHealthIssue(ctx, msg); err != nil {
+			log.Error("health notification dispatch: OnHealthIssue failed",
+				slog.String("name", inst.Name),
+				slog.String("err", err.Error()),
+			)
+		}
+	}
 }
 
 // dispatchGrabNotifications loads all enabled notification instances that have
