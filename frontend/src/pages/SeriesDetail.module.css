@@ -127,6 +127,28 @@
   border-color: var(--color-danger);
 }
 
+.actionBtn {
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.actionBtn:hover {
+  background: var(--color-border);
+  border-color: var(--color-accent);
+}
+
+.actionBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* Meta grid */
 .meta {
   display: flex;
@@ -190,10 +212,53 @@
 .seasonHeader {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: var(--space-3);
   padding: var(--space-3) var(--space-4);
   background: var(--color-surface-raised);
   border-bottom: 1px solid var(--color-border);
+}
+
+.seasonMonitorBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: var(--space-1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  transition: background 0.15s ease;
+}
+
+.seasonMonitorBtn:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.monitorIconOn {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--color-success);
+  box-shadow: 0 0 4px rgba(62, 207, 142, 0.5);
+}
+
+.monitorIconPartial {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--color-warning);
+  box-shadow: 0 0 4px rgba(245, 166, 35, 0.4);
+}
+
+.monitorIconOff {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--color-text-secondary);
+  opacity: 0.4;
 }
 
 .seasonTitle {
@@ -207,6 +272,7 @@
 .seasonStats {
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
+  margin-left: auto;
 }
 
 /* Episode table */
@@ -273,6 +339,22 @@
   color: var(--color-text-secondary);
   font-size: var(--font-size-base);
   opacity: 0.5;
+}
+
+.monitorToggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: var(--space-1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  transition: background 0.15s ease;
+}
+
+.monitorToggle:hover {
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .monitoredDotOn {

@@ -163,6 +163,12 @@ export interface GeneralSettings {
   tvdbApiKey: string
 }
 
+export interface BackupInfo {
+  name: string
+  size: number
+  time: string
+}
+
 export interface CustomFormatSpecField {
   name: string
   value: string

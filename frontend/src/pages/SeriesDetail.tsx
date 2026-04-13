@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { useSeries, useEpisodes } from '../api/hooks'
+import { useSeries, useEpisodes, useUpdateEpisode, useTriggerCommand } from '../api/hooks'
 import { EditSeriesModal } from '../components/EditSeriesModal'
 import { DeleteSeriesModal } from '../components/DeleteSeriesModal'
 import type { Episode } from '../api/types'
@@ -47,6 +47,36 @@ export function SeriesDetail() {
   const { data: episodesPage, isLoading: episodesLoading } = useEpisodes(seriesId)
   const [showEditModal, setShowEditModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const updateEpisode = useUpdateEpisode()
+  const triggerCommand = useTriggerCommand()
+
+  function toggleEpisodeMonitor(ep: Episode) {
+    updateEpisode.mutate({ id: ep.id, monitored: !ep.monitored })
+  }
+
+  function toggleSeasonMonitor(eps: Episode[]) {
+    const allMonitored = eps.every((e) => e.monitored)
+    const newState = !allMonitored
+    for (const ep of eps) {
+      if (ep.monitored !== newState) {
+        updateEpisode.mutate({ id: ep.id, monitored: newState })
+      }
+    }
+  }
+
+  function handleRefreshScan() {
+    triggerCommand.mutate({
+      name: 'RefreshSeriesMetadata',
+      body: { seriesId: seriesId },
+    })
+  }
+
+  function handleSearchMonitored() {
+    triggerCommand.mutate({
+      name: 'SeriesSearch',
+      body: { seriesId: seriesId },
+    })
+  }
 
   if (seriesLoading) {
     return (
@@ -81,6 +111,22 @@ export function SeriesDetail() {
           {series.year > 0 && <span className={styles.year}>({series.year})</span>}
           <StatusBadge status={series.status} />
           <div className={styles.actionBar}>
+            <button
+              className={styles.actionBtn}
+              onClick={handleRefreshScan}
+              disabled={triggerCommand.isPending}
+              title="Refresh series metadata and scan disk"
+            >
+              Refresh &amp; Scan
+            </button>
+            <button
+              className={styles.actionBtn}
+              onClick={handleSearchMonitored}
+              disabled={triggerCommand.isPending}
+              title="Search indexers for monitored episodes"
+            >
+              Search Monitored
+            </button>
             <button className={styles.editBtn} onClick={() => setShowEditModal(true)}>
               Edit
             </button>
@@ -135,6 +181,15 @@ export function SeriesDetail() {
           return (
             <div key={seasonNum} className={styles.season}>
               <div className={styles.seasonHeader}>
+                <button
+                  className={styles.seasonMonitorBtn}
+                  onClick={() => toggleSeasonMonitor(eps)}
+                  title={monitoredCount === eps.length ? 'Unmonitor all episodes in season' : 'Monitor all episodes in season'}
+                >
+                  <span
+                    className={monitoredCount === eps.length ? styles.monitorIconOn : monitoredCount > 0 ? styles.monitorIconPartial : styles.monitorIconOff}
+                  />
+                </button>
                 <span className={styles.seasonTitle}>
                   {seasonNum === 0 ? 'Specials' : `Season ${seasonNum}`}
                 </span>
@@ -174,10 +229,15 @@ export function SeriesDetail() {
                           )}
                         </td>
                         <td className={styles.td}>
-                          <span
-                            className={ep.monitored ? styles.monitoredDotOn : styles.monitoredDotOff}
-                            title={ep.monitored ? 'Monitored' : 'Unmonitored'}
-                          />
+                          <button
+                            className={styles.monitorToggle}
+                            onClick={() => toggleEpisodeMonitor(ep)}
+                            title={ep.monitored ? 'Click to unmonitor' : 'Click to monitor'}
+                          >
+                            <span
+                              className={ep.monitored ? styles.monitoredDotOn : styles.monitoredDotOff}
+                            />
+                          </button>
                         </td>
                       </tr>
                     ))}

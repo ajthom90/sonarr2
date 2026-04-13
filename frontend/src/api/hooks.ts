@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from './client'
-import type { Series, Episode, Page, SystemStatus, Command, HistoryEntry, HealthItem, WantedEpisode, Indexer, DownloadClient, QualityProfile, QualityDefinition, SeriesLookupResult, RootFolder, AddSeriesRequest, GeneralSettings, CustomFormat } from './types'
+import type { Series, Episode, Page, SystemStatus, Command, HistoryEntry, HealthItem, WantedEpisode, Indexer, DownloadClient, QualityProfile, QualityDefinition, SeriesLookupResult, RootFolder, AddSeriesRequest, GeneralSettings, CustomFormat, BackupInfo } from './types'
 
 export function useSeriesList() {
   return useQuery({
@@ -261,5 +261,35 @@ export function useConnectionStatus() {
     },
     refetchInterval: 30_000,
     retry: false,
+  })
+}
+
+export function useUpdateEpisode() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, monitored }: { id: number; monitored: boolean }) =>
+      api.put<Episode>(`/episode/${id}`, { monitored }),
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({ queryKey: ['episodes'] })
+      qc.invalidateQueries({ queryKey: ['series', variables.id] })
+    },
+  })
+}
+
+export function useTriggerCommand() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (cmd: { name: string; body?: Record<string, unknown> }) =>
+      api.post<Command>('/command', cmd),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['commands'] })
+    },
+  })
+}
+
+export function useBackups() {
+  return useQuery({
+    queryKey: ['system', 'backups'],
+    queryFn: () => api.get<BackupInfo[]>('/system/backup'),
   })
 }
