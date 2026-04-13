@@ -326,10 +326,25 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 		return histStore.DeleteForSeries(ctx, e.ID)
 	})
 
+	// Build host config store for API key auth.
+	var hcStore hostconfig.Store
+	switch p := pool.(type) {
+	case *db.PostgresPool:
+		hcStore = hostconfig.NewPostgresStore(p)
+	case *db.SQLitePool:
+		hcStore = hostconfig.NewSQLiteStore(p)
+	}
+
 	addr := net.JoinHostPort(cfg.HTTP.BindAddress, strconv.Itoa(cfg.HTTP.Port))
 	return &App{
-		log:             log,
-		server:          api.New(addr, log, poolPingerAdapter{pool: pool}),
+		log: log,
+		server: api.NewWithDeps(addr, log, api.Deps{
+			Pool:       poolPingerAdapter{pool: pool},
+			HostConfig: hcStore,
+			Series:     lib.Series,
+			Seasons:    lib.Seasons,
+			Stats:      lib.Stats,
+		}),
 		pool:            pool,
 		bus:             bus,
 		library:         lib,

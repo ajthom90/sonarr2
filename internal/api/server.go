@@ -9,7 +9,10 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/ajthom90/sonarr2/internal/api/v3"
 	"github.com/ajthom90/sonarr2/internal/buildinfo"
+	"github.com/ajthom90/sonarr2/internal/hostconfig"
+	"github.com/ajthom90/sonarr2/internal/library"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
@@ -23,19 +26,44 @@ type PoolPinger interface {
 	Ping(ctx context.Context) error
 }
 
+// Deps holds the optional domain stores used by v3 handlers. Fields may be
+// nil; if nil the corresponding v3 routes are not mounted. Task 7 will
+// consolidate this into a proper v3.Dependencies struct.
+type Deps struct {
+	Pool       PoolPinger
+	HostConfig hostconfig.Store
+	Series     library.SeriesStore
+	Seasons    library.SeasonsStore
+	Stats      library.SeriesStatsStore
+}
+
 // Server wraps a net/http server configured with the sonarr2 router.
 type Server struct {
 	log     *slog.Logger
 	httpsrv *http.Server
 }
 
-// New builds a Server bound to addr.
+// New builds a Server bound to addr. Prefer NewWithDeps when domain stores
+// are available.
 func New(addr string, log *slog.Logger, pool PoolPinger) *Server {
 	return &Server{
 		log: log,
 		httpsrv: &http.Server{
 			Addr:              addr,
 			Handler:           HandlerWithPool(log, pool),
+			ReadHeaderTimeout: 10 * time.Second,
+		},
+	}
+}
+
+// NewWithDeps builds a Server with full deps, including v3 route mounting
+// and API key auth.
+func NewWithDeps(addr string, log *slog.Logger, deps Deps) *Server {
+	return &Server{
+		log: log,
+		httpsrv: &http.Server{
+			Addr:              addr,
+			Handler:           HandlerWithDeps(log, deps),
 			ReadHeaderTimeout: 10 * time.Second,
 		},
 	}
@@ -55,6 +83,30 @@ func (s *Server) Start() error {
 func (s *Server) Shutdown(ctx context.Context) error {
 	s.log.Info("http server shutting down")
 	return s.httpsrv.Shutdown(ctx)
+}
+
+// HandlerWithDeps builds the chi router with full deps: API key auth and v3
+// routes. Use this in production; use HandlerWithPool / Handler for tests
+// that only need the status or ping endpoints.
+func HandlerWithDeps(log *slog.Logger, deps Deps) http.Handler {
+	r := chi.NewRouter()
+	r.Use(middleware.RequestID)
+	r.Use(requestLogger(log))
+	r.Use(middleware.Recoverer)
+
+	r.Get("/ping", pingHandler)
+	r.Get("/api/v3/system/status", statusHandlerWithPool(deps.Pool))
+
+	// Mount v3 series routes under API key auth when stores are available.
+	if deps.Series != nil && deps.Seasons != nil && deps.Stats != nil && deps.HostConfig != nil {
+		sh := v3.NewSeriesHandler(deps.Series, deps.Seasons, deps.Stats, log)
+		r.Group(func(r chi.Router) {
+			r.Use(apiKeyAuth(deps.HostConfig))
+			v3.MountSeries(r, sh)
+		})
+	}
+
+	return r
 }
 
 // HandlerWithPool builds the chi router with a database pool reference so
