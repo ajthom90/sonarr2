@@ -1,0 +1,153 @@
+{
+    "page": 1,
+    "pageSize": 3,
+    "sortKey": "date",
+    "sortDirection": "descending",
+    "totalRecords": 88697,
+    "records": [
+        {
+            "episodeId": 43485,
+            "seriesId": 251,
+            "sourceTitle": "/data/TVShows/For All Mankind (2019) {tvdb-356202}/Season 04/For All Mankind (2019) - S04E05 - Goldilocks [WEBDL-1080p][EAC3 Atmos 5.1][h264]-FLUX.mkv",
+            "languages": [
+                {
+                    "id": 1,
+                    "name": "English"
+                }
+            ],
+            "quality": {
+                "quality": {
+                    "id": 3,
+                    "name": "WEBDL-1080p",
+                    "source": "web",
+                    "resolution": 1080
+                },
+                "revision": {
+                    "version": 1,
+                    "real": 0,
+                    "isRepack": false
+                }
+            },
+            "customFormats": [
+                {
+                    "id": 10,
+                    "name": "WEB Tier 01"
+                }
+            ],
+            "customFormatScore": 1700,
+            "qualityCutoffNotMet": false,
+            "date": "2026-04-13T12:22:00Z",
+            "eventType": "episodeFileDeleted",
+            "data": {
+                "reason": "MissingFromDisk",
+                "releaseGroup": "FLUX",
+                "size": "564848829",
+                "indexerFlags": "Freeleech",
+                "releaseType": "SingleEpisode"
+            },
+            "id": 90046
+        },
+        {
+            "episodeId": 43488,
+            "seriesId": 251,
+            "sourceTitle": "/data/TVShows/For All Mankind (2019) {tvdb-356202}/Season 04/For All Mankind (2019) - S04E08 - Legacy [WEBDL-1080p][EAC3 Atmos 5.1][h264]-FLUX.mkv",
+            "languages": [
+                {
+                    "id": 1,
+                    "name": "English"
+                }
+            ],
+            "quality": {
+                "quality": {
+                    "id": 3,
+                    "name": "WEBDL-1080p",
+                    "source": "web",
+                    "resolution": 1080
+                },
+                "revision": {
+                    "version": 1,
+                    "real": 0,
+                    "isRepack": false
+                }
+            },
+            "customFormats": [
+                {
+                    "id": 10,
+                    "name": "WEB Tier 01"
+                }
+            ],
+            "customFormatScore": 1700,
+            "qualityCutoffNotMet": false,
+            "date": "2026-04-13T12:19:04Z",
+            "eventType": "episodeFileDeleted",
+            "data": {
+                "reason": "MissingFromDisk",
+                "releaseGroup": "FLUX",
+                "size": "530236349",
+                "indexerFlags": "Freeleech",
+                "releaseType": "SingleEpisode"
+            },
+            "id": 90045
+        },
+        {
+            "episodeId": 42977,
+            "seriesId": 237,
+            "sourceTitle": "DTF St Louis S01E07 No Ones Normal It Just Looks That Way from Across the Street 1080p AMZN WEB-DL DD 5 1 H 264-playWEB",
+            "languages": [
+                {
+                    "id": 1,
+                    "name": "English"
+                }
+            ],
+            "quality": {
+                "quality": {
+                    "id": 3,
+                    "name": "WEBDL-1080p",
+                    "source": "web",
+                    "resolution": 1080
+                },
+                "revision": {
+                    "version": 1,
+                    "real": 0,
+                    "isRepack": false
+                }
+            },
+            "customFormats": [
+                {
+                    "id": 11,
+                    "name": "WEB Tier 02"
+                }
+            ],
+            "customFormatScore": 1650,
+            "qualityCutoffNotMet": false,
+            "date": "2026-04-13T12:18:05Z",
+            "downloadId": "7FC30B630F313FF2935CBF4AAA0AE31E20DCC840",
+            "eventType": "grabbed",
+            "data": {
+                "indexer": "Uindex (Prowlarr)",
+                "nzbInfoUrl": "https://uindex.org/details.php?id=63618118",
+                "releaseGroup": "playWEB",
+                "age": "0",
+                "ageHours": "0.25382555194444445",
+                "ageMinutes": "15.229533223333334",
+                "publishedDate": "2026-04-13T12:02:52Z",
+                "downloadClient": "qBittorrent",
+                "downloadClientName": "qBittorrent",
+                "size": "4090956288",
+                "downloadUrl": "http://truenas.home.njathome.net:30050/3/download?apikey=12a61ff9c3ab45f3861c0f48dbf56b93&link=RGQ4SHRyMEVjY1dPZG1YZ3ZlQzRFcEpkTXJISktueC9TTU9ESmVIWTV5M3NtZmhMd1RUYmRKak5SU2hCUkc4dlVMT1FNZXloTjgrZDFWQUtQaUZxS0JVZU5QU3NSb1c5bWFtVEZTcVdGQjJ4RGVVcWtCZFBNYzlIbzdOU2l4WGlQQWUzQ29PdjlEV0k5cmEyZFlCSzZDanhoRmI2Myt1WXZrWnRrOTV0TTVaTFkrbmVMUi9ER3c4YXRRNzlrU2lpSmltajlCdlBPTlZieVZXME5tVk1mY1dvQUlBVGdHM0VuWlNLT29NdU83TG1nS1ZYNTgxSjArYXg2a2ZGWE1YL21NVkN2SmNuNnpXWGc2dm8zTHpZL28reUZyblpXTkY3ajRZZTg1c3dvUnlTbkNLM1ZJcXhOZWIvcVR6Zy9KenVBUmpOd0hsclRSSDVpcXlTSzZ5cGNzcXphalJLbHZFdERNYTliY3NRYlVlRFdnK2x1Rk1CcjE2Z2dNbmxrWDJLYkF0RzNYdnl6eDR4aE1pdURodnNTdlI4RmFISlhvWk9FN1U0NkFjMXMxaWd5a01OeDl0L3JzMUEzN2RMYUhMRFBDWmFrdHV0K0NjSUk4ZkRxL0t5L1ZJei9sNVVrNTNra3RseUZwazh4T2RVZ1JIL3lBYkZ0bW56MGxOaUJkTTlIdWgwMXk2bnp4TGFNbUk0ZS9uM1lwRVkrNXJLK2djRkRLWUdxbW5yZEVYWTZ2c01mQ0xwU0JjenBucCt4eGc5aXMvTjBHZmJaQWtBY0dWeWlWbmN1eVNXWXpMZDlJcHV3Q0wzZTFuWVdHMk4wclFOd0V4VjFyVmRWays4VHIrTkNiU0xreENUUE13cFlScHkzVCtQRzhLS1c5ejBmbE0xVXpLK2xBaG4vQWc9&file=DTF+St+Louis+S01E07+No+Ones+Normal+It+Just+Looks+That+Way+from+Across+the+Street+1080p+AMZN+WEB-DL+DD+5+1+H+264-playWEB",
+                "guid": "magnet:?xt=urn:btih:7fc30b630f313ff2935cbf4aaa0ae31e20dcc840&dn=DTF%20St%20Louis%20S01E07%20No%20Ones%20Normal%20It%20Just%20Looks%20That%20Way%20from%20Across%20the%20Street%201080p%20AMZN%20WEB-DL%20DD%205%201%20H%20264-playWEB%20%5B%20UIndex.org%20%5D&tr=udp://tracker.bittor.pw:1337/announce&tr=udp://tracker.opentrackr.org:1337/announce&tr=udp://tracker.dler.org:6969/announce&tr=udp://open.stealth.si:80/announce&tr=udp://tracker.torrent.eu.org:451/announce&tr=udp://exodus.desync.com:6969/announce&tr=udp://open.demonii.com:1337/announce",
+                "tvdbId": "0",
+                "tvRageId": "0",
+                "imdbId": null,
+                "protocol": "2",
+                "customFormatScore": "1650",
+                "seriesMatchType": "Title",
+                "releaseSource": "Rss",
+                "indexerFlags": "Freeleech",
+                "releaseType": "SingleEpisode",
+                "torrentInfoHash": "7fc30b630f313ff2935cbf4aaa0ae31e20dcc840"
+            },
+            "id": 90044
+        }
+    ]
+}

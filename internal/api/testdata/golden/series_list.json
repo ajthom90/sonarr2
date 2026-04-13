@@ -1,0 +1,340 @@
+[
+  {
+    "title": "007: Road to a Million",
+    "alternateTitles": [],
+    "sortTitle": "007 road to a million",
+    "status": "continuing",
+    "ended": false,
+    "overview": "Filmed at historical Bond locations, features contestants competing in tests of intelligence & endurance to win a \u00a31 million cash prize.",
+    "previousAiring": "2025-08-22T04:00:00Z",
+    "network": "Prime Video",
+    "airTime": "00:00",
+    "images": [
+      {
+        "coverType": "banner",
+        "url": "/MediaCover/1/banner.jpg?lastWrite=639077979501962581",
+        "remoteUrl": "https://artworks.thetvdb.com/banners/v4/series/418229/banners/65441e4e6b2dc.jpg"
+      },
+      {
+        "coverType": "poster",
+        "url": "/MediaCover/1/poster.jpg?lastWrite=639077979504562618",
+        "remoteUrl": "https://artworks.thetvdb.com/banners/v4/series/418229/posters/68e57a9a65eca.jpg"
+      },
+      {
+        "coverType": "fanart",
+        "url": "/MediaCover/1/fanart.jpg?lastWrite=639077979504802621",
+        "remoteUrl": "https://artworks.thetvdb.com/banners/v4/series/418229/backgrounds/651e96f31b4c9.jpg"
+      },
+      {
+        "coverType": "clearlogo",
+        "url": "/MediaCover/1/clearlogo.png?lastWrite=639077979504922623",
+        "remoteUrl": "https://artworks.thetvdb.com/banners/v4/series/418229/clearlogo/655116a95633d.png"
+      }
+    ],
+    "originalLanguage": {
+      "id": 1,
+      "name": "English"
+    },
+    "seasons": [
+      {
+        "seasonNumber": 1,
+        "monitored": true,
+        "statistics": {
+          "previousAiring": "2023-11-10T05:00:00Z",
+          "episodeFileCount": 8,
+          "episodeCount": 8,
+          "totalEpisodeCount": 8,
+          "sizeOnDisk": 5617045303,
+          "releaseGroups": [],
+          "percentOfEpisodes": 100
+        }
+      },
+      {
+        "seasonNumber": 2,
+        "monitored": true,
+        "statistics": {
+          "previousAiring": "2025-08-22T04:00:00Z",
+          "episodeFileCount": 8,
+          "episodeCount": 8,
+          "totalEpisodeCount": 8,
+          "sizeOnDisk": 4061347337,
+          "releaseGroups": [],
+          "percentOfEpisodes": 100
+        }
+      }
+    ],
+    "year": 2023,
+    "path": "/data/TVShows/007 Road to a Million (2023) {tvdb-418229}",
+    "qualityProfileId": 6,
+    "seasonFolder": true,
+    "monitored": true,
+    "monitorNewItems": "all",
+    "useSceneNumbering": false,
+    "runtime": 43,
+    "tvdbId": 418229,
+    "tvRageId": 0,
+    "tvMazeId": 71755,
+    "tmdbId": 234455,
+    "firstAired": "2023-11-10T00:00:00Z",
+    "lastAired": "2025-08-22T00:00:00Z",
+    "seriesType": "standard",
+    "cleanTitle": "007roadtomillion",
+    "imdbId": "tt19049680",
+    "titleSlug": "007-road-to-a-million",
+    "rootFolderPath": "/data/TVShows",
+    "genres": [
+      "Action",
+      "Adventure",
+      "Game Show"
+    ],
+    "tags": [],
+    "added": "2026-02-27T14:05:33Z",
+    "ratings": {
+      "votes": 2104,
+      "value": 6.8
+    },
+    "statistics": {
+      "seasonCount": 2,
+      "episodeFileCount": 16,
+      "episodeCount": 16,
+      "totalEpisodeCount": 16,
+      "sizeOnDisk": 9678392640,
+      "releaseGroups": [],
+      "percentOfEpisodes": 100
+    },
+    "languageProfileId": 1,
+    "id": 1
+  },
+  {
+    "title": "1883",
+    "alternateTitles": [
+      {
+        "title": "1883",
+        "seasonNumber": -1
+      }
+    ],
+    "sortTitle": "1883",
+    "status": "ended",
+    "ended": true,
+    "overview": "Follow the Dutton family as they embark on a journey west through the Great Plains toward the last bastion of untamed America. A stark retelling of Western expansion, and an intense study of one family fleeing poverty to seek a better future in America\u2019s promised land\u2014Montana.",
+    "previousAiring": "2022-02-27T08:00:00Z",
+    "network": "Paramount+",
+    "airTime": "03:00",
+    "images": [
+      {
+        "coverType": "banner",
+        "url": "/MediaCover/2/banner.jpg?lastWrite=639077979500842565",
+        "remoteUrl": "https://artworks.thetvdb.com/banners/v4/series/396390/banners/61eda4eea3823.jpg"
+      },
+      {
+        "coverType": "poster",
+        "url": "/MediaCover/2/poster.jpg?lastWrite=639077979501202570",
+        "remoteUrl": "https://artworks.thetvdb.com/banners/v4/series/396390/posters/6186a841002db.jpg"
+      },
+      {
+        "coverType": "fanart",
+        "url": "/MediaCover/2/fanart.jpg?lastWrite=639077979501522574",
+        "remoteUrl": "https://artworks.thetvdb.com/banners/v4/series/396390/backgrounds/61c3f2ed4621d.jpg"
+      },
+      {
+        "coverType": "clearlogo",
+        "url": "/MediaCover/2/clearlogo.png?lastWrite=639077979501962581",
+        "remoteUrl": "https://artworks.thetvdb.com/banners/v4/series/396390/clearlogo/61eda4c0d8cda.png"
+      }
+    ],
+    "originalLanguage": {
+      "id": 1,
+      "name": "English"
+    },
+    "seasons": [
+      {
+        "seasonNumber": 0,
+        "monitored": false,
+        "statistics": {
+          "episodeFileCount": 0,
+          "episodeCount": 0,
+          "totalEpisodeCount": 1,
+          "sizeOnDisk": 0,
+          "releaseGroups": [],
+          "percentOfEpisodes": 0
+        }
+      },
+      {
+        "seasonNumber": 1,
+        "monitored": true,
+        "statistics": {
+          "previousAiring": "2022-02-27T08:00:00Z",
+          "episodeFileCount": 10,
+          "episodeCount": 10,
+          "totalEpisodeCount": 10,
+          "sizeOnDisk": 7248196155,
+          "releaseGroups": [
+            "LESS"
+          ],
+          "percentOfEpisodes": 100
+        }
+      }
+    ],
+    "year": 2021,
+    "path": "/data/TVShows/1883 (2021) {tvdb-396390}",
+    "qualityProfileId": 6,
+    "seasonFolder": true,
+    "monitored": false,
+    "monitorNewItems": "all",
+    "useSceneNumbering": false,
+    "runtime": 56,
+    "tvdbId": 396390,
+    "tvRageId": 0,
+    "tvMazeId": 53327,
+    "tmdbId": 118357,
+    "firstAired": "2021-12-19T00:00:00Z",
+    "lastAired": "2022-02-27T00:00:00Z",
+    "seriesType": "standard",
+    "cleanTitle": "1883",
+    "imdbId": "tt13991232",
+    "titleSlug": "1883",
+    "rootFolderPath": "/data/TVShows",
+    "certification": "TV-MA",
+    "genres": [
+      "Drama",
+      "Western"
+    ],
+    "tags": [],
+    "added": "2026-02-27T14:05:33Z",
+    "ratings": {
+      "votes": 163207,
+      "value": 8.6
+    },
+    "statistics": {
+      "seasonCount": 1,
+      "episodeFileCount": 10,
+      "episodeCount": 10,
+      "totalEpisodeCount": 11,
+      "sizeOnDisk": 7248196155,
+      "releaseGroups": [
+        "LESS"
+      ],
+      "percentOfEpisodes": 100
+    },
+    "languageProfileId": 1,
+    "id": 2
+  },
+  {
+    "title": "1923",
+    "alternateTitles": [],
+    "sortTitle": "1923",
+    "status": "ended",
+    "ended": true,
+    "overview": "The next installment of the Yellowstone origin story introduces a new generation of the Dutton family and explores the early twentieth century when pandemics, historic drought, the end of Prohibition, and the Great Depression all plague the Mountain West, and the Duttons who call it home.",
+    "previousAiring": "2025-04-06T07:00:00Z",
+    "network": "Paramount+",
+    "airTime": "03:00",
+    "images": [
+      {
+        "coverType": "banner",
+        "url": "/MediaCover/3/banner.jpg?lastWrite=639077979500922566",
+        "remoteUrl": "https://artworks.thetvdb.com/banners/v4/series/416491/banners/6393c5abdabcd.jpg"
+      },
+      {
+        "coverType": "poster",
+        "url": "/MediaCover/3/poster.jpg?lastWrite=639077979501242570",
+        "remoteUrl": "https://artworks.thetvdb.com/banners/v4/series/416491/posters/63aa25026aabf.jpg"
+      },
+      {
+        "coverType": "fanart",
+        "url": "/MediaCover/3/fanart.jpg?lastWrite=639077979501842579",
+        "remoteUrl": "https://artworks.thetvdb.com/banners/v4/series/416491/backgrounds/63965fcbc0ca4.jpg"
+      },
+      {
+        "coverType": "clearlogo",
+        "url": "/MediaCover/3/clearlogo.png?lastWrite=639077979502002581",
+        "remoteUrl": "https://artworks.thetvdb.com/banners/v4/series/416491/clearlogo/63c4f71decfab.png"
+      }
+    ],
+    "originalLanguage": {
+      "id": 1,
+      "name": "English"
+    },
+    "seasons": [
+      {
+        "seasonNumber": 0,
+        "monitored": false,
+        "statistics": {
+          "episodeFileCount": 0,
+          "episodeCount": 0,
+          "totalEpisodeCount": 10,
+          "sizeOnDisk": 0,
+          "releaseGroups": [],
+          "percentOfEpisodes": 0
+        }
+      },
+      {
+        "seasonNumber": 1,
+        "monitored": true,
+        "statistics": {
+          "previousAiring": "2023-02-26T08:00:00Z",
+          "episodeFileCount": 8,
+          "episodeCount": 8,
+          "totalEpisodeCount": 8,
+          "sizeOnDisk": 4368283219,
+          "releaseGroups": [],
+          "percentOfEpisodes": 100
+        }
+      },
+      {
+        "seasonNumber": 2,
+        "monitored": true,
+        "statistics": {
+          "previousAiring": "2025-04-06T07:00:00Z",
+          "episodeFileCount": 7,
+          "episodeCount": 7,
+          "totalEpisodeCount": 7,
+          "sizeOnDisk": 4586873874,
+          "releaseGroups": [],
+          "percentOfEpisodes": 100
+        }
+      }
+    ],
+    "year": 2022,
+    "path": "/data/TVShows/1923 (2022) {tvdb-416491}",
+    "qualityProfileId": 6,
+    "seasonFolder": true,
+    "monitored": false,
+    "monitorNewItems": "all",
+    "useSceneNumbering": false,
+    "runtime": 60,
+    "tvdbId": 416491,
+    "tvRageId": 0,
+    "tvMazeId": 60550,
+    "tmdbId": 157744,
+    "firstAired": "2022-12-18T00:00:00Z",
+    "lastAired": "2025-04-06T00:00:00Z",
+    "seriesType": "standard",
+    "cleanTitle": "1923",
+    "imdbId": "tt18335752",
+    "titleSlug": "1923",
+    "rootFolderPath": "/data/TVShows",
+    "certification": "TV-MA",
+    "genres": [
+      "Drama",
+      "Western"
+    ],
+    "tags": [],
+    "added": "2026-02-27T14:05:33Z",
+    "ratings": {
+      "votes": 100684,
+      "value": 8.3
+    },
+    "statistics": {
+      "seasonCount": 2,
+      "episodeFileCount": 15,
+      "episodeCount": 15,
+      "totalEpisodeCount": 25,
+      "sizeOnDisk": 8955157093,
+      "releaseGroups": [],
+      "percentOfEpisodes": 100
+    },
+    "languageProfileId": 1,
+    "id": 3
+  }
+]

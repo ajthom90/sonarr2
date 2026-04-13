@@ -1,0 +1,50 @@
+[
+  {
+    "seriesId": 1,
+    "tvdbId": 9073893,
+    "episodeFileId": 11,
+    "seasonNumber": 1,
+    "episodeNumber": 1,
+    "title": "EPISODE ONE",
+    "airDate": "2023-11-10",
+    "airDateUtc": "2023-11-10T05:00:00Z",
+    "runtime": 51,
+    "overview": "From the Hollywood producers behind the James Bond films comes 007: Road to a Million which follows nine pairs of everyday people on an epic Bond-inspired global adventure. Ten questions stand between brothers James and Joey and \u00a31,000,000, as they face a gruelling trek across the Scottish Highlands. A familiar Rolls Royce, a race through Venice and a dramatic encounter in an Italian palazzo await.",
+    "hasFile": true,
+    "monitored": true,
+    "unverifiedSceneNumbering": false,
+    "id": 37
+  },
+  {
+    "seriesId": 1,
+    "tvdbId": 9073894,
+    "episodeFileId": 13,
+    "seasonNumber": 1,
+    "episodeNumber": 2,
+    "title": "EPISODE TWO",
+    "airDate": "2023-11-10",
+    "airDateUtc": "2023-11-10T05:00:00Z",
+    "runtime": 49,
+    "overview": "The Bone brothers survive their close call with a boa constrictor in Venice, but did they do enough to get the question right and bank \u00a325,000 of The Controller's money? Married couple Kamara and Josh, are hoping for a better future for their family but a terrifying and breath-taking climb put Josh's fear of heights to the test and could put an end to their dream of winning \u00a31,000,000.",
+    "hasFile": true,
+    "monitored": true,
+    "unverifiedSceneNumbering": false,
+    "id": 38
+  },
+  {
+    "seriesId": 1,
+    "tvdbId": 9073895,
+    "episodeFileId": 20,
+    "seasonNumber": 1,
+    "episodeNumber": 3,
+    "title": "EPISODE THREE",
+    "airDate": "2023-11-10",
+    "airDateUtc": "2023-11-10T05:00:00Z",
+    "runtime": 50,
+    "overview": "Next to enter The Controller's Bond-inspired world are emergency nurses Beth and Jen. With years of experience dealing with trauma in hospitals and warzones around the world, they prove early on they are a force to be reckoned with. With \u00a350,000 banked, following their exploits in the Venetian lagoon, the Bone brothers find themselves dropped in the middle of the unforgiving Amazon rainforest.",
+    "hasFile": true,
+    "monitored": true,
+    "unverifiedSceneNumbering": false,
+    "id": 39
+  }
+]

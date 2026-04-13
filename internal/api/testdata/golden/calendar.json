@@ -1,0 +1,53 @@
+[
+  {
+    "seriesId": 331,
+    "tvdbId": 11572736,
+    "episodeFileId": 39800,
+    "seasonNumber": 4,
+    "episodeNumber": 5,
+    "title": "GIVE US A MOMENT",
+    "airDate": "2026-04-01",
+    "airDateUtc": "2026-04-01T07:00:00Z",
+    "lastSearchTime": "2026-04-02T19:30:08Z",
+    "runtime": 51,
+    "overview": "Mark embarks on a new and dangerous mission, throwing Debbie into a tailspin and plunging Eve into uncertainty.",
+    "hasFile": true,
+    "monitored": true,
+    "unverifiedSceneNumbering": false,
+    "id": 51971
+  },
+  {
+    "seriesId": 188,
+    "tvdbId": 11601279,
+    "episodeFileId": 33248,
+    "seasonNumber": 1,
+    "episodeNumber": 7,
+    "title": "My Best Friend's Barbecue",
+    "airDate": "2026-04-01",
+    "airDateUtc": "2026-04-02T00:00:00Z",
+    "lastSearchTime": "2026-03-31T20:40:49Z",
+    "runtime": 21,
+    "overview": "While J.D. is upset to not be invited to Turk and Carla\u2019s annual barbecue, he takes the opportunity to nurture his friendship with Carla at work. Turk teaches the surgical interns how to deliver bad news.",
+    "hasFile": true,
+    "monitored": true,
+    "unverifiedSceneNumbering": false,
+    "id": 30386
+  },
+  {
+    "seriesId": 221,
+    "tvdbId": 11546455,
+    "episodeFileId": 33176,
+    "seasonNumber": 11,
+    "episodeNumber": 16,
+    "title": "The Book of Charles",
+    "airDate": "2026-04-01",
+    "airDateUtc": "2026-04-02T00:00:00Z",
+    "lastSearchTime": "2026-04-05T02:49:08Z",
+    "runtime": 43,
+    "overview": "Dr. Charles grapples with his own mental health after working the suicide prevention line.",
+    "hasFile": true,
+    "monitored": true,
+    "unverifiedSceneNumbering": false,
+    "id": 41278
+  }
+]

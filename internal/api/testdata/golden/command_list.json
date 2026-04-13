@@ -1,0 +1,54 @@
+[
+  {
+    "name": "RefreshMonitoredDownloads",
+    "commandName": "Refresh Monitored Downloads",
+    "body": {
+      "sendUpdatesToClient": false,
+      "updateScheduledTask": true,
+      "requiresDiskAccess": false,
+      "isExclusive": false,
+      "isLongRunning": false,
+      "name": "RefreshMonitoredDownloads",
+      "trigger": "unspecified",
+      "suppressMessages": false
+    },
+    "priority": "high",
+    "status": "completed",
+    "result": "successful",
+    "queued": "2026-04-13T12:18:10Z",
+    "started": "2026-04-13T12:18:11Z",
+    "ended": "2026-04-13T12:18:11Z",
+    "duration": "00:00:00.1172433",
+    "trigger": "unspecified",
+    "stateChangeTime": "2026-04-13T12:18:11Z",
+    "sendUpdatesToClient": false,
+    "updateScheduledTask": true,
+    "id": 163631
+  },
+  {
+    "name": "ProcessMonitoredDownloads",
+    "commandName": "Process Monitored Downloads",
+    "body": {
+      "requiresDiskAccess": true,
+      "isLongRunning": true,
+      "sendUpdatesToClient": false,
+      "updateScheduledTask": true,
+      "isExclusive": false,
+      "name": "ProcessMonitoredDownloads",
+      "trigger": "unspecified",
+      "suppressMessages": false
+    },
+    "priority": "high",
+    "status": "completed",
+    "result": "successful",
+    "queued": "2026-04-13T12:18:11Z",
+    "started": "2026-04-13T12:18:11Z",
+    "ended": "2026-04-13T12:18:11Z",
+    "duration": "00:00:00.0442431",
+    "trigger": "unspecified",
+    "stateChangeTime": "2026-04-13T12:18:11Z",
+    "sendUpdatesToClient": false,
+    "updateScheduledTask": true,
+    "id": 163632
+  }
+]
