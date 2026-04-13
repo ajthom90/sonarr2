@@ -65,6 +65,9 @@ type Deps struct {
 	Broker               *realtime.Broker
 	BackupService        *backup.Service
 	Log                  *slog.Logger
+	URLBase              string
+	RateLimit            float64
+	RateBurst            int
 }
 
 // Server wraps a net/http server configured with the sonarr2 router.
@@ -127,137 +130,156 @@ func HandlerWithDeps(log *slog.Logger, deps Deps) http.Handler {
 	r.Use(middleware.RequestID)
 	r.Use(requestLogger(log))
 	r.Use(middleware.Recoverer)
+	r.Use(securityHeaders)
+	r.Use(corsMiddleware)
 
-	// /ping is a liveness check — no auth required.
-	r.Get("/ping", pingHandler)
-
-	// SignalR routes — outside the auth group because SignalR clients negotiate
-	// before presenting credentials (Sonarr's convention). Mounted only when a
-	// broker is wired in.
-	if deps.Broker != nil {
-		r.Post("/signalr/messages/negotiate", deps.Broker.SignalRNegotiate)
-		r.Get("/signalr/messages", deps.Broker.SignalRConnect)
+	if deps.RateLimit > 0 {
+		rl := newIPRateLimiter(deps.RateLimit, deps.RateBurst)
+		r.Use(rl.Middleware)
 	}
 
-	// All v3 routes are gated behind API key auth when HostConfig is set.
-	if deps.HostConfig == nil {
-		// Fall back to the unauthenticated stub for test/minimal configurations.
-		r.Get("/api/v3/system/status", statusHandlerWithPool(deps.Pool))
-		return r
-	}
+	// mountRoutes registers all application routes on the provided router.
+	// When URLBase is set, this is called inside r.Route(urlBase, ...) so all
+	// routes are nested under the prefix; otherwise it is called directly on r.
+	mountRoutes := func(r chi.Router) {
+		// /ping is a liveness check — no auth required.
+		r.Get("/ping", pingHandler)
 
-	r.Group(func(r chi.Router) {
-		r.Use(apiKeyAuth(deps.HostConfig))
-
-		// system/status: uses the richer v3 handler with full Sonarr field parity.
-		ssh := v3.NewSystemStatusHandler(deps.Pool)
-		v3.MountSystemStatus(r, ssh)
-
-		// Task 3 — series.
-		if deps.Series != nil && deps.Seasons != nil && deps.Stats != nil {
-			sh := v3.NewSeriesHandler(deps.Series, deps.Seasons, deps.Stats, log)
-			v3.MountSeries(r, sh)
-		}
-
-		// Task 4 — episode + episodefile.
-		if deps.Episodes != nil {
-			eh := v3.NewEpisodeHandler(deps.Episodes, log)
-			v3.MountEpisode(r, eh)
-		}
-		if deps.EpisodeFiles != nil && deps.Series != nil {
-			efh := v3.NewEpisodeFileHandler(deps.EpisodeFiles, deps.Series, log)
-			v3.MountEpisodeFile(r, efh)
-		}
-
-		// Task 5 — quality, customformats, command, history, calendar.
-		if deps.QualityProfiles != nil && deps.QualityDefs != nil {
-			qph := v3.NewQualityProfileHandler(deps.QualityProfiles, deps.QualityDefs, log)
-			v3.MountQualityProfile(r, qph)
-		}
-		if deps.QualityDefs != nil {
-			qdh := v3.NewQualityDefinitionHandler(deps.QualityDefs, log)
-			v3.MountQualityDefinition(r, qdh)
-		}
-		if deps.CustomFormats != nil {
-			cfh := v3.NewCustomFormatHandler(deps.CustomFormats, log)
-			v3.MountCustomFormat(r, cfh)
-		}
-		if deps.Commands != nil {
-			ch := v3.NewCommandHandler(deps.Commands, log)
-			v3.MountCommand(r, ch)
-		}
-		if deps.History != nil {
-			hh := v3.NewHistoryHandler(deps.History, log)
-			v3.MountHistory(r, hh)
-		}
-		if deps.Episodes != nil {
-			cal := v3.NewCalendarHandler(deps.Episodes, log)
-			v3.MountCalendar(r, cal)
-		}
-
-		// Task 6 — providers + utility.
-		if deps.IndexerStore != nil && deps.IndexerRegistry != nil {
-			ih := v3.NewIndexerHandler(deps.IndexerStore, deps.IndexerRegistry, log)
-			v3.MountIndexer(r, ih)
-		}
-		if deps.DCStore != nil && deps.DCRegistry != nil {
-			dch := v3.NewDownloadClientHandler(deps.DCStore, deps.DCRegistry, log)
-			v3.MountDownloadClient(r, dch)
-		}
-		if deps.NotificationStore != nil && deps.NotificationRegistry != nil {
-			nh := v3.NewNotificationHandler(deps.NotificationStore, deps.NotificationRegistry, log)
-			v3.MountNotification(r, nh)
-		}
-		if deps.Series != nil {
-			rfh := v3.NewRootFolderHandler(deps.Series, log)
-			v3.MountRootFolder(r, rfh)
-		}
-		v3.MountTag(r)
-		v3.MountHealth(r, deps.HealthChecker)
-		v3.MountParse(r)
-		if deps.Episodes != nil {
-			wh := v3.NewWantedHandler(deps.Episodes, log)
-			v3.MountWanted(r, wh)
-		}
-		if deps.BackupService != nil {
-			v3.MountBackup(r, deps.BackupService)
-		}
-
-		// SSE transport — behind auth so only authenticated clients connect.
+		// SignalR routes — outside the auth group because SignalR clients negotiate
+		// before presenting credentials (Sonarr's convention). Mounted only when a
+		// broker is wired in.
 		if deps.Broker != nil {
-			r.Get("/api/v6/stream", deps.Broker.SSEHandler)
+			r.Post("/signalr/messages/negotiate", deps.Broker.SignalRNegotiate)
+			r.Get("/signalr/messages", deps.Broker.SignalRConnect)
 		}
-	})
 
-	// v6 routes — mounted separately under /api/v6 with their own auth group.
-	v6.Mount(r, v6.Deps{
-		Pool:                 deps.Pool,
-		HostConfig:           deps.HostConfig,
-		Series:               deps.Series,
-		Seasons:              deps.Seasons,
-		Stats:                deps.Stats,
-		Episodes:             deps.Episodes,
-		EpisodeFiles:         deps.EpisodeFiles,
-		QualityProfiles:      deps.QualityProfiles,
-		QualityDefs:          deps.QualityDefs,
-		CustomFormats:        deps.CustomFormats,
-		Commands:             deps.Commands,
-		History:              deps.History,
-		IndexerStore:         deps.IndexerStore,
-		IndexerRegistry:      deps.IndexerRegistry,
-		DCStore:              deps.DCStore,
-		DCRegistry:           deps.DCRegistry,
-		NotificationStore:    deps.NotificationStore,
-		NotificationRegistry: deps.NotificationRegistry,
-		HealthChecker:        deps.HealthChecker,
-		BackupService:        deps.BackupService,
-		Log:                  deps.Log,
-	})
+		// All v3 routes are gated behind API key auth when HostConfig is set.
+		if deps.HostConfig == nil {
+			// Fall back to the unauthenticated stub for test/minimal configurations.
+			r.Get("/api/v3/system/status", statusHandlerWithPool(deps.Pool))
+			return
+		}
 
-	// Frontend SPA — served from the embedded web/dist directory.
-	// All paths not matched above fall through to the SPA handler, which
-	// returns index.html for unknown routes (client-side routing).
-	r.Handle("/*", spaHandler())
+		r.Group(func(r chi.Router) {
+			r.Use(apiKeyAuth(deps.HostConfig))
+
+			// system/status: uses the richer v3 handler with full Sonarr field parity.
+			ssh := v3.NewSystemStatusHandler(deps.Pool)
+			v3.MountSystemStatus(r, ssh)
+
+			// Task 3 — series.
+			if deps.Series != nil && deps.Seasons != nil && deps.Stats != nil {
+				sh := v3.NewSeriesHandler(deps.Series, deps.Seasons, deps.Stats, log)
+				v3.MountSeries(r, sh)
+			}
+
+			// Task 4 — episode + episodefile.
+			if deps.Episodes != nil {
+				eh := v3.NewEpisodeHandler(deps.Episodes, log)
+				v3.MountEpisode(r, eh)
+			}
+			if deps.EpisodeFiles != nil && deps.Series != nil {
+				efh := v3.NewEpisodeFileHandler(deps.EpisodeFiles, deps.Series, log)
+				v3.MountEpisodeFile(r, efh)
+			}
+
+			// Task 5 — quality, customformats, command, history, calendar.
+			if deps.QualityProfiles != nil && deps.QualityDefs != nil {
+				qph := v3.NewQualityProfileHandler(deps.QualityProfiles, deps.QualityDefs, log)
+				v3.MountQualityProfile(r, qph)
+			}
+			if deps.QualityDefs != nil {
+				qdh := v3.NewQualityDefinitionHandler(deps.QualityDefs, log)
+				v3.MountQualityDefinition(r, qdh)
+			}
+			if deps.CustomFormats != nil {
+				cfh := v3.NewCustomFormatHandler(deps.CustomFormats, log)
+				v3.MountCustomFormat(r, cfh)
+			}
+			if deps.Commands != nil {
+				ch := v3.NewCommandHandler(deps.Commands, log)
+				v3.MountCommand(r, ch)
+			}
+			if deps.History != nil {
+				hh := v3.NewHistoryHandler(deps.History, log)
+				v3.MountHistory(r, hh)
+			}
+			if deps.Episodes != nil {
+				cal := v3.NewCalendarHandler(deps.Episodes, log)
+				v3.MountCalendar(r, cal)
+			}
+
+			// Task 6 — providers + utility.
+			if deps.IndexerStore != nil && deps.IndexerRegistry != nil {
+				ih := v3.NewIndexerHandler(deps.IndexerStore, deps.IndexerRegistry, log)
+				v3.MountIndexer(r, ih)
+			}
+			if deps.DCStore != nil && deps.DCRegistry != nil {
+				dch := v3.NewDownloadClientHandler(deps.DCStore, deps.DCRegistry, log)
+				v3.MountDownloadClient(r, dch)
+			}
+			if deps.NotificationStore != nil && deps.NotificationRegistry != nil {
+				nh := v3.NewNotificationHandler(deps.NotificationStore, deps.NotificationRegistry, log)
+				v3.MountNotification(r, nh)
+			}
+			if deps.Series != nil {
+				rfh := v3.NewRootFolderHandler(deps.Series, log)
+				v3.MountRootFolder(r, rfh)
+			}
+			v3.MountTag(r)
+			v3.MountHealth(r, deps.HealthChecker)
+			v3.MountParse(r)
+			if deps.Episodes != nil {
+				wh := v3.NewWantedHandler(deps.Episodes, log)
+				v3.MountWanted(r, wh)
+			}
+			if deps.BackupService != nil {
+				v3.MountBackup(r, deps.BackupService)
+			}
+
+			// SSE transport — behind auth so only authenticated clients connect.
+			if deps.Broker != nil {
+				r.Get("/api/v6/stream", deps.Broker.SSEHandler)
+			}
+		})
+
+		// v6 routes — mounted separately under /api/v6 with their own auth group.
+		v6.Mount(r, v6.Deps{
+			Pool:                 deps.Pool,
+			HostConfig:           deps.HostConfig,
+			Series:               deps.Series,
+			Seasons:              deps.Seasons,
+			Stats:                deps.Stats,
+			Episodes:             deps.Episodes,
+			EpisodeFiles:         deps.EpisodeFiles,
+			QualityProfiles:      deps.QualityProfiles,
+			QualityDefs:          deps.QualityDefs,
+			CustomFormats:        deps.CustomFormats,
+			Commands:             deps.Commands,
+			History:              deps.History,
+			IndexerStore:         deps.IndexerStore,
+			IndexerRegistry:      deps.IndexerRegistry,
+			DCStore:              deps.DCStore,
+			DCRegistry:           deps.DCRegistry,
+			NotificationStore:    deps.NotificationStore,
+			NotificationRegistry: deps.NotificationRegistry,
+			HealthChecker:        deps.HealthChecker,
+			BackupService:        deps.BackupService,
+			Log:                  deps.Log,
+		})
+
+		// Frontend SPA — served from the embedded web/dist directory.
+		// All paths not matched above fall through to the SPA handler, which
+		// returns index.html for unknown routes (client-side routing).
+		r.Handle("/*", spaHandler())
+	}
+
+	urlBase := strings.TrimRight(deps.URLBase, "/")
+	if urlBase != "" {
+		r.Route(urlBase, mountRoutes)
+	} else {
+		mountRoutes(r)
+	}
 
 	return r
 }
