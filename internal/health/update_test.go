@@ -12,7 +12,7 @@ import (
 
 func TestUpdateCheckAvailable(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		json.NewEncoder(w).Encode(map[string]string{"tag_name": "v2.0.0"})
+		_ = json.NewEncoder(w).Encode(map[string]string{"tag_name": "v2.0.0"})
 	}))
 	defer srv.Close()
 
@@ -29,7 +29,7 @@ func TestUpdateCheckAvailable(t *testing.T) {
 
 func TestUpdateCheckCurrent(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		json.NewEncoder(w).Encode(map[string]string{"tag_name": "v1.0.0"})
+		_ = json.NewEncoder(w).Encode(map[string]string{"tag_name": "v1.0.0"})
 	}))
 	defer srv.Close()
 
