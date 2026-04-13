@@ -4,6 +4,7 @@ import styles from './Sidebar.module.css'
 
 const navItems = [
   { to: '/', label: 'Series', icon: '📺' },
+  { to: '/add/new', label: 'Add New', icon: '➕' },
   { to: '/calendar', label: 'Calendar', icon: '📅' },
   { to: '/activity', label: 'Activity', icon: '⚡' },
   { to: '/wanted', label: 'Wanted', icon: '🔍' },

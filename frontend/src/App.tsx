@@ -11,6 +11,7 @@ import { Activity } from './pages/Activity'
 import { Wanted } from './pages/Wanted'
 import { Settings } from './pages/Settings'
 import { System } from './pages/System'
+import { AddSeries } from './pages/AddSeries'
 import { NotFound } from './pages/NotFound'
 
 const queryClient = new QueryClient({
@@ -29,6 +30,7 @@ export function App() {
               <Route index element={<SeriesIndex />} />
               <Route path="series/:id" element={<SeriesDetail />} />
               <Route path="series" element={<SeriesIndex />} />
+              <Route path="add/new" element={<AddSeries />} />
               <Route path="calendar" element={<Calendar />} />
               <Route path="activity" element={<Activity />} />
               <Route path="wanted" element={<Wanted />} />
