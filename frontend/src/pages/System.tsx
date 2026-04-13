@@ -1,6 +1,9 @@
-import { useSystemStatus, useHealth } from '../api/hooks'
-import type { HealthItem, SystemStatus } from '../api/types'
+import { useState } from 'react'
+import { useSystemStatus, useHealth, useRootFolders, useBackups } from '../api/hooks'
+import type { HealthItem, SystemStatus, RootFolder, BackupInfo } from '../api/types'
 import styles from './System.module.css'
+
+type SystemTab = 'status' | 'diskspace' | 'tasks' | 'backups'
 
 function formatDate(iso: string): string {
   try {
@@ -14,6 +17,14 @@ function formatDate(iso: string): string {
   } catch {
     return iso
   }
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes === 0) return '0 B'
+  const units = ['B', 'KB', 'MB', 'GB', 'TB']
+  const i = Math.floor(Math.log(bytes) / Math.log(1024))
+  const val = bytes / Math.pow(1024, i)
+  return `${val.toFixed(1)} ${units[i]}`
 }
 
 function healthItemClass(type: string): string {
@@ -115,33 +126,163 @@ function HealthCard({ items }: { items: HealthItem[] }) {
   )
 }
 
+// ── Disk Space card ──────────────────────────────────────────────────────────
+
+function DiskSpaceCard({ folders }: { folders: RootFolder[] }) {
+  return (
+    <div className={styles.card}>
+      <h2 className={styles.cardHeading}>Disk Space</h2>
+      {folders.length === 0 ? (
+        <p className={styles.stateMessage}>No root folders configured.</p>
+      ) : (
+        <div className={styles.diskList}>
+          {folders.map((f) => (
+            <div key={f.id} className={styles.diskItem}>
+              <div className={styles.diskPath}>{f.path}</div>
+              <div className={styles.diskInfo}>
+                <span className={styles.diskFree}>
+                  {f.freeSpace > 0 ? `${formatBytes(f.freeSpace)} free` : 'Unknown'}
+                </span>
+                <span className={f.accessible ? styles.diskAccessible : styles.diskInaccessible}>
+                  {f.accessible ? 'Accessible' : 'Inaccessible'}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Tasks card (placeholder) ─────────────────────────────────────────────────
+
+function TasksCard() {
+  return (
+    <div className={styles.card}>
+      <h2 className={styles.cardHeading}>Scheduled Tasks</h2>
+      <p className={styles.stateMessage}>
+        Task scheduling is not yet exposed via the API. Scheduled tasks will appear here
+        once the scheduler endpoint is implemented.
+      </p>
+    </div>
+  )
+}
+
+// ── Backups card ─────────────────────────────────────────────────────────────
+
+function BackupsCard({ backups }: { backups: BackupInfo[] }) {
+  return (
+    <div className={styles.card}>
+      <h2 className={styles.cardHeading}>Backups</h2>
+      {backups.length === 0 ? (
+        <p className={styles.stateMessage}>No backups found.</p>
+      ) : (
+        <div className={styles.tableWrapper}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th className={styles.th}>Name</th>
+                <th className={styles.th}>Size</th>
+                <th className={styles.th}>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {backups.map((b) => (
+                <tr key={b.name} className={styles.tableRow}>
+                  <td className={styles.td}>
+                    <a
+                      href={`/api/v6/system/backup/${b.name}`}
+                      className={styles.backupLink}
+                      download
+                    >
+                      {b.name}
+                    </a>
+                  </td>
+                  <td className={styles.td}>{formatBytes(b.size)}</td>
+                  <td className={styles.td}>{formatDate(b.time)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── System page ───────────────────────────────────────────────────────────────
 
 export function System() {
+  const [activeTab, setActiveTab] = useState<SystemTab>('status')
+
   const { data: status, isLoading: loadingStatus, isError: errorStatus, error: statusErr } = useSystemStatus()
   const { data: health, isLoading: loadingHealth, isError: errorHealth, error: healthErr } = useHealth()
+  const { data: rootFolders, isLoading: loadingFolders } = useRootFolders()
+  const { data: backups, isLoading: loadingBackups } = useBackups()
 
   const healthItems: HealthItem[] = Array.isArray(health) ? health : []
+  const folders: RootFolder[] = Array.isArray(rootFolders) ? rootFolders : []
+  const backupList: BackupInfo[] = Array.isArray(backups) ? backups : []
+
+  const tabs: { key: SystemTab; label: string }[] = [
+    { key: 'status', label: 'Status' },
+    { key: 'diskspace', label: 'Disk Space' },
+    { key: 'tasks', label: 'Tasks' },
+    { key: 'backups', label: 'Backups' },
+  ]
 
   return (
     <div className={styles.page}>
       <h1 className={styles.heading}>System</h1>
 
-      {loadingStatus && <p className={styles.stateMessage}>Loading system status...</p>}
-      {errorStatus && (
-        <p className={styles.errorMessage}>
-          Failed to load status: {statusErr instanceof Error ? statusErr.message : 'Unknown error'}
-        </p>
-      )}
-      {!loadingStatus && !errorStatus && status && <StatusCard status={status} />}
+      <div className={styles.tabBar}>
+        {tabs.map((tab) => (
+          <button
+            key={tab.key}
+            className={`${styles.tab} ${activeTab === tab.key ? styles.tabActive : ''}`}
+            onClick={() => setActiveTab(tab.key)}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
 
-      {loadingHealth && <p className={styles.stateMessage}>Loading health checks...</p>}
-      {errorHealth && (
-        <p className={styles.errorMessage}>
-          Failed to load health: {healthErr instanceof Error ? healthErr.message : 'Unknown error'}
-        </p>
+      {activeTab === 'status' && (
+        <>
+          {loadingStatus && <p className={styles.stateMessage}>Loading system status...</p>}
+          {errorStatus && (
+            <p className={styles.errorMessage}>
+              Failed to load status: {statusErr instanceof Error ? statusErr.message : 'Unknown error'}
+            </p>
+          )}
+          {!loadingStatus && !errorStatus && status && <StatusCard status={status} />}
+
+          {loadingHealth && <p className={styles.stateMessage}>Loading health checks...</p>}
+          {errorHealth && (
+            <p className={styles.errorMessage}>
+              Failed to load health: {healthErr instanceof Error ? healthErr.message : 'Unknown error'}
+            </p>
+          )}
+          {!loadingHealth && !errorHealth && <HealthCard items={healthItems} />}
+        </>
       )}
-      {!loadingHealth && !errorHealth && <HealthCard items={healthItems} />}
+
+      {activeTab === 'diskspace' && (
+        <>
+          {loadingFolders && <p className={styles.stateMessage}>Loading disk space...</p>}
+          {!loadingFolders && <DiskSpaceCard folders={folders} />}
+        </>
+      )}
+
+      {activeTab === 'tasks' && <TasksCard />}
+
+      {activeTab === 'backups' && (
+        <>
+          {loadingBackups && <p className={styles.stateMessage}>Loading backups...</p>}
+          {!loadingBackups && <BackupsCard backups={backupList} />}
+        </>
+      )}
     </div>
   )
 }
