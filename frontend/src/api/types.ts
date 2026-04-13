@@ -101,3 +101,31 @@ export interface QualityProfile {
   upgradeAllowed: boolean
   items: Array<{ qualityId: number; allowed: boolean }>
 }
+
+export interface SeriesLookupResult {
+  tvdbId: number
+  title: string
+  year: number
+  overview: string
+  status: string
+  network: string
+  titleSlug: string
+}
+
+export interface RootFolder {
+  id: number
+  path: string
+  freeSpace: number
+  accessible: boolean
+}
+
+export interface AddSeriesRequest {
+  title: string
+  tvdbId: number
+  titleSlug: string
+  path: string
+  qualityProfileId: number
+  monitored: boolean
+  seriesType: string
+  status: string
+}

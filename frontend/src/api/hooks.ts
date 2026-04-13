@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from './client'
-import type { Series, Episode, Page, SystemStatus, Command, HistoryEntry, HealthItem, WantedEpisode, Indexer, DownloadClient, QualityProfile } from './types'
+import type { Series, Episode, Page, SystemStatus, Command, HistoryEntry, HealthItem, WantedEpisode, Indexer, DownloadClient, QualityProfile, SeriesLookupResult, RootFolder, AddSeriesRequest } from './types'
 
 export function useSeriesList() {
   return useQuery({
@@ -118,6 +118,31 @@ export function useAddDownloadClient() {
   return useMutation({
     mutationFn: (body: unknown) => api.post('/downloadclient', body),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['downloadclients'] }),
+  })
+}
+
+export function useSeriesLookup(term: string) {
+  return useQuery({
+    queryKey: ['series-lookup', term],
+    queryFn: () => api.get<SeriesLookupResult[]>(`/series/lookup?term=${encodeURIComponent(term)}`),
+    enabled: term.length >= 2,
+  })
+}
+
+export function useRootFolders() {
+  return useQuery({
+    queryKey: ['rootfolders'],
+    queryFn: () => api.get<RootFolder[]>('/rootfolder'),
+  })
+}
+
+export function useAddSeries() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (series: AddSeriesRequest) => api.post<unknown>('/series', series),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['series'] })
+    },
   })
 }
 
