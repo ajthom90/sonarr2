@@ -110,6 +110,23 @@
   background: var(--color-accent-hover);
 }
 
+.deleteBtn {
+  padding: var(--space-2) var(--space-4);
+  background: transparent;
+  border: 1px solid rgba(244, 82, 82, 0.4);
+  border-radius: var(--radius-sm);
+  color: var(--color-danger);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.deleteBtn:hover {
+  background: rgba(244, 82, 82, 0.1);
+  border-color: var(--color-danger);
+}
+
 /* Meta grid */
 .meta {
   display: flex;

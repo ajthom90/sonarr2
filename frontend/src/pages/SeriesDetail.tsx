@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useSeries, useEpisodes } from '../api/hooks'
 import { EditSeriesModal } from '../components/EditSeriesModal'
+import { DeleteSeriesModal } from '../components/DeleteSeriesModal'
 import type { Episode } from '../api/types'
 import styles from './SeriesDetail.module.css'
 
@@ -45,6 +46,7 @@ export function SeriesDetail() {
   const { data: series, isLoading: seriesLoading, isError: seriesError, error: seriesErr } = useSeries(seriesId)
   const { data: episodesPage, isLoading: episodesLoading } = useEpisodes(seriesId)
   const [showEditModal, setShowEditModal] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
 
   if (seriesLoading) {
     return (
@@ -81,6 +83,9 @@ export function SeriesDetail() {
           <div className={styles.actionBar}>
             <button className={styles.editBtn} onClick={() => setShowEditModal(true)}>
               Edit
+            </button>
+            <button className={styles.deleteBtn} onClick={() => setShowDeleteModal(true)}>
+              Delete
             </button>
           </div>
         </div>
@@ -188,6 +193,13 @@ export function SeriesDetail() {
         series={series}
         open={showEditModal}
         onClose={() => setShowEditModal(false)}
+      />
+
+      <DeleteSeriesModal
+        seriesId={series.id}
+        title={series.title}
+        open={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
       />
     </div>
   )
