@@ -2,6 +2,7 @@ package v6
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 
@@ -18,7 +19,11 @@ func mountSeriesLookup(r chi.Router, source metadatasource.MetadataSource) {
 
 		results, err := source.SearchSeries(r.Context(), term)
 		if err != nil {
-			writeJSON(w, http.StatusInternalServerError, map[string]string{"message": err.Error()})
+			msg := err.Error()
+			if strings.Contains(msg, "401") || strings.Contains(msg, "login") {
+				msg = "TVDB API key is not configured. Set the SONARR2_TVDB_API_KEY environment variable."
+			}
+			writeJSON(w, http.StatusServiceUnavailable, map[string]string{"message": msg})
 			return
 		}
 

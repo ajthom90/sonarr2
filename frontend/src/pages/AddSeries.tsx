@@ -30,10 +30,10 @@ export function AddSeries() {
   }
 
   // Set defaults when root folders or profiles load
-  if (rootFolders && rootFolders.length > 0 && !rootFolder) {
+  if (rootFolders && rootFolders.length > 0 && !rootFolder && rootFolders[0]) {
     setRootFolder(rootFolders[0].path)
   }
-  if (profiles && profiles.length > 0 && qualityProfileId === 0) {
+  if (profiles && profiles.length > 0 && qualityProfileId === 0 && profiles[0]) {
     setQualityProfileId(profiles[0].id)
   }
 
