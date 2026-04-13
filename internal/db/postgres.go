@@ -43,6 +43,11 @@ func (p *PostgresPool) Close() error {
 	return nil
 }
 
+// Vacuum is a no-op for Postgres — autovacuum handles compaction.
+func (p *PostgresPool) Vacuum(_ context.Context) error {
+	return nil
+}
+
 // OpenPostgres parses opts.DSN, applies pool sizing, and returns a
 // connected *PostgresPool. It returns an error if the DSN is invalid or the
 // initial Ping fails.

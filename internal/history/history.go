@@ -58,6 +58,10 @@ type Store interface {
 	// ListAll returns all history entries ordered by date descending, used for
 	// paged API responses.
 	ListAll(ctx context.Context) ([]Entry, error)
+
+	// DeleteBefore removes all history entries with a date before the given time.
+	// Returns the number of deleted entries.
+	DeleteBefore(ctx context.Context, before time.Time) (int64, error)
 }
 
 // ErrNotFound is returned when a requested history entry does not exist.

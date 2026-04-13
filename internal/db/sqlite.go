@@ -243,6 +243,12 @@ func OpenSQLite(ctx context.Context, opts SQLiteOptions) (*SQLitePool, error) {
 	return p, nil
 }
 
+// Vacuum compacts the SQLite database file by rebuilding it.
+func (p *SQLitePool) Vacuum(ctx context.Context) error {
+	_, err := p.writer.ExecContext(ctx, "VACUUM")
+	return err
+}
+
 // writerLoop is the single goroutine that owns the writer connection.
 // Every Write call flows through here, guaranteeing serial access.
 func (p *SQLitePool) writerLoop() {

@@ -121,6 +121,26 @@ func (s *sqliteStore) ListAll(ctx context.Context) ([]Entry, error) {
 	return out, nil
 }
 
+func (s *sqliteStore) DeleteBefore(ctx context.Context, before time.Time) (int64, error) {
+	var affected int64
+	err := s.pool.Write(ctx, func(exec db.Executor) error {
+		result, err := exec.ExecContext(ctx, "DELETE FROM history WHERE date < ?", before.UTC().Format(sqliteHistoryTimeLayout))
+		if err != nil {
+			return fmt.Errorf("history: delete before: %w", err)
+		}
+		n, err := result.RowsAffected()
+		if err != nil {
+			return fmt.Errorf("history: delete before rows affected: %w", err)
+		}
+		affected = n
+		return nil
+	})
+	if err != nil {
+		return 0, err
+	}
+	return affected, nil
+}
+
 // historyFromSQLite converts a sqlc-generated sqlite.History row to Entry.
 func historyFromSQLite(r sqlitegen.History) (Entry, error) {
 	data := json.RawMessage(r.Data)

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/ajthom90/sonarr2/internal/db"
 	pggen "github.com/ajthom90/sonarr2/internal/db/gen/postgres"
@@ -98,6 +99,14 @@ func (s *postgresStore) ListAll(ctx context.Context) ([]Entry, error) {
 		return nil, fmt.Errorf("history: list all rows: %w", rows.Err())
 	}
 	return out, nil
+}
+
+func (s *postgresStore) DeleteBefore(ctx context.Context, before time.Time) (int64, error) {
+	tag, err := s.pool.Raw().Exec(ctx, "DELETE FROM history WHERE date < $1", before)
+	if err != nil {
+		return 0, fmt.Errorf("history: delete before: %w", err)
+	}
+	return tag.RowsAffected(), nil
 }
 
 // historyFromPostgres converts a sqlc-generated postgres.History row to Entry.
