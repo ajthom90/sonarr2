@@ -1,0 +1,14 @@
+@import './reset.css';
+@import './tokens.css';
+
+body {
+  font-family: var(--font-sans);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: var(--font-size-base);
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+}
