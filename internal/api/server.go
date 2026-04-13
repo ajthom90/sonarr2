@@ -19,6 +19,7 @@ import (
 	"github.com/ajthom90/sonarr2/internal/profiles"
 	"github.com/ajthom90/sonarr2/internal/providers/downloadclient"
 	"github.com/ajthom90/sonarr2/internal/providers/indexer"
+	"github.com/ajthom90/sonarr2/internal/realtime"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
@@ -52,6 +53,7 @@ type Deps struct {
 	IndexerRegistry *indexer.Registry
 	DCStore         downloadclient.InstanceStore
 	DCRegistry      *downloadclient.Registry
+	Broker          *realtime.Broker
 	Log             *slog.Logger
 }
 
@@ -118,6 +120,14 @@ func HandlerWithDeps(log *slog.Logger, deps Deps) http.Handler {
 
 	// /ping is a liveness check — no auth required.
 	r.Get("/ping", pingHandler)
+
+	// SignalR routes — outside the auth group because SignalR clients negotiate
+	// before presenting credentials (Sonarr's convention). Mounted only when a
+	// broker is wired in.
+	if deps.Broker != nil {
+		r.Post("/signalr/messages/negotiate", deps.Broker.SignalRNegotiate)
+		r.Get("/signalr/messages", deps.Broker.SignalRConnect)
+	}
 
 	// All v3 routes are gated behind API key auth when HostConfig is set.
 	if deps.HostConfig == nil {
@@ -194,6 +204,11 @@ func HandlerWithDeps(log *slog.Logger, deps Deps) http.Handler {
 		if deps.Episodes != nil {
 			wh := v3.NewWantedHandler(deps.Episodes, log)
 			v3.MountWanted(r, wh)
+		}
+
+		// SSE transport — behind auth so only authenticated clients connect.
+		if deps.Broker != nil {
+			r.Get("/api/v6/stream", deps.Broker.SSEHandler)
 		}
 	})
 

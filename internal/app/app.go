@@ -41,6 +41,7 @@ import (
 	"github.com/ajthom90/sonarr2/internal/providers/indexer/newznab"
 	"github.com/ajthom90/sonarr2/internal/providers/metadatasource"
 	"github.com/ajthom90/sonarr2/internal/providers/metadatasource/tvdb"
+	"github.com/ajthom90/sonarr2/internal/realtime"
 	"github.com/ajthom90/sonarr2/internal/rsssync"
 	"github.com/ajthom90/sonarr2/internal/scheduler"
 )
@@ -51,6 +52,7 @@ type App struct {
 	server          *api.Server
 	pool            db.Pool
 	bus             events.Bus
+	broker          *realtime.Broker
 	library         *library.Library
 	cmdQueue        commands.Queue
 	registry        *commands.Registry
@@ -93,6 +95,9 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 	}
 
 	bus := events.NewBus(16)
+
+	rtBroker := realtime.NewBroker(256)
+	rtBroker.SubscribeToEvents(bus)
 
 	lib, err := library.New(pool, bus)
 	if err != nil {
@@ -355,10 +360,12 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 			IndexerRegistry: idxReg,
 			DCStore:         dcStore,
 			DCRegistry:      dcReg,
+			Broker:          rtBroker,
 			Log:             log,
 		}),
 		pool:            pool,
 		bus:             bus,
+		broker:          rtBroker,
 		library:         lib,
 		cmdQueue:        cmdQueue,
 		registry:        reg,
