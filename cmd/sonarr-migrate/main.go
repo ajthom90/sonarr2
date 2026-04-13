@@ -16,6 +16,13 @@ import (
 )
 
 func main() {
+	if err := run(); err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
+}
+
+func run() error {
 	source := flag.String("source", "", "Path to source Sonarr SQLite database (required)")
 	dest := flag.String("dest", "", "Path to destination sonarr2 SQLite database (required)")
 	var remaps remapFlags
@@ -46,14 +53,12 @@ func main() {
 		BusyTimeout: 5 * time.Second,
 	})
 	if err != nil {
-		log.Error("open destination database", slog.String("err", err.Error()))
-		os.Exit(1)
+		return fmt.Errorf("open destination database: %w", err)
 	}
 	defer destPool.Close()
 
 	if err := db.Migrate(ctx, destPool); err != nil {
-		log.Error("migrate destination database", slog.String("err", err.Error()))
-		os.Exit(1)
+		return fmt.Errorf("migrate destination database: %w", err)
 	}
 
 	m, err := migrate.New(migrate.Options{
@@ -65,15 +70,13 @@ func main() {
 		Log:         log,
 	})
 	if err != nil {
-		log.Error("initialize migrator", slog.String("err", err.Error()))
-		os.Exit(1)
+		return fmt.Errorf("initialize migrator: %w", err)
 	}
 	defer m.Close()
 
 	report, err := m.Run(ctx)
 	if err != nil {
-		log.Error("migration failed", slog.String("err", err.Error()))
-		os.Exit(1)
+		return fmt.Errorf("migration failed: %w", err)
 	}
 
 	fmt.Println("Migration complete:")
@@ -92,6 +95,7 @@ func main() {
 			fmt.Printf("  - %s\n", w)
 		}
 	}
+	return nil
 }
 
 // remapFlags implements flag.Value for repeatable --remap flags.
