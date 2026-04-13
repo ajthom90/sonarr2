@@ -23,7 +23,11 @@ import (
 	"github.com/ajthom90/sonarr2/internal/config"
 	"github.com/ajthom90/sonarr2/internal/customformats"
 	"github.com/ajthom90/sonarr2/internal/db"
+	"github.com/ajthom90/sonarr2/internal/decisionengine"
+	"github.com/ajthom90/sonarr2/internal/decisionengine/specs"
 	"github.com/ajthom90/sonarr2/internal/events"
+	"github.com/ajthom90/sonarr2/internal/grab"
+	"github.com/ajthom90/sonarr2/internal/history"
 	"github.com/ajthom90/sonarr2/internal/hostconfig"
 	"github.com/ajthom90/sonarr2/internal/library"
 	"github.com/ajthom90/sonarr2/internal/logging"
@@ -34,6 +38,7 @@ import (
 	"github.com/ajthom90/sonarr2/internal/providers/indexer/newznab"
 	"github.com/ajthom90/sonarr2/internal/providers/metadatasource"
 	"github.com/ajthom90/sonarr2/internal/providers/metadatasource/tvdb"
+	"github.com/ajthom90/sonarr2/internal/rsssync"
 	"github.com/ajthom90/sonarr2/internal/scheduler"
 )
 
@@ -56,6 +61,9 @@ type App struct {
 	indexerStore    indexer.InstanceStore
 	dcStore         downloadclient.InstanceStore
 	metadataSource  metadatasource.MetadataSource
+	historyStore    history.HistoryStore
+	grabService     *grab.Service
+	engine          *decisionengine.Engine
 }
 
 // New constructs an App from the given config. It opens the database,
@@ -228,6 +236,55 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 		return nil, fmt.Errorf("app: upsert MessagingCleanup task: %w", err)
 	}
 
+	// History store (dialect-dispatched).
+	var histStore history.HistoryStore
+	switch p := pool.(type) {
+	case *db.PostgresPool:
+		histStore = history.NewPostgresHistoryStore(p)
+	case *db.SQLitePool:
+		histStore = history.NewSQLiteHistoryStore(p)
+	}
+
+	// Load quality definitions for specs that need them.
+	allDefs, _ := qualityDefStore.GetAll(ctx)
+
+	// Decision engine with 8 M5 specs.
+	engine := decisionengine.New(
+		specs.QualityAllowedSpec{},
+		specs.CustomFormatScoreSpec{},
+		specs.UpgradeAllowedSpec{},
+		specs.UpgradableSpec{},
+		specs.AcceptableSizeSpec{QualityDefs: allDefs},
+		specs.NotSampleSpec{},
+		specs.RepackSpec{},
+		specs.AlreadyImportedSpec{},
+	)
+
+	// Grab service.
+	grabSvc := grab.New(dcStore, dcReg, histStore, bus, log)
+
+	// RSS sync handler.
+	rssSyncHandler := rsssync.New(
+		idxStore, idxReg, lib, engine, grabSvc,
+		qualityDefStore, qualityProfileStore, cfStore, log,
+	)
+	reg.Register("RssSync", rssSyncHandler)
+
+	// Register RssSync as a scheduled task (15-minute interval).
+	if err := taskStore.Upsert(ctx, scheduler.ScheduledTask{
+		TypeName:      "RssSync",
+		IntervalSecs:  900,
+		NextExecution: time.Now().Add(15 * time.Minute),
+	}); err != nil {
+		_ = pool.Close()
+		return nil, fmt.Errorf("app: upsert RssSync task: %w", err)
+	}
+
+	// Subscribe history cleanup on SeriesDeleted.
+	events.SubscribeSync[library.SeriesDeleted](bus, func(ctx context.Context, e library.SeriesDeleted) error {
+		return histStore.DeleteForSeries(ctx, e.ID)
+	})
+
 	addr := net.JoinHostPort(cfg.HTTP.BindAddress, strconv.Itoa(cfg.HTTP.Port))
 	return &App{
 		log:             log,
@@ -247,6 +304,9 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 		indexerStore:    idxStore,
 		dcStore:         dcStore,
 		metadataSource:  tvdbSource,
+		historyStore:    histStore,
+		grabService:     grabSvc,
+		engine:          engine,
 	}, nil
 }
 

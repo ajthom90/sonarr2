@@ -59,15 +59,15 @@ func (l *libraryLookup) FindByTitle(ctx context.Context, title string) (int64, b
 // Handler is the command handler for the RssSync command. It owns the full
 // RSS-to-grab pipeline.
 type Handler struct {
-	idxStore    indexer.InstanceStore
-	idxRegistry *indexer.Registry
-	library     *library.Library
-	engine      *decisionengine.Engine
-	grabService *grab.Service
-	qualityDefs profiles.QualityDefinitionStore
+	idxStore     indexer.InstanceStore
+	idxRegistry  *indexer.Registry
+	library      *library.Library
+	engine       *decisionengine.Engine
+	grabService  *grab.Service
+	qualityDefs  profiles.QualityDefinitionStore
 	qualityProfs profiles.QualityProfileStore
-	cfStore     customformats.Store
-	log         *slog.Logger
+	cfStore      customformats.Store
+	log          *slog.Logger
 }
 
 // New constructs a Handler with all required dependencies.

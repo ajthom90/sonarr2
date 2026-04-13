@@ -31,13 +31,13 @@ type fakeIndexer struct {
 	fetchErr error
 }
 
-func (f *fakeIndexer) Implementation() string                    { return "FakeIndexer" }
-func (f *fakeIndexer) DefaultName() string                       { return "FakeIndexer" }
-func (f *fakeIndexer) Settings() any                             { return &struct{}{} }
-func (f *fakeIndexer) Test(_ context.Context) error              { return nil }
-func (f *fakeIndexer) Protocol() indexer.DownloadProtocol        { return indexer.ProtocolUsenet }
-func (f *fakeIndexer) SupportsRss() bool                         { return true }
-func (f *fakeIndexer) SupportsSearch() bool                      { return false }
+func (f *fakeIndexer) Implementation() string             { return "FakeIndexer" }
+func (f *fakeIndexer) DefaultName() string                { return "FakeIndexer" }
+func (f *fakeIndexer) Settings() any                      { return &struct{}{} }
+func (f *fakeIndexer) Test(_ context.Context) error       { return nil }
+func (f *fakeIndexer) Protocol() indexer.DownloadProtocol { return indexer.ProtocolUsenet }
+func (f *fakeIndexer) SupportsRss() bool                  { return true }
+func (f *fakeIndexer) SupportsSearch() bool               { return false }
 func (f *fakeIndexer) FetchRss(_ context.Context) ([]indexer.Release, error) {
 	return f.releases, f.fetchErr
 }
@@ -70,7 +70,7 @@ func (s *fakeIdxStore) List(_ context.Context) ([]indexer.Instance, error) {
 	return s.instances, nil
 }
 func (s *fakeIdxStore) Update(_ context.Context, _ indexer.Instance) error { return nil }
-func (s *fakeIdxStore) Delete(_ context.Context, _ int) error               { return nil }
+func (s *fakeIdxStore) Delete(_ context.Context, _ int) error              { return nil }
 
 // ---------------------------------------------------------------------------
 // Fake library stores
@@ -108,7 +108,7 @@ func (s *fakeSeriesStore) List(_ context.Context) ([]library.Series, error) {
 	return s.series, nil
 }
 func (s *fakeSeriesStore) Update(_ context.Context, _ library.Series) error { return nil }
-func (s *fakeSeriesStore) Delete(_ context.Context, _ int64) error           { return nil }
+func (s *fakeSeriesStore) Delete(_ context.Context, _ int64) error          { return nil }
 
 type fakeEpisodesStore struct {
 	episodes []library.Episode
@@ -137,7 +137,7 @@ func (e *fakeEpisodesStore) ListForSeries(_ context.Context, seriesID int64) ([]
 	return out, nil
 }
 func (e *fakeEpisodesStore) Update(_ context.Context, _ library.Episode) error { return nil }
-func (e *fakeEpisodesStore) Delete(_ context.Context, _ int64) error            { return nil }
+func (e *fakeEpisodesStore) Delete(_ context.Context, _ int64) error           { return nil }
 func (e *fakeEpisodesStore) CountForSeries(_ context.Context, _ int64) (int, int, error) {
 	return 0, 0, nil
 }
@@ -221,7 +221,7 @@ func (s *fakeCFStore) List(_ context.Context) ([]customformats.CustomFormat, err
 	return s.formats, nil
 }
 func (s *fakeCFStore) Update(_ context.Context, cf customformats.CustomFormat) error { return nil }
-func (s *fakeCFStore) Delete(_ context.Context, _ int) error                          { return nil }
+func (s *fakeCFStore) Delete(_ context.Context, _ int) error                         { return nil }
 
 // ---------------------------------------------------------------------------
 // Fake download client + dcStore + historyStore (for GrabService)
@@ -245,8 +245,8 @@ func (f *fakeDCClient) Add(_ context.Context, _, _ string) (string, error) {
 	f.addCalls++
 	return f.downloadID, f.addErr
 }
-func (f *fakeDCClient) Items(_ context.Context) ([]downloadclient.Item, error)   { return nil, nil }
-func (f *fakeDCClient) Remove(_ context.Context, _ string, _ bool) error          { return nil }
+func (f *fakeDCClient) Items(_ context.Context) ([]downloadclient.Item, error) { return nil, nil }
+func (f *fakeDCClient) Remove(_ context.Context, _ string, _ bool) error       { return nil }
 func (f *fakeDCClient) Status(_ context.Context) (downloadclient.Status, error) {
 	return downloadclient.Status{}, nil
 }
@@ -272,7 +272,7 @@ func (s *fakeDCStore) List(_ context.Context) ([]downloadclient.Instance, error)
 	return s.instances, nil
 }
 func (s *fakeDCStore) Update(_ context.Context, _ downloadclient.Instance) error { return nil }
-func (s *fakeDCStore) Delete(_ context.Context, _ int) error                      { return nil }
+func (s *fakeDCStore) Delete(_ context.Context, _ int) error                     { return nil }
 
 type fakeHistoryStore struct{}
 
