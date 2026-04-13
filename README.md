@@ -4,7 +4,7 @@ A feature-complete rewrite of [Sonarr](https://github.com/Sonarr/Sonarr) focused
 
 ## Current Status
 
-**Milestone 11 of 24 complete** — the core backend is functional. Not yet ready for end users.
+**Milestone 12 of 24 complete** — the core backend is functional. Not yet ready for end users.
 
 ### What's implemented
 
@@ -32,10 +32,11 @@ A feature-complete rewrite of [Sonarr](https://github.com/Sonarr/Sonarr) focused
 - **Download monitoring** — 1-minute polling of download clients for completed items, auto-triggers import
 - **Docker-ready** — multi-stage Dockerfile producing a ~20MB distroless static binary
 - **CI** — GitHub Actions for lint (staticcheck + golangci-lint) and test (race detector + Postgres testcontainers)
+- **Real-time push** — SignalR WebSocket transport (Sonarr-compatible) and Server-Sent Events; live updates for series, episodes, commands, and queue changes
 
 ### What's NOT yet implemented
 
-SignalR real-time updates, the React frontend, remaining ~60 providers, migration tool, and more. See the [design doc](./docs/superpowers/specs/2026-04-10-sonarr-rewrite-design.md) for the full roadmap.
+The React frontend, remaining ~60 providers, migration tool, and more. See the [design doc](./docs/superpowers/specs/2026-04-10-sonarr-rewrite-design.md) for the full roadmap.
 
 ## Quick Start
 
