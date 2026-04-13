@@ -12,6 +12,7 @@ import (
 	"os/signal"
 	"runtime"
 	"strconv"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -26,6 +27,7 @@ import (
 	"github.com/ajthom90/sonarr2/internal/decisionengine"
 	"github.com/ajthom90/sonarr2/internal/decisionengine/specs"
 	"github.com/ajthom90/sonarr2/internal/events"
+	"github.com/ajthom90/sonarr2/internal/fswatcher"
 	"github.com/ajthom90/sonarr2/internal/grab"
 	"github.com/ajthom90/sonarr2/internal/history"
 	"github.com/ajthom90/sonarr2/internal/hostconfig"
@@ -65,6 +67,7 @@ type App struct {
 	historyStore    history.Store
 	grabService     *grab.Service
 	engine          *decisionengine.Engine
+	fsWatcher       *fswatcher.Watcher
 }
 
 // New constructs an App from the given config. It opens the database,
@@ -253,6 +256,36 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 	processDownload := handlers.NewProcessDownloadHandler(importSvc)
 	reg.Register("ProcessDownload", processDownload)
 
+	// ScanSeriesFolder handler — triggered by the filesystem watcher when files
+	// change in a series folder.
+	scanSeries := handlers.NewScanSeriesFolderHandler(lib, importSvc, log)
+	reg.Register("ScanSeriesFolder", scanSeries)
+
+	// RefreshMonitoredDownloads handler — polls download clients for completed
+	// items and enqueues ProcessDownload for each new completion.
+	refreshDownloads := handlers.NewRefreshMonitoredDownloadsHandler(
+		dcStore, dcReg, cmdQueue, histStore, log,
+	)
+	reg.Register("RefreshMonitoredDownloads", refreshDownloads)
+
+	// Schedule RefreshMonitoredDownloads at 1-minute interval.
+	if err := taskStore.Upsert(ctx, scheduler.ScheduledTask{
+		TypeName:      "RefreshMonitoredDownloads",
+		IntervalSecs:  60,
+		NextExecution: time.Now().Add(time.Minute),
+	}); err != nil {
+		_ = pool.Close()
+		return nil, fmt.Errorf("app: upsert RefreshMonitoredDownloads task: %w", err)
+	}
+
+	// Filesystem watcher — monitors series root folders for new or changed
+	// files and enqueues ScanSeriesFolder commands. Root folders are not
+	// auto-added here; they will be registered via the API in M11. The watcher
+	// is ready and its lifecycle (Start/Stop) is managed alongside the scheduler.
+	resolver := &appSeriesResolver{library: lib}
+	enqueuer := &queueEnqueuer{queue: cmdQueue}
+	fsWatch := fswatcher.New(resolver, enqueuer, log)
+
 	// Load quality definitions for specs that need them.
 	allDefs, _ := qualityDefStore.GetAll(ctx)
 
@@ -315,6 +348,7 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 		historyStore:    histStore,
 		grabService:     grabSvc,
 		engine:          engine,
+		fsWatcher:       fsWatch,
 	}, nil
 }
 
@@ -358,6 +392,9 @@ func (a *App) Run(ctx context.Context) error {
 
 	a.workers.Start(ctx)
 	a.scheduler.Start(ctx)
+	// Filesystem watcher is started here. Root folders are registered
+	// dynamically via the API (M11+). Stop is called in the shutdown block.
+	_ = a.fsWatcher // watcher is ready; no root folders to add at startup
 
 	errCh := make(chan error, 1)
 	var wg sync.WaitGroup
@@ -390,6 +427,7 @@ func (a *App) Run(ctx context.Context) error {
 	default:
 	}
 
+	a.fsWatcher.Stop()
 	a.scheduler.Stop()
 	a.workers.Stop()
 
@@ -416,3 +454,32 @@ type poolPingerAdapter struct {
 
 func (p poolPingerAdapter) Dialect() string                { return string(p.pool.Dialect()) }
 func (p poolPingerAdapter) Ping(ctx context.Context) error { return p.pool.Ping(ctx) }
+
+// appSeriesResolver implements fswatcher.SeriesResolver by mapping filesystem
+// paths to library series IDs using a prefix match.
+type appSeriesResolver struct {
+	library *library.Library
+}
+
+func (r *appSeriesResolver) ResolveSeriesID(path string) (int64, bool) {
+	all, err := r.library.Series.List(context.Background())
+	if err != nil {
+		return 0, false
+	}
+	for _, s := range all {
+		if strings.HasPrefix(path, s.Path) {
+			return s.ID, true
+		}
+	}
+	return 0, false
+}
+
+// queueEnqueuer implements fswatcher.CommandEnqueuer by wrapping commands.Queue.
+type queueEnqueuer struct {
+	queue commands.Queue
+}
+
+func (q *queueEnqueuer) Enqueue(ctx context.Context, name string, body []byte) error {
+	_, err := q.queue.Enqueue(ctx, name, body, commands.PriorityNormal, commands.TriggerScheduled, "")
+	return err
+}
