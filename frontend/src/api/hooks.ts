@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from './client'
-import type { Series, Episode, Page, SystemStatus, Command, HistoryEntry, HealthItem, WantedEpisode, Indexer, DownloadClient, QualityProfile, SeriesLookupResult, RootFolder, AddSeriesRequest } from './types'
+import type { Series, Episode, Page, SystemStatus, Command, HistoryEntry, HealthItem, WantedEpisode, Indexer, DownloadClient, QualityProfile, SeriesLookupResult, RootFolder, AddSeriesRequest, GeneralSettings } from './types'
 
 export function useSeriesList() {
   return useQuery({
@@ -142,6 +142,23 @@ export function useAddSeries() {
     mutationFn: (series: AddSeriesRequest) => api.post<unknown>('/series', series),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['series'] })
+    },
+  })
+}
+
+export function useGeneralSettings() {
+  return useQuery({
+    queryKey: ['settings-general'],
+    queryFn: () => api.get<GeneralSettings>('/config/general'),
+  })
+}
+
+export function useUpdateGeneralSettings() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (settings: Partial<GeneralSettings>) => api.put<GeneralSettings>('/config/general', settings),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['settings-general'] })
     },
   })
 }

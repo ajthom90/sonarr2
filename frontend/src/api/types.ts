@@ -129,3 +129,9 @@ export interface AddSeriesRequest {
   seriesType: string
   status: string
 }
+
+export interface GeneralSettings {
+  apiKey: string
+  authMode: string
+  tvdbApiKey: string
+}
