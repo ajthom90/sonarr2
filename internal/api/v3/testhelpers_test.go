@@ -3,7 +3,6 @@ package v3
 import (
 	"bytes"
 	"context"
-	"strings"
 	"testing"
 	"time"
 
@@ -66,12 +65,7 @@ func setupHistoryStore(t *testing.T, pool *db.SQLitePool) history.Store {
 	return history.NewSQLiteStore(pool)
 }
 
-// setupIndexerStore returns an indexer.InstanceStore backed by pool.
+// mustStringReader wraps a string in a *bytes.Buffer for use as an HTTP body.
 func mustStringReader(s string) *bytes.Buffer {
 	return bytes.NewBufferString(s)
-}
-
-// mustNewReader returns a strings.Reader for convenience in tests.
-func mustNewReader(s string) *strings.Reader {
-	return strings.NewReader(s)
 }
