@@ -14,12 +14,13 @@ import (
 )
 
 type postgresEpisodesStore struct {
-	q   *pggen.Queries
-	bus events.Bus
+	q    *pggen.Queries
+	pool *db.PostgresPool
+	bus  events.Bus
 }
 
 func newPostgresEpisodesStore(pool *db.PostgresPool, bus events.Bus) *postgresEpisodesStore {
-	return &postgresEpisodesStore{q: pggen.New(pool.Raw()), bus: bus}
+	return &postgresEpisodesStore{q: pggen.New(pool.Raw()), pool: pool, bus: bus}
 }
 
 func (s *postgresEpisodesStore) Create(ctx context.Context, in Episode) (Episode, error) {
@@ -63,6 +64,35 @@ func (s *postgresEpisodesStore) ListForSeries(ctx context.Context, seriesID int6
 	out := make([]Episode, 0, len(rows))
 	for _, r := range rows {
 		out = append(out, episodeFromPostgres(r))
+	}
+	return out, nil
+}
+
+func (s *postgresEpisodesStore) ListAll(ctx context.Context) ([]Episode, error) {
+	const q = `SELECT id, series_id, season_number, episode_number, absolute_episode_number,
+	                  title, overview, air_date_utc, monitored, episode_file_id,
+	                  created_at, updated_at
+	           FROM episodes ORDER BY air_date_utc ASC`
+	rows, err := s.pool.Raw().Query(ctx, q)
+	if err != nil {
+		return nil, fmt.Errorf("library: list all episodes: %w", err)
+	}
+	defer rows.Close()
+
+	var out []Episode
+	for rows.Next() {
+		var r pggen.Episode
+		if err := rows.Scan(
+			&r.ID, &r.SeriesID, &r.SeasonNumber, &r.EpisodeNumber,
+			&r.AbsoluteEpisodeNumber, &r.Title, &r.Overview, &r.AirDateUtc,
+			&r.Monitored, &r.EpisodeFileID, &r.CreatedAt, &r.UpdatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("library: list all episodes scan: %w", err)
+		}
+		out = append(out, episodeFromPostgres(r))
+	}
+	if rows.Err() != nil {
+		return nil, fmt.Errorf("library: list all episodes rows: %w", rows.Err())
 	}
 	return out, nil
 }

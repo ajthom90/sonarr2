@@ -28,6 +28,9 @@ type EpisodesStore interface {
 	Create(ctx context.Context, e Episode) (Episode, error)
 	Get(ctx context.Context, id int64) (Episode, error)
 	ListForSeries(ctx context.Context, seriesID int64) ([]Episode, error)
+	// ListAll returns every episode across all series, ordered by air_date_utc.
+	// Used by the calendar and wanted/missing API endpoints.
+	ListAll(ctx context.Context) ([]Episode, error)
 	Update(ctx context.Context, e Episode) error
 	Delete(ctx context.Context, id int64) error
 	// CountForSeries returns (total, monitored) episode counts for a series.

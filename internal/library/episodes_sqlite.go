@@ -76,6 +76,35 @@ func (s *sqliteEpisodesStore) ListForSeries(ctx context.Context, seriesID int64)
 	return out, nil
 }
 
+func (s *sqliteEpisodesStore) ListAll(ctx context.Context) ([]Episode, error) {
+	const q = `SELECT id, series_id, season_number, episode_number, absolute_episode_number,
+	                  title, overview, air_date_utc, monitored, episode_file_id,
+	                  created_at, updated_at
+	           FROM episodes ORDER BY air_date_utc ASC`
+	rows, err := s.pool.RawReader().QueryContext(ctx, q)
+	if err != nil {
+		return nil, fmt.Errorf("library: list all episodes: %w", err)
+	}
+	defer rows.Close()
+
+	var out []Episode
+	for rows.Next() {
+		var r sqlitegen.Episode
+		if err := rows.Scan(
+			&r.ID, &r.SeriesID, &r.SeasonNumber, &r.EpisodeNumber,
+			&r.AbsoluteEpisodeNumber, &r.Title, &r.Overview, &r.AirDateUtc,
+			&r.Monitored, &r.EpisodeFileID, &r.CreatedAt, &r.UpdatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("library: list all episodes scan: %w", err)
+		}
+		out = append(out, episodeFromSqlite(r))
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("library: list all episodes rows: %w", err)
+	}
+	return out, nil
+}
+
 func (s *sqliteEpisodesStore) Update(ctx context.Context, in Episode) error {
 	err := s.pool.Write(ctx, func(exec db.Executor) error {
 		queries := sqlitegen.New(&sqliteExec{exec: exec})
