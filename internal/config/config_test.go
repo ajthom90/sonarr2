@@ -351,3 +351,21 @@ func TestTVDBDefaults(t *testing.T) {
 		t.Errorf("default RateBurst = %d, want 10", cfg.TVDB.RateBurst)
 	}
 }
+
+func TestHistoryRetentionDefault(t *testing.T) {
+	cfg := Default()
+	if cfg.HistoryRetention != 90*24*time.Hour {
+		t.Errorf("default HistoryRetention = %v, want 2160h", cfg.HistoryRetention)
+	}
+}
+
+func TestHistoryRetentionEnvOverride(t *testing.T) {
+	env := map[string]string{"SONARR2_HISTORY_RETENTION": "720h"}
+	cfg, err := Load(nil, func(k string) string { return env[k] })
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+	if cfg.HistoryRetention != 720*time.Hour {
+		t.Errorf("HistoryRetention = %v, want 720h", cfg.HistoryRetention)
+	}
+}

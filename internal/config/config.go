@@ -16,11 +16,12 @@ import (
 
 // Config is the full runtime configuration for sonarr2.
 type Config struct {
-	HTTP    HTTPConfig     `yaml:"http"`
-	Logging logging.Config `yaml:"logging"`
-	Paths   PathsConfig    `yaml:"paths"`
-	DB      DBConfig       `yaml:"db"`
-	TVDB    TVDBConfig     `yaml:"tvdb"`
+	HTTP             HTTPConfig     `yaml:"http"`
+	Logging          logging.Config `yaml:"logging"`
+	Paths            PathsConfig    `yaml:"paths"`
+	DB               DBConfig       `yaml:"db"`
+	TVDB             TVDBConfig     `yaml:"tvdb"`
+	HistoryRetention time.Duration  `yaml:"history_retention"`
 }
 
 // HTTPConfig controls the HTTP listener.
@@ -89,6 +90,7 @@ func Default() Config {
 			RateLimit:        5,
 			RateBurst:        10,
 		},
+		HistoryRetention: 90 * 24 * time.Hour,
 	}
 }
 
@@ -212,6 +214,13 @@ func Load(args []string, getenv func(string) string) (Config, error) {
 			return Config{}, fmt.Errorf("SONARR2_TVDB_RATE_BURST must be an integer, got %q: %w", v, err)
 		}
 		cfg.TVDB.RateBurst = n
+	}
+	if v := getenv("SONARR2_HISTORY_RETENTION"); v != "" {
+		d, err := time.ParseDuration(v)
+		if err != nil {
+			return Config{}, fmt.Errorf("SONARR2_HISTORY_RETENTION must be a duration, got %q: %w", v, err)
+		}
+		cfg.HistoryRetention = d
 	}
 
 	// 3. CLI flags override environment.
