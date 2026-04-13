@@ -1,4 +1,4 @@
-.PHONY: build test lint tidy run clean
+.PHONY: build build-backend frontend test lint tidy run clean
 
 BIN := sonarr2
 OUT := dist
@@ -11,7 +11,17 @@ LDFLAGS := -s -w \
 	-X github.com/ajthom90/sonarr2/internal/buildinfo.Commit=$(COMMIT) \
 	-X github.com/ajthom90/sonarr2/internal/buildinfo.Date=$(DATE)
 
-build:
+## frontend: build the React/Vite frontend into web/dist/
+frontend:
+	cd frontend && npm ci && npm run build
+
+## build: build the Go binary (runs the frontend build first)
+build: frontend
+	@mkdir -p $(OUT)
+	CGO_ENABLED=0 go build -ldflags='$(LDFLAGS)' -o $(OUT)/$(BIN) ./cmd/sonarr
+
+## build-backend: build the Go binary only (skips the frontend build)
+build-backend:
 	@mkdir -p $(OUT)
 	CGO_ENABLED=0 go build -ldflags='$(LDFLAGS)' -o $(OUT)/$(BIN) ./cmd/sonarr
 
@@ -29,4 +39,4 @@ run: build
 	./$(OUT)/$(BIN)
 
 clean:
-	rm -rf $(OUT)
+	rm -rf $(OUT) web/dist
