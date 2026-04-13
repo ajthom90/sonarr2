@@ -41,3 +41,39 @@ export interface SystemStatus {
   databaseType: string
   runtimeName: string
 }
+
+export interface Command {
+  id: number
+  name: string
+  status: string
+  queued: string
+  started?: string
+  ended?: string
+  trigger: string
+}
+
+export interface HistoryEntry {
+  id: number
+  seriesId: number
+  episodeId: number
+  sourceTitle: string
+  eventType: string
+  date: string
+}
+
+export interface HealthItem {
+  source: string
+  type: string
+  message: string
+  wikiUrl?: string
+}
+
+export interface WantedEpisode {
+  id: number
+  seriesId: number
+  seasonNumber: number
+  episodeNumber: number
+  title: string
+  airDate?: string
+  series?: { title: string }
+}

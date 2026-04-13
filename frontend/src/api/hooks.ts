@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { api } from './client'
-import type { Series, Episode, Page, SystemStatus } from './types'
+import type { Series, Episode, Page, SystemStatus, Command, HistoryEntry, HealthItem, WantedEpisode } from './types'
 
 export function useSeriesList() {
   return useQuery({
@@ -29,6 +29,35 @@ export function useCalendar(start: string, end: string) {
   return useQuery({
     queryKey: ['calendar', start, end],
     queryFn: () => api.get<Page<Episode>>(`/calendar?start=${start}&end=${end}`),
+  })
+}
+
+export function useCommands() {
+  return useQuery({
+    queryKey: ['commands'],
+    queryFn: () => api.get<Page<Command>>('/command'),
+    refetchInterval: 5000,
+  })
+}
+
+export function useHistory(cursor?: string) {
+  return useQuery({
+    queryKey: ['history', cursor],
+    queryFn: () => api.get<Page<HistoryEntry>>(`/history${cursor ? `?cursor=${cursor}` : ''}`),
+  })
+}
+
+export function useWantedMissing(cursor?: string) {
+  return useQuery({
+    queryKey: ['wanted', 'missing', cursor],
+    queryFn: () => api.get<Page<WantedEpisode>>(`/wanted/missing${cursor ? `?cursor=${cursor}` : ''}`),
+  })
+}
+
+export function useHealth() {
+  return useQuery({
+    queryKey: ['health'],
+    queryFn: () => api.get<HealthItem[]>('/health'),
   })
 }
 
