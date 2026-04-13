@@ -18,7 +18,10 @@ import (
 	"syscall"
 	"time"
 
+	"path/filepath"
+
 	"github.com/ajthom90/sonarr2/internal/api"
+	"github.com/ajthom90/sonarr2/internal/backup"
 	"github.com/ajthom90/sonarr2/internal/buildinfo"
 	"github.com/ajthom90/sonarr2/internal/commands"
 	"github.com/ajthom90/sonarr2/internal/commands/handlers"
@@ -484,6 +487,33 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 		return nil, fmt.Errorf("app: upsert Housekeeping task: %w", err)
 	}
 
+	// Backup service.
+	dbPath := ""
+	if cfg.DB.Dialect == "sqlite" {
+		dbPath = extractSQLitePath(cfg.DB.DSN)
+	}
+	backupSvc := backup.New(backup.Options{
+		BackupDir:  filepath.Join(cfg.Paths.Config, "Backups"),
+		DBPath:     dbPath,
+		DBDialect:  cfg.DB.Dialect,
+		AppVersion: buildinfo.Get().Version,
+		Retention:  cfg.BackupRetention,
+		Log:        log,
+	})
+
+	backupHandler := &backupTaskHandler{svc: backupSvc}
+	reg.Register("Backup", backupHandler)
+
+	// Schedule Backup at configured interval (default 7 days).
+	if err := taskStore.Upsert(ctx, scheduler.ScheduledTask{
+		TypeName:      "Backup",
+		IntervalSecs:  int(cfg.BackupInterval.Seconds()),
+		NextExecution: time.Now().Add(cfg.BackupInterval),
+	}); err != nil {
+		_ = pool.Close()
+		return nil, fmt.Errorf("app: upsert Backup task: %w", err)
+	}
+
 	// Subscribe async notification dispatch on ReleasesGrabbed.
 	events.SubscribeAsync[grab.ReleasesGrabbed](bus, func(ctx context.Context, e grab.ReleasesGrabbed) {
 		dispatchGrabNotifications(ctx, notifStore, notifReg, log, notification.GrabMessage{
@@ -524,6 +554,7 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 			NotificationRegistry: notifReg,
 			HealthChecker:        checker,
 			Broker:               rtBroker,
+			BackupService:        backupSvc,
 			Log:                  log,
 		}),
 		pool:            pool,
@@ -904,4 +935,26 @@ type housekeepingTaskHandler struct {
 func (h *housekeepingTaskHandler) Handle(ctx context.Context, _ commands.Command) error {
 	h.runner.Run(ctx)
 	return nil
+}
+
+// extractSQLitePath extracts the filesystem path from a SQLite DSN.
+func extractSQLitePath(dsn string) string {
+	path := strings.TrimPrefix(dsn, "file:")
+	if idx := strings.Index(path, "?"); idx != -1 {
+		path = path[:idx]
+	}
+	if path == ":memory:" || path == "" {
+		return ""
+	}
+	return path
+}
+
+// backupTaskHandler wraps the backup Service as a command handler.
+type backupTaskHandler struct {
+	svc *backup.Service
+}
+
+func (h *backupTaskHandler) Handle(ctx context.Context, _ commands.Command) error {
+	_, err := h.svc.Create(ctx)
+	return err
 }
