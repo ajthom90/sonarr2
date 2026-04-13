@@ -1,4 +1,4 @@
-import { useEffect, useState, ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 
 type AuthState = 'loading' | 'needs-setup' | 'needs-login' | 'authenticated'
