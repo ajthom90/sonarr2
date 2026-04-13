@@ -4,7 +4,7 @@ A feature-complete rewrite of [Sonarr](https://github.com/Sonarr/Sonarr) focused
 
 ## Current Status
 
-**Milestone 10 of 24 complete** — the core backend is functional. Not yet ready for end users.
+**Milestone 11 of 24 complete** — the core backend is functional. Not yet ready for end users.
 
 ### What's implemented
 
@@ -26,7 +26,8 @@ A feature-complete rewrite of [Sonarr](https://github.com/Sonarr/Sonarr) focused
 - **History tracking** — records grab events per episode for duplicate detection
 - **Import pipeline** — completed downloads scanned, parsed, matched to episodes, moved/hardlinked into series library with configurable naming tokens
 - **File organizer** — naming token system for episode filenames (series title, season, episode, quality, release group)
-- **HTTP API** — `/ping` liveness, `/api/v3/system/status` with database connectivity reporting
+- **Sonarr v3 API** — 35+ endpoints with wire-compatible JSON: series CRUD, episodes, episode files, quality profiles, quality definitions, custom formats, commands, history (paged), calendar, indexer/download client CRUD + schema, root folders, parse, health, wanted/missing, system status
+- **API key authentication** — `X-Api-Key` header or `?apikey=` query param, matching Sonarr's convention
 - **Filesystem watcher** — fsnotify-based monitoring with 2-second debouncing; detects changes in series folders for instant scan
 - **Download monitoring** — 1-minute polling of download clients for completed items, auto-triggers import
 - **Docker-ready** — multi-stage Dockerfile producing a ~20MB distroless static binary
@@ -34,7 +35,7 @@ A feature-complete rewrite of [Sonarr](https://github.com/Sonarr/Sonarr) focused
 
 ### What's NOT yet implemented
 
-Full Sonarr v3 API compatibility, SignalR real-time updates, the React frontend, remaining ~60 providers, migration tool, and more. See the [design doc](./docs/superpowers/specs/2026-04-10-sonarr-rewrite-design.md) for the full roadmap.
+SignalR real-time updates, the React frontend, remaining ~60 providers, migration tool, and more. See the [design doc](./docs/superpowers/specs/2026-04-10-sonarr-rewrite-design.md) for the full roadmap.
 
 ## Quick Start
 
