@@ -1,0 +1,128 @@
+.page {
+  padding: var(--space-6);
+}
+
+.heading {
+  font-size: var(--font-size-2xl);
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0 0 var(--space-6) 0;
+}
+
+.stateMessage {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-base);
+}
+
+.errorMessage {
+  color: var(--color-danger);
+  font-size: var(--font-size-base);
+}
+
+.tableWrapper {
+  overflow-x: auto;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+.th {
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+  white-space: nowrap;
+}
+
+.td {
+  padding: var(--space-3) var(--space-4);
+  color: var(--color-text);
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: middle;
+}
+
+.row:last-child .td {
+  border-bottom: none;
+}
+
+.row:hover .td {
+  background: var(--color-surface-raised);
+}
+
+.titleLink {
+  color: var(--color-accent);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.titleLink:hover {
+  color: var(--color-accent-hover);
+  text-decoration: underline;
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px var(--space-2);
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  letter-spacing: 0.02em;
+}
+
+.badgeContinuing {
+  background: rgba(62, 207, 142, 0.15);
+  color: var(--color-success);
+  border: 1px solid rgba(62, 207, 142, 0.3);
+}
+
+.badgeEnded {
+  background: rgba(244, 82, 82, 0.15);
+  color: var(--color-danger);
+  border: 1px solid rgba(244, 82, 82, 0.3);
+}
+
+.badgeUpcoming {
+  background: rgba(245, 166, 35, 0.15);
+  color: var(--color-warning);
+  border: 1px solid rgba(245, 166, 35, 0.3);
+}
+
+.badgeDefault {
+  background: rgba(136, 146, 164, 0.15);
+  color: var(--color-text-secondary);
+  border: 1px solid rgba(136, 146, 164, 0.3);
+}
+
+.muted {
+  color: var(--color-text-secondary);
+}
+
+.monitoredDotOn {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-success);
+  box-shadow: 0 0 4px rgba(62, 207, 142, 0.5);
+}
+
+.monitoredDotOff {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-text-secondary);
+  opacity: 0.4;
+}

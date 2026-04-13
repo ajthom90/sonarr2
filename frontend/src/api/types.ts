@@ -26,6 +26,8 @@ export interface Episode {
   title: string
   monitored: boolean
   hasFile: boolean
+  airDate?: string
+  airDateUtc?: string
 }
 
 export interface Page<T> {
