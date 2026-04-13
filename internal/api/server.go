@@ -116,16 +116,22 @@ func HandlerWithDeps(log *slog.Logger, deps Deps) http.Handler {
 	r.Use(requestLogger(log))
 	r.Use(middleware.Recoverer)
 
+	// /ping is a liveness check — no auth required.
 	r.Get("/ping", pingHandler)
-	r.Get("/api/v3/system/status", statusHandlerWithPool(deps.Pool))
 
 	// All v3 routes are gated behind API key auth when HostConfig is set.
 	if deps.HostConfig == nil {
+		// Fall back to the unauthenticated stub for test/minimal configurations.
+		r.Get("/api/v3/system/status", statusHandlerWithPool(deps.Pool))
 		return r
 	}
 
 	r.Group(func(r chi.Router) {
 		r.Use(apiKeyAuth(deps.HostConfig))
+
+		// system/status: uses the richer v3 handler with full Sonarr field parity.
+		ssh := v3.NewSystemStatusHandler(deps.Pool)
+		v3.MountSystemStatus(r, ssh)
 
 		// Task 3 — series.
 		if deps.Series != nil && deps.Seasons != nil && deps.Stats != nil {
