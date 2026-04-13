@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 
 	v3 "github.com/ajthom90/sonarr2/internal/api/v3"
@@ -21,6 +22,7 @@ import (
 	"github.com/ajthom90/sonarr2/internal/providers/downloadclient"
 	"github.com/ajthom90/sonarr2/internal/providers/indexer"
 	"github.com/ajthom90/sonarr2/internal/realtime"
+	"github.com/ajthom90/sonarr2/web"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
@@ -234,6 +236,11 @@ func HandlerWithDeps(log *slog.Logger, deps Deps) http.Handler {
 		Log:             deps.Log,
 	})
 
+	// Frontend SPA — served from the embedded web/dist directory.
+	// All paths not matched above fall through to the SPA handler, which
+	// returns index.html for unknown routes (client-side routing).
+	r.Handle("/*", spaHandler())
+
 	return r
 }
 
@@ -290,6 +297,37 @@ func statusHandlerWithPool(pool PoolPinger) http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		_ = json.NewEncoder(w).Encode(resp)
 	}
+}
+
+// spaHandler returns an http.Handler that serves embedded frontend files.
+// For paths that exist in the embedded FS it serves the file directly.
+// For all other paths it serves index.html, supporting client-side routing.
+func spaHandler() http.Handler {
+	sub, err := web.DistFS()
+	if err != nil {
+		// Fallback: web/dist wasn't embedded (should not happen with placeholder).
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			http.Error(w, "frontend not available", http.StatusServiceUnavailable)
+		})
+	}
+	fileServer := http.FileServer(http.FS(sub))
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Strip the leading "/" so we can probe the embedded FS.
+		stripped := strings.TrimPrefix(r.URL.Path, "/")
+		if stripped == "" {
+			stripped = "index.html"
+		}
+		f, openErr := sub.Open(stripped)
+		if openErr == nil {
+			_ = f.Close()
+			fileServer.ServeHTTP(w, r)
+			return
+		}
+		// SPA fallback: unknown paths serve index.html.
+		r2 := r.Clone(r.Context())
+		r2.URL.Path = "/"
+		fileServer.ServeHTTP(w, r2)
+	})
 }
 
 func requestLogger(log *slog.Logger) func(http.Handler) http.Handler {
