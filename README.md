@@ -4,7 +4,7 @@ A feature-complete rewrite of [Sonarr](https://github.com/Sonarr/Sonarr) focused
 
 ## Current Status
 
-**Milestone 22 of 24 complete** — the core backend is functional with a fully connected React frontend, all providers, TVDB caching, health checks, housekeeping, backups, a migration tool, and ops hardening. Not yet ready for end users.
+**Milestone 24 of 24 complete** — all milestones finished. The full backend is production-capable with a connected React frontend, all providers, TVDB caching, health checks, housekeeping, backups, a migration tool, ops hardening, a GitHub Actions release pipeline, and a built-in update checker. Not yet ready for end users (pre-v1).
 
 ### What's implemented
 
@@ -42,10 +42,11 @@ A feature-complete rewrite of [Sonarr](https://github.com/Sonarr/Sonarr) focused
 - **Real-time push** — SignalR WebSocket transport (Sonarr-compatible) and Server-Sent Events; live updates for series, episodes, commands, and queue changes
 - **Web UI** — React + TypeScript + Vite dark-themed frontend with series list (progress bars, status badges), series detail with season/episode tables, weekly calendar, activity queue/history with live refresh, wanted/missing episodes, system status with health checks, settings for indexers/download clients/profiles, connection status indicator
 - **Ops hardening** — security headers (X-Frame-Options, nosniff), permissive CORS for API-key auth, per-IP rate limiting (30 req/s sustained, 100 burst), URLBase routing for reverse proxy support
+- **Release engineering** — GitHub Actions release workflow producing multi-arch binaries (linux/amd64, linux/arm64, linux/arm/v7, macOS) and Docker images on tag push; built-in update checker polls GitHub Releases API with 24-hour cache and surfaces results as a health notice
 
 ### What's NOT yet implemented
 
-Remaining provider implementations, migration tool, and more. See the [design doc](./docs/superpowers/specs/2026-04-10-sonarr-rewrite-design.md) for the full roadmap.
+This project covers the full planned roadmap (M0–M23). The areas still short of a production v1 release are end-user hardening: comprehensive integration tests, a polished UI, and real-world validation against large libraries. See the [design doc](./docs/superpowers/specs/2026-04-10-sonarr-rewrite-design.md) for architectural details.
 
 ## Quick Start
 
