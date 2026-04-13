@@ -1,0 +1,156 @@
+.page {
+  padding: var(--space-6);
+  max-width: 900px;
+}
+
+.heading {
+  font-size: var(--font-size-2xl);
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0 0 var(--space-6) 0;
+}
+
+/* ── Status card ─────────────────────────────────────────── */
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+  margin-bottom: var(--space-6);
+}
+
+.cardHeading {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--space-4) 0;
+}
+
+/* ── Meta grid ───────────────────────────────────────────── */
+.metaGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--space-4) var(--space-6);
+}
+
+.metaItem {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.metaLabel {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--color-text-secondary);
+}
+
+.metaValue {
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  word-break: break-word;
+}
+
+.metaMono {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+
+/* ── Health section ──────────────────────────────────────── */
+.healthList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.healthItem {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  align-items: flex-start;
+}
+
+.healthItemError {
+  border-left: 3px solid var(--color-danger);
+}
+
+.healthItemWarning {
+  border-left: 3px solid var(--color-warning);
+}
+
+.healthItemNotice {
+  border-left: 3px solid var(--color-accent);
+}
+
+.healthType {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  min-width: 60px;
+}
+
+.healthTypeError {
+  color: var(--color-danger);
+}
+
+.healthTypeWarning {
+  color: var(--color-warning);
+}
+
+.healthTypeNotice {
+  color: var(--color-accent);
+}
+
+.healthMessage {
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  line-height: 1.5;
+}
+
+.healthSource {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  margin-top: var(--space-1);
+}
+
+/* ── States ─────────────────────────────────────────────── */
+.stateMessage {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.successMessage {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-success);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+}
+
+.successDot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-success);
+  box-shadow: 0 0 4px rgba(62, 207, 142, 0.5);
+  flex-shrink: 0;
+}
+
+.errorMessage {
+  color: var(--color-danger);
+  font-size: var(--font-size-base);
+}

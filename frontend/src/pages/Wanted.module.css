@@ -1,0 +1,109 @@
+.page {
+  padding: var(--space-6);
+  max-width: 1000px;
+}
+
+.heading {
+  font-size: var(--font-size-2xl);
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0 0 var(--space-6) 0;
+}
+
+/* ── Table ───────────────────────────────────────────────── */
+.tableWrapper {
+  overflow-x: auto;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+.th {
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+  white-space: nowrap;
+}
+
+.td {
+  padding: var(--space-3) var(--space-4);
+  color: var(--color-text);
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: middle;
+}
+
+.row:last-child .td {
+  border-bottom: none;
+}
+
+.row:hover .td {
+  background: var(--color-surface-raised);
+}
+
+/* ── States / misc ───────────────────────────────────────── */
+.stateMessage {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-base);
+  padding: var(--space-8) 0;
+  text-align: center;
+}
+
+.emptyIcon {
+  display: block;
+  font-size: 2rem;
+  margin-bottom: var(--space-3);
+}
+
+.errorMessage {
+  color: var(--color-danger);
+  font-size: var(--font-size-base);
+}
+
+.muted {
+  color: var(--color-text-secondary);
+}
+
+.epCode {
+  color: var(--color-accent);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.loadMoreWrapper {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-4);
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+}
+
+.loadMoreBtn {
+  padding: var(--space-2) var(--space-6);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.loadMoreBtn:hover {
+  background: var(--color-border);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
