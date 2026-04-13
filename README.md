@@ -4,7 +4,7 @@ A feature-complete rewrite of [Sonarr](https://github.com/Sonarr/Sonarr) focused
 
 ## Current Status
 
-**Milestone 13 of 24 complete** — the core backend is functional. Not yet ready for end users.
+**Milestone 14 of 24 complete** — the core backend is functional with a React frontend scaffold. Not yet ready for end users.
 
 ### What's implemented
 
@@ -34,15 +34,16 @@ A feature-complete rewrite of [Sonarr](https://github.com/Sonarr/Sonarr) focused
 - **Docker-ready** — multi-stage Dockerfile producing a ~20MB distroless static binary
 - **CI** — GitHub Actions for lint (staticcheck + golangci-lint) and test (race detector + Postgres testcontainers)
 - **Real-time push** — SignalR WebSocket transport (Sonarr-compatible) and Server-Sent Events; live updates for series, episodes, commands, and queue changes
+- **Frontend** — React 18 + TypeScript + Vite with dark theme, sidebar navigation, and placeholder pages for all routes; embedded in the Go binary via `//go:embed`
 
 ### What's NOT yet implemented
 
-The React frontend, remaining ~60 providers, migration tool, and more. See the [design doc](./docs/superpowers/specs/2026-04-10-sonarr-rewrite-design.md) for the full roadmap.
+Filled-in page content (M15+), remaining ~60 providers, migration tool, and more. See the [design doc](./docs/superpowers/specs/2026-04-10-sonarr-rewrite-design.md) for the full roadmap.
 
 ## Quick Start
 
 ```bash
-# Build
+# Build (frontend + backend)
 make build
 
 # Run with SQLite (default)
@@ -58,16 +59,22 @@ docker run -p 8989:8989 -v ./config:/config sonarr2
 ```bash
 git clone https://github.com/ajthom90/sonarr2.git
 cd sonarr2
-make test    # run all tests with race detector
-make lint    # gofmt + go vet
-make build   # produce dist/sonarr2
+make test          # run all tests with race detector
+make lint          # gofmt + go vet
+make build         # build frontend then produce dist/sonarr2
+make build-backend # build Go binary only (skips npm)
+make frontend      # build frontend only (cd frontend && npm ci && npm run build)
+
+# Frontend dev server (hot-reload, proxies /api/* to :8989)
+cd frontend && npm run dev
 ```
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 ## Architecture
 
-- **Go 1.23** backend — single static binary, ~15MB
+- **Go 1.23** backend — single static binary, ~15MB, frontend embedded via `//go:embed`
+- **React 18 + TypeScript + Vite** frontend — dark theme, SPA with client-side routing; `npm run dev` proxies to the Go backend for local development
 - **Postgres-first** with SQLite support — no "database is locked" errors via application-level single-writer discipline
 - **Clean-room reimplementation** — MIT licensed, no Sonarr (GPL-3) source code copied
 - **Multi-arch** — builds for linux/amd64, linux/arm64, linux/arm/v7, macOS
