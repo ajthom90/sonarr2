@@ -12,6 +12,9 @@ import (
 	"github.com/ajthom90/sonarr2/internal/providers/metadatasource"
 )
 
+// Compile-time check: CachedMetadataSource implements MetadataSource.
+var _ metadatasource.MetadataSource = (*CachedMetadataSource)(nil)
+
 // Options configures TTLs and the background sweep interval.
 // Zero values are replaced with sensible defaults by withDefaults.
 type Options struct {
