@@ -20,36 +20,36 @@ var startupTime = time.Now().UTC()
 // Field names and casing match the real Sonarr API exactly so existing clients
 // (Overseerr, Prowlarr, nzb360, etc.) work without modification.
 type systemStatusResource struct {
-	AppName               string `json:"appName"`
-	InstanceName          string `json:"instanceName"`
-	Version               string `json:"version"`
-	BuildTime             string `json:"buildTime"`
-	IsDebug               bool   `json:"isDebug"`
-	IsProduction          bool   `json:"isProduction"`
-	IsAdmin               bool   `json:"isAdmin"`
-	IsUserInteractive     bool   `json:"isUserInteractive"`
-	StartupPath           string `json:"startupPath"`
-	AppData               string `json:"appData"`
-	OsName                string `json:"osName"`
-	OsVersion             string `json:"osVersion"`
-	IsNetCore             bool   `json:"isNetCore"`
-	IsLinux               bool   `json:"isLinux"`
-	IsOsx                 bool   `json:"isOsx"`
-	IsWindows             bool   `json:"isWindows"`
-	IsDocker              bool   `json:"isDocker"`
-	Mode                  string `json:"mode"`
-	Branch                string `json:"branch"`
-	Authentication        string `json:"authentication"`
-	MigrationVersion      int    `json:"migrationVersion"`
-	URLBase               string `json:"urlBase"`
-	RuntimeVersion        string `json:"runtimeVersion"`
-	RuntimeName           string `json:"runtimeName"`
-	StartTime             string `json:"startTime"`
-	PackageVersion        string `json:"packageVersion"`
-	PackageAuthor         string `json:"packageAuthor"`
+	AppName                string `json:"appName"`
+	InstanceName           string `json:"instanceName"`
+	Version                string `json:"version"`
+	BuildTime              string `json:"buildTime"`
+	IsDebug                bool   `json:"isDebug"`
+	IsProduction           bool   `json:"isProduction"`
+	IsAdmin                bool   `json:"isAdmin"`
+	IsUserInteractive      bool   `json:"isUserInteractive"`
+	StartupPath            string `json:"startupPath"`
+	AppData                string `json:"appData"`
+	OsName                 string `json:"osName"`
+	OsVersion              string `json:"osVersion"`
+	IsNetCore              bool   `json:"isNetCore"`
+	IsLinux                bool   `json:"isLinux"`
+	IsOsx                  bool   `json:"isOsx"`
+	IsWindows              bool   `json:"isWindows"`
+	IsDocker               bool   `json:"isDocker"`
+	Mode                   string `json:"mode"`
+	Branch                 string `json:"branch"`
+	Authentication         string `json:"authentication"`
+	MigrationVersion       int    `json:"migrationVersion"`
+	URLBase                string `json:"urlBase"`
+	RuntimeVersion         string `json:"runtimeVersion"`
+	RuntimeName            string `json:"runtimeName"`
+	StartTime              string `json:"startTime"`
+	PackageVersion         string `json:"packageVersion"`
+	PackageAuthor          string `json:"packageAuthor"`
 	PackageUpdateMechanism string `json:"packageUpdateMechanism"`
-	DatabaseVersion       string `json:"databaseVersion"`
-	DatabaseType          string `json:"databaseType"`
+	DatabaseVersion        string `json:"databaseVersion"`
+	DatabaseType           string `json:"databaseType"`
 }
 
 // PoolPinger is the subset of the DB pool needed for status reporting. The v3

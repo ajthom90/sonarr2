@@ -18,48 +18,48 @@ import (
 
 // seriesResource is the Sonarr v3 JSON shape for a series.
 type seriesResource struct {
-	ID               int64               `json:"id"`
-	Title            string              `json:"title"`
-	SortTitle        string              `json:"sortTitle"`
-	Status           string              `json:"status"`
-	Overview         string              `json:"overview"`
-	Network          string              `json:"network"`
-	AirTime          string              `json:"airTime"`
-	Images           []any               `json:"images"`
-	Seasons          []seasonResource    `json:"seasons"`
-	Year             int                 `json:"year"`
-	Path             string              `json:"path"`
-	QualityProfileID int                 `json:"qualityProfileId"`
-	SeasonFolder     bool                `json:"seasonFolder"`
-	Monitored        bool                `json:"monitored"`
-	Runtime          int                 `json:"runtime"`
-	TvdbID           int64               `json:"tvdbId"`
-	TvRageID         int                 `json:"tvRageId"`
-	TvMazeID         int                 `json:"tvMazeId"`
-	ImdbID           string              `json:"imdbId"`
-	TmdbID           int                 `json:"tmdbId"`
-	FirstAired       string              `json:"firstAired"`
-	LastAired        string              `json:"lastAired"`
-	SeriesType       string              `json:"seriesType"`
-	CleanTitle       string              `json:"cleanTitle"`
-	TitleSlug        string              `json:"titleSlug"`
-	RootFolderPath   string              `json:"rootFolderPath"`
-	Genres           []string            `json:"genres"`
-	Tags             []int               `json:"tags"`
-	Added            string              `json:"added"`
-	Ratings          map[string]any      `json:"ratings"`
-	Statistics       *statisticsResource `json:"statistics"`
-	AlternateTitles  []any               `json:"alternateTitles"`
-	OriginalLanguage map[string]any      `json:"originalLanguage"`
-	UseSceneNumbering bool               `json:"useSceneNumbering"`
-	MonitorNewItems  string              `json:"monitorNewItems"`
-	Ended            bool                `json:"ended"`
+	ID                int64               `json:"id"`
+	Title             string              `json:"title"`
+	SortTitle         string              `json:"sortTitle"`
+	Status            string              `json:"status"`
+	Overview          string              `json:"overview"`
+	Network           string              `json:"network"`
+	AirTime           string              `json:"airTime"`
+	Images            []any               `json:"images"`
+	Seasons           []seasonResource    `json:"seasons"`
+	Year              int                 `json:"year"`
+	Path              string              `json:"path"`
+	QualityProfileID  int                 `json:"qualityProfileId"`
+	SeasonFolder      bool                `json:"seasonFolder"`
+	Monitored         bool                `json:"monitored"`
+	Runtime           int                 `json:"runtime"`
+	TvdbID            int64               `json:"tvdbId"`
+	TvRageID          int                 `json:"tvRageId"`
+	TvMazeID          int                 `json:"tvMazeId"`
+	ImdbID            string              `json:"imdbId"`
+	TmdbID            int                 `json:"tmdbId"`
+	FirstAired        string              `json:"firstAired"`
+	LastAired         string              `json:"lastAired"`
+	SeriesType        string              `json:"seriesType"`
+	CleanTitle        string              `json:"cleanTitle"`
+	TitleSlug         string              `json:"titleSlug"`
+	RootFolderPath    string              `json:"rootFolderPath"`
+	Genres            []string            `json:"genres"`
+	Tags              []int               `json:"tags"`
+	Added             string              `json:"added"`
+	Ratings           map[string]any      `json:"ratings"`
+	Statistics        *statisticsResource `json:"statistics"`
+	AlternateTitles   []any               `json:"alternateTitles"`
+	OriginalLanguage  map[string]any      `json:"originalLanguage"`
+	UseSceneNumbering bool                `json:"useSceneNumbering"`
+	MonitorNewItems   string              `json:"monitorNewItems"`
+	Ended             bool                `json:"ended"`
 }
 
 // seasonResource is the Sonarr v3 JSON shape for a season.
 type seasonResource struct {
-	SeasonNumber int                `json:"seasonNumber"`
-	Monitored    bool               `json:"monitored"`
+	SeasonNumber int                 `json:"seasonNumber"`
+	Monitored    bool                `json:"monitored"`
 	Statistics   *statisticsResource `json:"statistics,omitempty"`
 }
 
@@ -265,14 +265,14 @@ func (h *seriesHandler) get(w http.ResponseWriter, r *http.Request) {
 
 // seriesInput is the JSON body for POST and PUT requests.
 type seriesInput struct {
-	Title     string `json:"title"`
-	TvdbID    int64  `json:"tvdbId"`
-	Slug      string `json:"titleSlug"`
-	Status    string `json:"status"`
+	Title      string `json:"title"`
+	TvdbID     int64  `json:"tvdbId"`
+	Slug       string `json:"titleSlug"`
+	Status     string `json:"status"`
 	SeriesType string `json:"seriesType"`
-	Path      string `json:"path"`
-	Monitored bool   `json:"monitored"`
-	Seasons   []struct {
+	Path       string `json:"path"`
+	Monitored  bool   `json:"monitored"`
+	Seasons    []struct {
 		SeasonNumber int  `json:"seasonNumber"`
 		Monitored    bool `json:"monitored"`
 	} `json:"seasons"`

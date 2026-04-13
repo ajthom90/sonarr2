@@ -150,4 +150,3 @@ func TestSystemStatusPostgresPool(t *testing.T) {
 		t.Errorf("databaseType = %v, want postgresql for postgres pool", body["databaseType"])
 	}
 }
-

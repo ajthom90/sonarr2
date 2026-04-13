@@ -277,10 +277,10 @@ func TestSeriesGoldenFieldNames(t *testing.T) {
 	// Fields that the golden fixture has but we intentionally omit or zero-out.
 	// These are fields we don't track yet (no data) and thus don't emit.
 	skipFields := map[string]bool{
-		"previousAiring":   true,
+		"previousAiring":    true,
 		"languageProfileId": true,
-		"certification":    true,
-		"year":             true, // we don't track year as a separate field yet
+		"certification":     true,
+		"year":              true, // we don't track year as a separate field yet
 	}
 
 	// Verify every top-level key in the golden fixture appears in our response
