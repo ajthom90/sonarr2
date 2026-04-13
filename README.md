@@ -4,7 +4,7 @@ A feature-complete rewrite of [Sonarr](https://github.com/Sonarr/Sonarr) focused
 
 ## Current Status
 
-**Milestone 20 of 24 complete** — the core backend is functional with a fully connected React frontend, all providers wired up, TVDB caching/rate limiting, health checks, daily housekeeping, and automated backups. Not yet ready for end users.
+**Milestone 21 of 24 complete** — the core backend is functional with a fully connected React frontend, all providers, TVDB caching, health checks, housekeeping, backups, and a migration tool. Not yet ready for end users.
 
 ### What's implemented
 
@@ -24,6 +24,7 @@ A feature-complete rewrite of [Sonarr](https://github.com/Sonarr/Sonarr) focused
 - **Health checks** — framework with 5 checks (database, root folders, indexers, download clients, metadata source); runs on startup and every 30 minutes; dispatches notifications for new issues
 - **Housekeeping** — daily automated cleanup: history trimming (90-day configurable retention), orphan episode file removal, series statistics recalculation, SQLite VACUUM compaction
 - **Automated backups** — tar.gz archives of SQLite database with JSON manifest; configurable retention (default 7) and schedule (default weekly); v3/v6 API for list/create/download/delete
+- **Migration tool** — `sonarr-migrate` CLI imports series, episodes, episode files, quality profiles, indexers, download clients, and notifications from an existing Sonarr v3/v4 SQLite database with path remapping and dry-run support
 - **Metadata source (TVDB)** — search series by title, fetch full episode lists via TVDB v4 API with JWT auth
 - **RefreshSeriesMetadata** — command handler that syncs episodes from TVDB into the local library
 - **RSS sync pipeline** — automatic 15-min RSS feed polling → parse → series match → decision engine evaluation → ranked grab via download client
