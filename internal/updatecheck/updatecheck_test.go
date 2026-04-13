@@ -73,8 +73,8 @@ func TestCheckCachesResult(t *testing.T) {
 	defer srv.Close()
 
 	c := New("1.0.0", "test", "repo", srv.Client()).WithBaseURL(srv.URL)
-	c.Check(context.Background())
-	c.Check(context.Background())
+	_, _ = c.Check(context.Background())
+	_, _ = c.Check(context.Background())
 
 	if calls.Load() != 1 {
 		t.Errorf("API called %d times, want 1 (cached)", calls.Load())
