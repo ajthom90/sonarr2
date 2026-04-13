@@ -21,6 +21,7 @@ import (
 	"github.com/ajthom90/sonarr2/internal/profiles"
 	"github.com/ajthom90/sonarr2/internal/providers/downloadclient"
 	"github.com/ajthom90/sonarr2/internal/providers/indexer"
+	"github.com/ajthom90/sonarr2/internal/providers/notification"
 	"github.com/ajthom90/sonarr2/internal/realtime"
 	"github.com/ajthom90/sonarr2/web"
 	"github.com/go-chi/chi/v5"
@@ -40,24 +41,26 @@ type PoolPinger interface {
 // nil; if nil the corresponding v3 routes are not mounted. Task 7 will
 // consolidate this into a proper v3.Dependencies struct.
 type Deps struct {
-	Pool            PoolPinger
-	HostConfig      hostconfig.Store
-	Series          library.SeriesStore
-	Seasons         library.SeasonsStore
-	Stats           library.SeriesStatsStore
-	Episodes        library.EpisodesStore
-	EpisodeFiles    library.EpisodeFilesStore
-	QualityProfiles profiles.QualityProfileStore
-	QualityDefs     profiles.QualityDefinitionStore
-	CustomFormats   customformats.Store
-	Commands        commands.Queue
-	History         history.Store
-	IndexerStore    indexer.InstanceStore
-	IndexerRegistry *indexer.Registry
-	DCStore         downloadclient.InstanceStore
-	DCRegistry      *downloadclient.Registry
-	Broker          *realtime.Broker
-	Log             *slog.Logger
+	Pool                 PoolPinger
+	HostConfig           hostconfig.Store
+	Series               library.SeriesStore
+	Seasons              library.SeasonsStore
+	Stats                library.SeriesStatsStore
+	Episodes             library.EpisodesStore
+	EpisodeFiles         library.EpisodeFilesStore
+	QualityProfiles      profiles.QualityProfileStore
+	QualityDefs          profiles.QualityDefinitionStore
+	CustomFormats        customformats.Store
+	Commands             commands.Queue
+	History              history.Store
+	IndexerStore         indexer.InstanceStore
+	IndexerRegistry      *indexer.Registry
+	DCStore              downloadclient.InstanceStore
+	DCRegistry           *downloadclient.Registry
+	NotificationStore    notification.InstanceStore
+	NotificationRegistry *notification.Registry
+	Broker               *realtime.Broker
+	Log                  *slog.Logger
 }
 
 // Server wraps a net/http server configured with the sonarr2 router.
@@ -197,6 +200,10 @@ func HandlerWithDeps(log *slog.Logger, deps Deps) http.Handler {
 			dch := v3.NewDownloadClientHandler(deps.DCStore, deps.DCRegistry, log)
 			v3.MountDownloadClient(r, dch)
 		}
+		if deps.NotificationStore != nil && deps.NotificationRegistry != nil {
+			nh := v3.NewNotificationHandler(deps.NotificationStore, deps.NotificationRegistry, log)
+			v3.MountNotification(r, nh)
+		}
 		if deps.Series != nil {
 			rfh := v3.NewRootFolderHandler(deps.Series, log)
 			v3.MountRootFolder(r, rfh)
@@ -217,23 +224,25 @@ func HandlerWithDeps(log *slog.Logger, deps Deps) http.Handler {
 
 	// v6 routes — mounted separately under /api/v6 with their own auth group.
 	v6.Mount(r, v6.Deps{
-		Pool:            deps.Pool,
-		HostConfig:      deps.HostConfig,
-		Series:          deps.Series,
-		Seasons:         deps.Seasons,
-		Stats:           deps.Stats,
-		Episodes:        deps.Episodes,
-		EpisodeFiles:    deps.EpisodeFiles,
-		QualityProfiles: deps.QualityProfiles,
-		QualityDefs:     deps.QualityDefs,
-		CustomFormats:   deps.CustomFormats,
-		Commands:        deps.Commands,
-		History:         deps.History,
-		IndexerStore:    deps.IndexerStore,
-		IndexerRegistry: deps.IndexerRegistry,
-		DCStore:         deps.DCStore,
-		DCRegistry:      deps.DCRegistry,
-		Log:             deps.Log,
+		Pool:                 deps.Pool,
+		HostConfig:           deps.HostConfig,
+		Series:               deps.Series,
+		Seasons:              deps.Seasons,
+		Stats:                deps.Stats,
+		Episodes:             deps.Episodes,
+		EpisodeFiles:         deps.EpisodeFiles,
+		QualityProfiles:      deps.QualityProfiles,
+		QualityDefs:          deps.QualityDefs,
+		CustomFormats:        deps.CustomFormats,
+		Commands:             deps.Commands,
+		History:              deps.History,
+		IndexerStore:         deps.IndexerStore,
+		IndexerRegistry:      deps.IndexerRegistry,
+		DCStore:              deps.DCStore,
+		DCRegistry:           deps.DCRegistry,
+		NotificationStore:    deps.NotificationStore,
+		NotificationRegistry: deps.NotificationRegistry,
+		Log:                  deps.Log,
 	})
 
 	// Frontend SPA — served from the embedded web/dist directory.

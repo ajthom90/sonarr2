@@ -36,11 +36,30 @@ import (
 	"github.com/ajthom90/sonarr2/internal/logging"
 	"github.com/ajthom90/sonarr2/internal/profiles"
 	"github.com/ajthom90/sonarr2/internal/providers/downloadclient"
+	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/blackhole"
+	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/deluge"
+	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/nzbget"
+	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/qbittorrent"
 	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/sabnzbd"
+	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/transmission"
 	"github.com/ajthom90/sonarr2/internal/providers/indexer"
+	"github.com/ajthom90/sonarr2/internal/providers/indexer/broadcasthenet"
+	"github.com/ajthom90/sonarr2/internal/providers/indexer/iptorrents"
 	"github.com/ajthom90/sonarr2/internal/providers/indexer/newznab"
+	"github.com/ajthom90/sonarr2/internal/providers/indexer/nyaa"
+	"github.com/ajthom90/sonarr2/internal/providers/indexer/torrentrss"
+	"github.com/ajthom90/sonarr2/internal/providers/indexer/torznab"
 	"github.com/ajthom90/sonarr2/internal/providers/metadatasource"
 	"github.com/ajthom90/sonarr2/internal/providers/metadatasource/tvdb"
+	"github.com/ajthom90/sonarr2/internal/providers/notification"
+	"github.com/ajthom90/sonarr2/internal/providers/notification/customscript"
+	"github.com/ajthom90/sonarr2/internal/providers/notification/discord"
+	notifyemail "github.com/ajthom90/sonarr2/internal/providers/notification/email"
+	"github.com/ajthom90/sonarr2/internal/providers/notification/gotify"
+	"github.com/ajthom90/sonarr2/internal/providers/notification/pushover"
+	"github.com/ajthom90/sonarr2/internal/providers/notification/slack"
+	"github.com/ajthom90/sonarr2/internal/providers/notification/telegram"
+	notifwebhook "github.com/ajthom90/sonarr2/internal/providers/notification/webhook"
 	"github.com/ajthom90/sonarr2/internal/realtime"
 	"github.com/ajthom90/sonarr2/internal/rsssync"
 	"github.com/ajthom90/sonarr2/internal/scheduler"
@@ -63,8 +82,10 @@ type App struct {
 	customFormats   customformats.Store
 	indexerRegistry *indexer.Registry
 	dcRegistry      *downloadclient.Registry
+	notifRegistry   *notification.Registry
 	indexerStore    indexer.InstanceStore
 	dcStore         downloadclient.InstanceStore
+	notifStore      notification.InstanceStore
 	metadataSource  metadatasource.MetadataSource
 	historyStore    history.Store
 	grabService     *grab.Service
@@ -179,25 +200,87 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 	// Provider registries.
 	idxReg := indexer.NewRegistry()
 	dcReg := downloadclient.NewRegistry()
+	notifReg := notification.NewRegistry()
 
-	// Register built-in providers.
+	// Register built-in indexer providers.
 	idxReg.Register("Newznab", func() indexer.Indexer {
 		return newznab.New(newznab.Settings{ApiPath: "/api"}, nil)
 	})
+	idxReg.Register("Torznab", func() indexer.Indexer {
+		return torznab.New(torznab.Settings{ApiPath: "/api", MinSeeders: 1}, nil)
+	})
+	idxReg.Register("TorrentRss", func() indexer.Indexer {
+		return torrentrss.New(torrentrss.Settings{}, nil)
+	})
+	idxReg.Register("IPTorrents", func() indexer.Indexer {
+		return iptorrents.New(iptorrents.Settings{}, nil)
+	})
+	idxReg.Register("Nyaa", func() indexer.Indexer {
+		return nyaa.New(nyaa.Settings{BaseURL: "https://nyaa.si"}, nil)
+	})
+	idxReg.Register("BroadcastheNet", func() indexer.Indexer {
+		return broadcasthenet.New(broadcasthenet.Settings{}, nil)
+	})
+
+	// Register built-in download client providers.
 	dcReg.Register("SABnzbd", func() downloadclient.DownloadClient {
 		return sabnzbd.New(sabnzbd.Settings{Host: "localhost", Port: 8080, Category: "tv"}, nil)
+	})
+	dcReg.Register("NZBGet", func() downloadclient.DownloadClient {
+		return nzbget.New(nzbget.Settings{Host: "localhost", Port: 6789, Category: "tv"}, nil)
+	})
+	dcReg.Register("qBittorrent", func() downloadclient.DownloadClient {
+		return qbittorrent.New(qbittorrent.Settings{Host: "localhost", Port: 8080, Category: "tv"}, nil)
+	})
+	dcReg.Register("Transmission", func() downloadclient.DownloadClient {
+		return transmission.New(transmission.Settings{Host: "localhost", Port: 9091, UrlBase: "/transmission/"}, nil)
+	})
+	dcReg.Register("Deluge", func() downloadclient.DownloadClient {
+		return deluge.New(deluge.Settings{Host: "localhost", Port: 8112}, nil)
+	})
+	dcReg.Register("Blackhole", func() downloadclient.DownloadClient {
+		return blackhole.New(blackhole.Settings{}, nil)
+	})
+
+	// Register built-in notification providers.
+	notifReg.Register("Discord", func() notification.Notification {
+		return discord.New(discord.Settings{}, nil)
+	})
+	notifReg.Register("Slack", func() notification.Notification {
+		return slack.New(slack.Settings{}, nil)
+	})
+	notifReg.Register("Telegram", func() notification.Notification {
+		return telegram.New(telegram.Settings{}, nil)
+	})
+	notifReg.Register("Email", func() notification.Notification {
+		return notifyemail.New(notifyemail.Settings{})
+	})
+	notifReg.Register("Webhook", func() notification.Notification {
+		return notifwebhook.New(notifwebhook.Settings{Method: "POST"}, nil)
+	})
+	notifReg.Register("Pushover", func() notification.Notification {
+		return pushover.New(pushover.Settings{}, nil)
+	})
+	notifReg.Register("Gotify", func() notification.Notification {
+		return gotify.New(gotify.Settings{}, nil)
+	})
+	notifReg.Register("CustomScript", func() notification.Notification {
+		return customscript.New(customscript.Settings{})
 	})
 
 	// Provider instance stores.
 	var idxStore indexer.InstanceStore
 	var dcStore downloadclient.InstanceStore
+	var notifStore notification.InstanceStore
 	switch p := pool.(type) {
 	case *db.PostgresPool:
 		idxStore = indexer.NewPostgresInstanceStore(p)
 		dcStore = downloadclient.NewPostgresInstanceStore(p)
+		notifStore = notification.NewPostgresInstanceStore(p)
 	case *db.SQLitePool:
 		idxStore = indexer.NewSQLiteInstanceStore(p)
 		dcStore = downloadclient.NewSQLiteInstanceStore(p)
+		notifStore = notification.NewSQLiteInstanceStore(p)
 	}
 
 	// Create the command queue (dialect-dispatched).
@@ -331,6 +414,13 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 		return histStore.DeleteForSeries(ctx, e.ID)
 	})
 
+	// Subscribe async notification dispatch on ReleasesGrabbed.
+	events.SubscribeAsync[grab.ReleasesGrabbed](bus, func(ctx context.Context, e grab.ReleasesGrabbed) {
+		dispatchGrabNotifications(ctx, notifStore, notifReg, log, notification.GrabMessage{
+			SeriesTitle: e.Title,
+		})
+	})
+
 	// Build host config store for API key auth.
 	var hcStore hostconfig.Store
 	switch p := pool.(type) {
@@ -344,24 +434,26 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 	return &App{
 		log: log,
 		server: api.NewWithDeps(addr, log, api.Deps{
-			Pool:            poolPingerAdapter{pool: pool},
-			HostConfig:      hcStore,
-			Series:          lib.Series,
-			Seasons:         lib.Seasons,
-			Stats:           lib.Stats,
-			Episodes:        lib.Episodes,
-			EpisodeFiles:    lib.EpisodeFiles,
-			QualityProfiles: qualityProfileStore,
-			QualityDefs:     qualityDefStore,
-			CustomFormats:   cfStore,
-			Commands:        cmdQueue,
-			History:         histStore,
-			IndexerStore:    idxStore,
-			IndexerRegistry: idxReg,
-			DCStore:         dcStore,
-			DCRegistry:      dcReg,
-			Broker:          rtBroker,
-			Log:             log,
+			Pool:                 poolPingerAdapter{pool: pool},
+			HostConfig:           hcStore,
+			Series:               lib.Series,
+			Seasons:              lib.Seasons,
+			Stats:                lib.Stats,
+			Episodes:             lib.Episodes,
+			EpisodeFiles:         lib.EpisodeFiles,
+			QualityProfiles:      qualityProfileStore,
+			QualityDefs:          qualityDefStore,
+			CustomFormats:        cfStore,
+			Commands:             cmdQueue,
+			History:              histStore,
+			IndexerStore:         idxStore,
+			IndexerRegistry:      idxReg,
+			DCStore:              dcStore,
+			DCRegistry:           dcReg,
+			NotificationStore:    notifStore,
+			NotificationRegistry: notifReg,
+			Broker:               rtBroker,
+			Log:                  log,
 		}),
 		pool:            pool,
 		bus:             bus,
@@ -376,8 +468,10 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 		customFormats:   cfStore,
 		indexerRegistry: idxReg,
 		dcRegistry:      dcReg,
+		notifRegistry:   notifReg,
 		indexerStore:    idxStore,
 		dcStore:         dcStore,
+		notifStore:      notifStore,
 		metadataSource:  tvdbSource,
 		historyStore:    histStore,
 		grabService:     grabSvc,
@@ -516,4 +610,42 @@ type queueEnqueuer struct {
 func (q *queueEnqueuer) Enqueue(ctx context.Context, name string, body []byte) error {
 	_, err := q.queue.Enqueue(ctx, name, body, commands.PriorityNormal, commands.TriggerScheduled, "")
 	return err
+}
+
+// dispatchGrabNotifications loads all enabled notification instances that have
+// OnGrab=true, instantiates each via the registry, and calls OnGrab. Errors
+// are logged but do not stop dispatch to other providers.
+func dispatchGrabNotifications(
+	ctx context.Context,
+	store notification.InstanceStore,
+	reg *notification.Registry,
+	log *slog.Logger,
+	msg notification.GrabMessage,
+) {
+	instances, err := store.List(ctx)
+	if err != nil {
+		log.Error("notification dispatch: list instances", slog.String("err", err.Error()))
+		return
+	}
+	for _, inst := range instances {
+		if !inst.OnGrab {
+			continue
+		}
+		factory, err := reg.Get(inst.Implementation)
+		if err != nil {
+			log.Warn("notification dispatch: unknown implementation",
+				slog.String("implementation", inst.Implementation),
+				slog.String("name", inst.Name),
+			)
+			continue
+		}
+		provider := factory()
+		if err := provider.OnGrab(ctx, msg); err != nil {
+			log.Error("notification dispatch: OnGrab failed",
+				slog.String("name", inst.Name),
+				slog.String("implementation", inst.Implementation),
+				slog.String("err", err.Error()),
+			)
+		}
+	}
 }

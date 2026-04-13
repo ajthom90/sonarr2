@@ -19,6 +19,7 @@ import (
 	"github.com/ajthom90/sonarr2/internal/profiles"
 	"github.com/ajthom90/sonarr2/internal/providers/downloadclient"
 	"github.com/ajthom90/sonarr2/internal/providers/indexer"
+	"github.com/ajthom90/sonarr2/internal/providers/notification"
 )
 
 // PoolPinger is the minimum interface needed for system/status DB reporting.
@@ -30,23 +31,25 @@ type PoolPinger interface {
 // Deps holds the dependencies needed by v6 handlers. It mirrors api.Deps but
 // is defined here to avoid an import cycle between api and api/v6.
 type Deps struct {
-	Pool            PoolPinger
-	HostConfig      hostconfig.Store
-	Series          library.SeriesStore
-	Seasons         library.SeasonsStore
-	Stats           library.SeriesStatsStore
-	Episodes        library.EpisodesStore
-	EpisodeFiles    library.EpisodeFilesStore
-	QualityProfiles profiles.QualityProfileStore
-	QualityDefs     profiles.QualityDefinitionStore
-	CustomFormats   customformats.Store
-	Commands        commands.Queue
-	History         history.Store
-	IndexerStore    indexer.InstanceStore
-	IndexerRegistry *indexer.Registry
-	DCStore         downloadclient.InstanceStore
-	DCRegistry      *downloadclient.Registry
-	Log             *slog.Logger
+	Pool                 PoolPinger
+	HostConfig           hostconfig.Store
+	Series               library.SeriesStore
+	Seasons              library.SeasonsStore
+	Stats                library.SeriesStatsStore
+	Episodes             library.EpisodesStore
+	EpisodeFiles         library.EpisodeFilesStore
+	QualityProfiles      profiles.QualityProfileStore
+	QualityDefs          profiles.QualityDefinitionStore
+	CustomFormats        customformats.Store
+	Commands             commands.Queue
+	History              history.Store
+	IndexerStore         indexer.InstanceStore
+	IndexerRegistry      *indexer.Registry
+	DCStore              downloadclient.InstanceStore
+	DCRegistry           *downloadclient.Registry
+	NotificationStore    notification.InstanceStore
+	NotificationRegistry *notification.Registry
+	Log                  *slog.Logger
 }
 
 // apiKeyAuth is a local copy of the auth middleware to avoid importing the
@@ -141,6 +144,12 @@ func Mount(r chi.Router, deps Deps) {
 		if deps.DCStore != nil && deps.DCRegistry != nil {
 			dch := newDownloadClientHandler(deps.DCStore, deps.DCRegistry, deps.Log)
 			mountDownloadClient(r, dch)
+		}
+
+		// notification
+		if deps.NotificationStore != nil && deps.NotificationRegistry != nil {
+			nh := newNotificationHandler(deps.NotificationStore, deps.NotificationRegistry, deps.Log)
+			mountNotification(r, nh)
 		}
 
 		// system/status
