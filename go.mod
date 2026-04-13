@@ -1,6 +1,6 @@
 module github.com/ajthom90/sonarr2
 
-go 1.23
+go 1.25.0
 
 require (
 	github.com/fsnotify/fsnotify v1.7.0
@@ -10,6 +10,7 @@ require (
 	github.com/pressly/goose/v3 v3.22.1
 	github.com/testcontainers/testcontainers-go v0.33.0
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.33.0
+	golang.org/x/time v0.5.0
 	gopkg.in/yaml.v3 v3.0.1
 	modernc.org/sqlite v1.33.1
 )
