@@ -3,9 +3,16 @@ package migrate
 import (
 	"context"
 	"database/sql"
+	"io"
+	"log/slog"
+	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/ajthom90/sonarr2/internal/db"
+	"github.com/ajthom90/sonarr2/internal/events"
+	"github.com/ajthom90/sonarr2/internal/library"
 	_ "modernc.org/sqlite"
 )
 
@@ -478,5 +485,180 @@ func TestExtractQualityName(t *testing.T) {
 				t.Errorf("extractQualityName(%q) = %q, want %q", tt.input, got, tt.want)
 			}
 		})
+	}
+}
+
+// createFixtureDBFile creates the same fixture as createFixtureDB but writes
+// it to the given file path instead of in-memory. The returned *sql.DB is
+// already closed; use the path to re-open it.
+func createFixtureDBFile(t *testing.T, path string) {
+	t.Helper()
+	fileDB, err := sql.Open("sqlite", path)
+	if err != nil {
+		t.Fatalf("open fixture file db: %v", err)
+	}
+	defer fileDB.Close()
+
+	_, err = fileDB.Exec(`
+		CREATE TABLE Series (
+			Id INTEGER PRIMARY KEY, TvdbId INTEGER, Title TEXT, CleanTitle TEXT,
+			Status TEXT, Path TEXT, Monitored INTEGER, SeriesType TEXT, Added TEXT
+		);
+		CREATE TABLE Seasons (
+			Id INTEGER PRIMARY KEY, SeriesId INTEGER, SeasonNumber INTEGER, Monitored INTEGER
+		);
+		CREATE TABLE Episodes (
+			Id INTEGER PRIMARY KEY, SeriesId INTEGER, SeasonNumber INTEGER,
+			EpisodeNumber INTEGER, AbsoluteEpisodeNumber INTEGER,
+			Title TEXT, Overview TEXT, AirDateUtc TEXT, Monitored INTEGER, EpisodeFileId INTEGER
+		);
+		CREATE TABLE EpisodeFiles (
+			Id INTEGER PRIMARY KEY, SeriesId INTEGER, SeasonNumber INTEGER,
+			RelativePath TEXT, Size INTEGER, DateAdded TEXT, ReleaseGroup TEXT, Quality TEXT
+		);
+		CREATE TABLE QualityProfiles (
+			Id INTEGER PRIMARY KEY, Name TEXT, UpgradeAllowed INTEGER, Cutoff INTEGER, Items TEXT
+		);
+		CREATE TABLE Indexers (
+			Id INTEGER PRIMARY KEY, Name TEXT, Implementation TEXT, Settings TEXT,
+			EnableRss INTEGER, EnableAutomaticSearch INTEGER, EnableInteractiveSearch INTEGER, Priority INTEGER
+		);
+		CREATE TABLE DownloadClients (
+			Id INTEGER PRIMARY KEY, Name TEXT, Implementation TEXT, Settings TEXT,
+			Enable INTEGER, Priority INTEGER
+		);
+		CREATE TABLE Notifications (
+			Id INTEGER PRIMARY KEY, Name TEXT, Implementation TEXT, Settings TEXT,
+			OnGrab INTEGER, OnDownload INTEGER, OnHealthIssue INTEGER
+		);
+		CREATE TABLE Config (Key TEXT PRIMARY KEY, Value TEXT);
+		CREATE TABLE History (
+			Id INTEGER PRIMARY KEY, EpisodeId INTEGER, SeriesId INTEGER,
+			SourceTitle TEXT, Quality TEXT, Date TEXT, EventType TEXT, DownloadId TEXT, Data TEXT
+		);
+
+		-- Insert fixture data
+		INSERT INTO Config (Key, Value) VALUES ('ApiKey', 'test-api-key-12345');
+
+		INSERT INTO Series VALUES (1, 71663, 'The Simpsons', 'thesimpsons', 'continuing', '/tv/The Simpsons', 1, 'standard', '2023-01-01 00:00:00');
+		INSERT INTO Series VALUES (2, 81189, 'Breaking Bad', 'breakingbad', 'ended', '/tv/Breaking Bad', 1, 'standard', '2023-06-15 12:00:00');
+
+		INSERT INTO Seasons VALUES (1, 1, 1, 1);
+		INSERT INTO Seasons VALUES (2, 1, 2, 0);
+		INSERT INTO Seasons VALUES (3, 2, 1, 1);
+
+		INSERT INTO EpisodeFiles VALUES (1, 1, 1, 'Season 01/The Simpsons - S01E01 - Pilot.mkv', 1500000000, '2023-01-10 00:00:00', 'ABCD', '{"quality":{"id":7,"name":"Bluray-1080p","source":"bluray","resolution":1080}}');
+
+		INSERT INTO Episodes VALUES (1, 1, 1, 1, 0, 'Simpsons Roasting on an Open Fire', 'The first episode.', '1989-12-17 00:00:00', 1, 1);
+		INSERT INTO Episodes VALUES (2, 1, 1, 2, 0, 'Bart the Genius', 'Bart cheats.', '1990-01-14 00:00:00', 1, 0);
+		INSERT INTO Episodes VALUES (3, 2, 1, 1, 0, 'Pilot', 'Walter starts cooking.', '2008-01-20 00:00:00', 1, 0);
+
+		INSERT INTO QualityProfiles VALUES (1, 'HD-1080p', 1, 7, '[{"quality":{"id":7,"name":"Bluray-1080p"},"allowed":true}]');
+
+		INSERT INTO Indexers VALUES (1, 'NZBgeek', 'Newznab', '{"baseUrl":"https://nzbgeek.info","apiKey":"abc123"}', 1, 1, 0, 25);
+
+		INSERT INTO DownloadClients VALUES (1, 'SABnzbd', 'Sabnzbd', '{"host":"localhost","port":8080,"apiKey":"sab123"}', 1, 1);
+
+		INSERT INTO Notifications VALUES (1, 'Discord', 'Discord', '{"webhookUrl":"https://discord.com/api/webhooks/123"}', 1, 1, 0);
+
+		INSERT INTO History VALUES (1, 1, 1, 'The.Simpsons.S01E01.1080p.BluRay', '{"quality":{"id":7,"name":"Bluray-1080p"}}', '2023-01-10 12:00:00', 'grabbed', 'dl-123', '{}');
+	`)
+	if err != nil {
+		t.Fatalf("create fixture file: %v", err)
+	}
+}
+
+func TestMigratorIntegration(t *testing.T) {
+	ctx := context.Background()
+
+	// Create source fixture DB at a temp file path.
+	tmpDir := t.TempDir()
+	sourceFile := filepath.Join(tmpDir, "sonarr.db")
+	createFixtureDBFile(t, sourceFile)
+
+	// Create destination sonarr2 DB.
+	destPath := filepath.Join(tmpDir, "sonarr2.db")
+	destPool, err := db.OpenSQLite(ctx, db.SQLiteOptions{
+		DSN: "file:" + destPath + "?_journal=WAL&_busy_timeout=5000",
+	})
+	if err != nil {
+		t.Fatalf("open dest: %v", err)
+	}
+	defer destPool.Close()
+
+	if err := db.Migrate(ctx, destPool); err != nil {
+		t.Fatalf("migrate dest: %v", err)
+	}
+
+	// Run migration.
+	m, err := New(Options{
+		SourcePath: sourceFile,
+		DestPool:   destPool,
+		Remaps:     []PathRemap{{Old: "/tv", New: "/media/tv"}},
+		Log:        slog.New(slog.NewTextHandler(io.Discard, nil)),
+	})
+	if err != nil {
+		t.Fatalf("new migrator: %v", err)
+	}
+	defer m.Close()
+
+	report, err := m.Run(ctx)
+	if err != nil {
+		t.Fatalf("Run: %v", err)
+	}
+
+	// Verify report counts.
+	if report.Series != 2 {
+		t.Errorf("Series = %d, want 2", report.Series)
+	}
+	if report.Seasons != 3 {
+		t.Errorf("Seasons = %d, want 3", report.Seasons)
+	}
+	if report.Episodes != 3 {
+		t.Errorf("Episodes = %d, want 3", report.Episodes)
+	}
+	if report.EpisodeFiles != 1 {
+		t.Errorf("EpisodeFiles = %d, want 1", report.EpisodeFiles)
+	}
+	if report.QualityProfiles != 1 {
+		t.Errorf("QualityProfiles = %d, want 1", report.QualityProfiles)
+	}
+	if report.Indexers != 1 {
+		t.Errorf("Indexers = %d, want 1", report.Indexers)
+	}
+	if report.DownloadClients != 1 {
+		t.Errorf("DownloadClients = %d, want 1", report.DownloadClients)
+	}
+	if report.Notifications != 1 {
+		t.Errorf("Notifications = %d, want 1", report.Notifications)
+	}
+	if report.History != 1 {
+		t.Errorf("History = %d, want 1", report.History)
+	}
+
+	// Verify path remapping: series paths should have /tv replaced by /media/tv.
+	lib, err := library.New(destPool, events.NewNoopBus())
+	if err != nil {
+		t.Fatalf("create library for verification: %v", err)
+	}
+	allSeries, err := lib.Series.List(ctx)
+	if err != nil {
+		t.Fatalf("list series: %v", err)
+	}
+	if len(allSeries) != 2 {
+		t.Fatalf("listed %d series, want 2", len(allSeries))
+	}
+	for _, s := range allSeries {
+		if strings.HasPrefix(s.Path, "/tv") {
+			t.Errorf("series %q path not remapped: %s", s.Title, s.Path)
+		}
+		if !strings.HasPrefix(s.Path, "/media/tv") {
+			t.Errorf("series %q path incorrect: %s", s.Title, s.Path)
+		}
+	}
+
+	// Verify warnings slice is empty (all entities should have mapped cleanly).
+	if len(report.Warnings) > 0 {
+		t.Errorf("unexpected warnings: %v", report.Warnings)
 	}
 }
