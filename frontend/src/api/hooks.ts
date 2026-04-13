@@ -146,6 +146,29 @@ export function useAddSeries() {
   })
 }
 
+export function useUpdateSeries() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, ...body }: { id: number } & Partial<Series>) =>
+      api.put<Series>(`/series/${id}`, body),
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({ queryKey: ['series', variables.id] })
+      qc.invalidateQueries({ queryKey: ['series'] })
+    },
+  })
+}
+
+export function useDeleteSeries() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, deleteFiles }: { id: number; deleteFiles: boolean }) =>
+      api.delete(`/series/${id}${deleteFiles ? '?deleteFiles=true' : ''}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['series'] })
+    },
+  })
+}
+
 export function useGeneralSettings() {
   return useQuery({
     queryKey: ['settings-general'],

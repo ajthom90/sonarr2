@@ -87,6 +87,29 @@
   border: 1px solid rgba(136, 146, 164, 0.3);
 }
 
+/* Action bar */
+.actionBar {
+  display: flex;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+
+.editBtn {
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-accent);
+  color: #0f1117;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.editBtn:hover {
+  background: var(--color-accent-hover);
+}
+
 /* Meta grid */
 .meta {
   display: flex;

@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useSeries, useEpisodes } from '../api/hooks'
+import { EditSeriesModal } from '../components/EditSeriesModal'
 import type { Episode } from '../api/types'
 import styles from './SeriesDetail.module.css'
 
@@ -42,6 +44,7 @@ export function SeriesDetail() {
 
   const { data: series, isLoading: seriesLoading, isError: seriesError, error: seriesErr } = useSeries(seriesId)
   const { data: episodesPage, isLoading: episodesLoading } = useEpisodes(seriesId)
+  const [showEditModal, setShowEditModal] = useState(false)
 
   if (seriesLoading) {
     return (
@@ -75,6 +78,11 @@ export function SeriesDetail() {
           <h1 className={styles.title}>{series.title}</h1>
           {series.year > 0 && <span className={styles.year}>({series.year})</span>}
           <StatusBadge status={series.status} />
+          <div className={styles.actionBar}>
+            <button className={styles.editBtn} onClick={() => setShowEditModal(true)}>
+              Edit
+            </button>
+          </div>
         </div>
         <dl className={styles.meta}>
           <div className={styles.metaItem}>
@@ -175,6 +183,12 @@ export function SeriesDetail() {
           )
         })}
       </div>
+
+      <EditSeriesModal
+        series={series}
+        open={showEditModal}
+        onClose={() => setShowEditModal(false)}
+      />
     </div>
   )
 }
