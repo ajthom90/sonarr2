@@ -40,6 +40,99 @@
 .dotLoading {
   background: var(--color-text-secondary);
 }
+/* ── Search ────────────────────────────────────────────── */
+.searchWrapper {
+  position: relative;
+  padding: 0 var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.searchInput {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  outline: none;
+  transition: border-color 0.15s ease;
+  box-sizing: border-box;
+}
+
+.searchInput::placeholder {
+  color: var(--color-text-secondary);
+}
+
+.searchInput:focus {
+  border-color: var(--color-accent);
+}
+
+.searchResults {
+  position: absolute;
+  top: 100%;
+  left: var(--space-2);
+  right: var(--space-2);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  margin-top: var(--space-1);
+  max-height: 280px;
+  overflow-y: auto;
+  z-index: 100;
+  list-style: none;
+  padding: var(--space-1) 0;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.searchResultItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  background: none;
+  border: none;
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.1s ease;
+}
+
+.searchResultItem:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.searchResultTitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.searchResultYear {
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+.searchNoResults {
+  position: absolute;
+  top: 100%;
+  left: var(--space-2);
+  right: var(--space-2);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  margin-top: var(--space-1);
+  padding: var(--space-3);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  z-index: 100;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
 .sidebar ul { display: flex; flex-direction: column; gap: var(--space-1); }
 .sidebar a {
   display: flex;
