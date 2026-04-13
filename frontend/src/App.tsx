@@ -10,6 +10,7 @@ import { Calendar } from './pages/Calendar'
 import { Activity } from './pages/Activity'
 import { Wanted } from './pages/Wanted'
 import { Settings } from './pages/Settings'
+import { SettingsGeneral } from './pages/SettingsGeneral'
 import { System } from './pages/System'
 import { AddSeries } from './pages/AddSeries'
 import { NotFound } from './pages/NotFound'
@@ -35,6 +36,7 @@ export function App() {
               <Route path="activity" element={<Activity />} />
               <Route path="wanted" element={<Wanted />} />
               <Route path="settings" element={<Settings />} />
+              <Route path="settings/general" element={<SettingsGeneral />} />
               <Route path="system" element={<System />} />
               <Route path="*" element={<NotFound />} />
             </Route>

@@ -52,3 +52,9 @@
 }
 .sidebar a:hover { background: var(--color-surface-raised); color: var(--color-text); }
 .active { background: var(--color-surface-raised) !important; color: var(--color-accent) !important; }
+.subNav {
+  padding-left: var(--space-6);
+}
+.subNav a {
+  font-size: 0.85rem;
+}

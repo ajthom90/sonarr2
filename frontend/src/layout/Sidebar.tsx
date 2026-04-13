@@ -8,7 +8,9 @@ const navItems = [
   { to: '/calendar', label: 'Calendar', icon: '📅' },
   { to: '/activity', label: 'Activity', icon: '⚡' },
   { to: '/wanted', label: 'Wanted', icon: '🔍' },
-  { to: '/settings', label: 'Settings', icon: '⚙️' },
+  { to: '/settings', label: 'Settings', icon: '⚙️', children: [
+    { to: '/settings/general', label: 'General' },
+  ] },
   { to: '/system', label: 'System', icon: '💻' },
 ]
 
@@ -36,9 +38,20 @@ export function Sidebar() {
       <ul>
         {navItems.map(item => (
           <li key={item.to}>
-            <NavLink to={item.to} className={({ isActive }) => isActive ? styles.active : ''}>
+            <NavLink to={item.to} end={!!item.children} className={({ isActive }) => isActive ? styles.active : ''}>
               <span>{item.icon}</span> {item.label}
             </NavLink>
+            {item.children && (
+              <ul className={styles.subNav}>
+                {item.children.map(child => (
+                  <li key={child.to}>
+                    <NavLink to={child.to} className={({ isActive }) => isActive ? styles.active : ''}>
+                      {child.label}
+                    </NavLink>
+                  </li>
+                ))}
+              </ul>
+            )}
           </li>
         ))}
       </ul>
