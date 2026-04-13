@@ -12,7 +12,7 @@ import (
 func TestCheckUpdateAvailable(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{"tag_name": "v2.0.0"})
+		_ = json.NewEncoder(w).Encode(map[string]string{"tag_name": "v2.0.0"})
 	}))
 	defer srv.Close()
 
@@ -32,7 +32,7 @@ func TestCheckUpdateAvailable(t *testing.T) {
 func TestCheckNoUpdate(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{"tag_name": "v1.0.0"})
+		_ = json.NewEncoder(w).Encode(map[string]string{"tag_name": "v1.0.0"})
 	}))
 	defer srv.Close()
 
@@ -49,7 +49,7 @@ func TestCheckNoUpdate(t *testing.T) {
 func TestCheckDevVersion(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{"tag_name": "v2.0.0"})
+		_ = json.NewEncoder(w).Encode(map[string]string{"tag_name": "v2.0.0"})
 	}))
 	defer srv.Close()
 
@@ -68,7 +68,7 @@ func TestCheckCachesResult(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		calls.Add(1)
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{"tag_name": "v1.0.0"})
+		_ = json.NewEncoder(w).Encode(map[string]string{"tag_name": "v1.0.0"})
 	}))
 	defer srv.Close()
 
