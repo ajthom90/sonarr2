@@ -29,6 +29,7 @@ import (
 	"github.com/ajthom90/sonarr2/internal/grab"
 	"github.com/ajthom90/sonarr2/internal/history"
 	"github.com/ajthom90/sonarr2/internal/hostconfig"
+	"github.com/ajthom90/sonarr2/internal/importer"
 	"github.com/ajthom90/sonarr2/internal/library"
 	"github.com/ajthom90/sonarr2/internal/logging"
 	"github.com/ajthom90/sonarr2/internal/profiles"
@@ -244,6 +245,13 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 	case *db.SQLitePool:
 		histStore = history.NewSQLiteStore(p)
 	}
+
+	// Import service — scans completed download folders and moves files into
+	// the library. Registered as the "ProcessDownload" command handler so it
+	// can be triggered via the command queue when a download completes.
+	importSvc := importer.New(lib, histStore, bus, log)
+	processDownload := handlers.NewProcessDownloadHandler(importSvc)
+	reg.Register("ProcessDownload", processDownload)
 
 	// Load quality definitions for specs that need them.
 	allDefs, _ := qualityDefStore.GetAll(ctx)
