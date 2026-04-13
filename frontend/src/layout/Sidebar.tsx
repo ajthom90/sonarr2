@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom'
+import { useConnectionStatus } from '../api/hooks'
 import styles from './Sidebar.module.css'
 
 const navItems = [
@@ -11,9 +12,26 @@ const navItems = [
 ]
 
 export function Sidebar() {
+  const { data: connected, isLoading } = useConnectionStatus()
+
+  const dotClass = isLoading
+    ? styles.dotLoading
+    : connected
+      ? styles.dotConnected
+      : styles.dotDisconnected
+
+  const dotTitle = isLoading
+    ? 'Checking connection...'
+    : connected
+      ? 'Connected'
+      : 'Disconnected'
+
   return (
     <nav className={styles.sidebar}>
-      <div className={styles.logo}>sonarr2</div>
+      <div className={styles.logo}>
+        sonarr2
+        <span className={`${styles.statusDot} ${dotClass}`} title={dotTitle} />
+      </div>
       <ul>
         {navItems.map(item => (
           <li key={item.to}>
