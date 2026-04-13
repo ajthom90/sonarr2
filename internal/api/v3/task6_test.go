@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	"github.com/ajthom90/sonarr2/internal/health"
 	"github.com/ajthom90/sonarr2/internal/library"
 	"github.com/ajthom90/sonarr2/internal/providers/downloadclient"
 	"github.com/ajthom90/sonarr2/internal/providers/indexer"
@@ -261,7 +262,8 @@ func TestTagListReturnsEmpty(t *testing.T) {
 
 func TestHealthReturnsEmpty(t *testing.T) {
 	r := chi.NewRouter()
-	MountHealth(r)
+	checker := health.NewChecker() // empty checker returns empty results
+	MountHealth(r, checker)
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v3/health", nil)
 	rr := httptest.NewRecorder()

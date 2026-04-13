@@ -13,6 +13,7 @@ import (
 
 	"github.com/ajthom90/sonarr2/internal/commands"
 	"github.com/ajthom90/sonarr2/internal/customformats"
+	"github.com/ajthom90/sonarr2/internal/health"
 	"github.com/ajthom90/sonarr2/internal/history"
 	"github.com/ajthom90/sonarr2/internal/hostconfig"
 	"github.com/ajthom90/sonarr2/internal/library"
@@ -49,6 +50,7 @@ type Deps struct {
 	DCRegistry           *downloadclient.Registry
 	NotificationStore    notification.InstanceStore
 	NotificationRegistry *notification.Registry
+	HealthChecker        *health.Checker
 	Log                  *slog.Logger
 }
 
@@ -154,6 +156,11 @@ func Mount(r chi.Router, deps Deps) {
 
 		// system/status
 		mountSystemStatus(r, deps.Pool)
+
+		// health
+		if deps.HealthChecker != nil {
+			mountHealth(r, deps.HealthChecker)
+		}
 
 		// parse
 		mountParse(r)

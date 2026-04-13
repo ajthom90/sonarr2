@@ -15,6 +15,7 @@ import (
 	"github.com/ajthom90/sonarr2/internal/buildinfo"
 	"github.com/ajthom90/sonarr2/internal/commands"
 	"github.com/ajthom90/sonarr2/internal/customformats"
+	"github.com/ajthom90/sonarr2/internal/health"
 	"github.com/ajthom90/sonarr2/internal/history"
 	"github.com/ajthom90/sonarr2/internal/hostconfig"
 	"github.com/ajthom90/sonarr2/internal/library"
@@ -59,6 +60,7 @@ type Deps struct {
 	DCRegistry           *downloadclient.Registry
 	NotificationStore    notification.InstanceStore
 	NotificationRegistry *notification.Registry
+	HealthChecker        *health.Checker
 	Broker               *realtime.Broker
 	Log                  *slog.Logger
 }
@@ -209,7 +211,7 @@ func HandlerWithDeps(log *slog.Logger, deps Deps) http.Handler {
 			v3.MountRootFolder(r, rfh)
 		}
 		v3.MountTag(r)
-		v3.MountHealth(r)
+		v3.MountHealth(r, deps.HealthChecker)
 		v3.MountParse(r)
 		if deps.Episodes != nil {
 			wh := v3.NewWantedHandler(deps.Episodes, log)
@@ -242,6 +244,7 @@ func HandlerWithDeps(log *slog.Logger, deps Deps) http.Handler {
 		DCRegistry:           deps.DCRegistry,
 		NotificationStore:    deps.NotificationStore,
 		NotificationRegistry: deps.NotificationRegistry,
+		HealthChecker:        deps.HealthChecker,
 		Log:                  deps.Log,
 	})
 
