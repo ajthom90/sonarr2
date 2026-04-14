@@ -184,6 +184,11 @@ type Session struct {
 	CreatedAt string
 }
 
+type Tag struct {
+	ID    int64
+	Label string
+}
+
 type User struct {
 	ID           int64
 	Username     string

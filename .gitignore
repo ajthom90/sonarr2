@@ -10,6 +10,9 @@
 
 # Go
 /vendor/
+
+# Sonarr upstream source clone (reference only, never tracked)
+/.sonarr-upstream/
 *.test
 *.out
 go.work

@@ -27,6 +27,7 @@ import (
 	"github.com/ajthom90/sonarr2/internal/providers/metadatasource"
 	"github.com/ajthom90/sonarr2/internal/providers/notification"
 	"github.com/ajthom90/sonarr2/internal/realtime"
+	"github.com/ajthom90/sonarr2/internal/tags"
 	"github.com/ajthom90/sonarr2/web"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -55,6 +56,7 @@ type Deps struct {
 	QualityProfiles      profiles.QualityProfileStore
 	QualityDefs          profiles.QualityDefinitionStore
 	CustomFormats        customformats.Store
+	Tags                 tags.Store
 	Commands             commands.Queue
 	History              history.Store
 	IndexerStore         indexer.InstanceStore
@@ -244,7 +246,12 @@ func HandlerWithDeps(log *slog.Logger, deps Deps) http.Handler {
 				rfh := v3.NewRootFolderHandler(deps.Series, log)
 				v3.MountRootFolder(r, rfh)
 			}
-			v3.MountTag(r)
+			if deps.Tags != nil {
+				th := v3.NewTagHandler(deps.Tags, log)
+				v3.MountTag(r, th)
+			} else {
+				v3.MountTag(r, nil)
+			}
 			v3.MountHealth(r, deps.HealthChecker)
 			v3.MountParse(r)
 			if deps.Episodes != nil {

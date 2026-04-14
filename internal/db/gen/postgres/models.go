@@ -184,6 +184,11 @@ type Session struct {
 	CreatedAt pgtype.Timestamptz
 }
 
+type Tag struct {
+	ID    int32
+	Label string
+}
+
 type User struct {
 	ID           int32
 	Username     string

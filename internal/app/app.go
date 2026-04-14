@@ -71,6 +71,7 @@ import (
 	"github.com/ajthom90/sonarr2/internal/realtime"
 	"github.com/ajthom90/sonarr2/internal/rsssync"
 	"github.com/ajthom90/sonarr2/internal/scheduler"
+	"github.com/ajthom90/sonarr2/internal/tags"
 	"github.com/ajthom90/sonarr2/internal/updatecheck"
 )
 
@@ -89,6 +90,7 @@ type App struct {
 	qualityDefs     profiles.QualityDefinitionStore
 	qualityProfiles profiles.QualityProfileStore
 	customFormats   customformats.Store
+	tagStore        tags.Store
 	indexerRegistry *indexer.Registry
 	dcRegistry      *downloadclient.Registry
 	notifRegistry   *notification.Registry
@@ -175,19 +177,22 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 		return lib.Stats.Delete(ctx, e.ID)
 	})
 
-	// Create profile and custom format stores.
+	// Create profile, custom format, and tag stores.
 	var qualityDefStore profiles.QualityDefinitionStore
 	var qualityProfileStore profiles.QualityProfileStore
 	var cfStore customformats.Store
+	var tagStore tags.Store
 	switch p := pool.(type) {
 	case *db.PostgresPool:
 		qualityDefStore = profiles.NewPostgresQualityDefinitionStore(p)
 		qualityProfileStore = profiles.NewPostgresQualityProfileStore(p)
 		cfStore = customformats.NewPostgresStore(p)
+		tagStore = tags.NewPostgresStore(p)
 	case *db.SQLitePool:
 		qualityDefStore = profiles.NewSQLiteQualityDefinitionStore(p)
 		qualityProfileStore = profiles.NewSQLiteQualityProfileStore(p)
 		cfStore = customformats.NewSQLiteStore(p)
+		tagStore = tags.NewSQLiteStore(p)
 	default:
 		_ = pool.Close()
 		return nil, fmt.Errorf("app: unsupported pool type for profiles/CF: %T", pool)
@@ -585,6 +590,7 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 			QualityProfiles:      qualityProfileStore,
 			QualityDefs:          qualityDefStore,
 			CustomFormats:        cfStore,
+			Tags:                 tagStore,
 			Commands:             cmdQueue,
 			History:              histStore,
 			IndexerStore:         idxStore,
@@ -616,6 +622,7 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 		qualityDefs:     qualityDefStore,
 		qualityProfiles: qualityProfileStore,
 		customFormats:   cfStore,
+		tagStore:        tagStore,
 		indexerRegistry: idxReg,
 		dcRegistry:      dcReg,
 		notifRegistry:   notifReg,

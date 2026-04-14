@@ -23,6 +23,7 @@ type Querier interface {
 	CreateNotification(ctx context.Context, arg CreateNotificationParams) (Notification, error)
 	CreateQualityProfile(ctx context.Context, arg CreateQualityProfileParams) (QualityProfile, error)
 	CreateSeries(ctx context.Context, arg CreateSeriesParams) (Series, error)
+	CreateTag(ctx context.Context, label string) (Tag, error)
 	DeleteCustomFormat(ctx context.Context, id int32) error
 	DeleteDownloadClient(ctx context.Context, id int32) error
 	DeleteEpisode(ctx context.Context, id int64) error
@@ -35,6 +36,7 @@ type Querier interface {
 	DeleteSeason(ctx context.Context, arg DeleteSeasonParams) error
 	DeleteSeries(ctx context.Context, id int64) error
 	DeleteSeriesStatistics(ctx context.Context, seriesID int64) error
+	DeleteTag(ctx context.Context, id int32) error
 	EnqueueCommand(ctx context.Context, arg EnqueueCommandParams) (Command, error)
 	FailCommand(ctx context.Context, arg FailCommandParams) error
 	FindByDownloadID(ctx context.Context, downloadID string) ([]History, error)
@@ -57,6 +59,8 @@ type Querier interface {
 	GetSeriesBySlug(ctx context.Context, slug string) (Series, error)
 	GetSeriesByTvdbID(ctx context.Context, tvdbID int64) (Series, error)
 	GetSeriesStatistics(ctx context.Context, seriesID int64) (SeriesStatistic, error)
+	GetTagByID(ctx context.Context, id int32) (Tag, error)
+	GetTagByLabel(ctx context.Context, label string) (Tag, error)
 	ListCustomFormats(ctx context.Context) ([]CustomFormat, error)
 	ListDownloadClients(ctx context.Context) ([]DownloadClient, error)
 	ListEpisodeFilesForSeries(ctx context.Context, seriesID int64) ([]EpisodeFile, error)
@@ -69,6 +73,7 @@ type Querier interface {
 	ListScheduledTasks(ctx context.Context) ([]ScheduledTask, error)
 	ListSeasonsForSeries(ctx context.Context, seriesID int64) ([]Season, error)
 	ListSeries(ctx context.Context) ([]Series, error)
+	ListTags(ctx context.Context) ([]Tag, error)
 	RefreshLease(ctx context.Context, arg RefreshLeaseParams) error
 	SumEpisodeFileSizesForSeries(ctx context.Context, seriesID int64) (SumEpisodeFileSizesForSeriesRow, error)
 	SweepExpiredLeases(ctx context.Context) (int64, error)
@@ -80,6 +85,7 @@ type Querier interface {
 	UpdateQualityDefinitionSizes(ctx context.Context, arg UpdateQualityDefinitionSizesParams) error
 	UpdateQualityProfile(ctx context.Context, arg UpdateQualityProfileParams) error
 	UpdateSeries(ctx context.Context, arg UpdateSeriesParams) error
+	UpdateTag(ctx context.Context, arg UpdateTagParams) error
 	UpdateTaskExecution(ctx context.Context, arg UpdateTaskExecutionParams) error
 	UpsertHostConfig(ctx context.Context, arg UpsertHostConfigParams) error
 	UpsertScheduledTask(ctx context.Context, arg UpsertScheduledTaskParams) error
