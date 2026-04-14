@@ -105,13 +105,15 @@ type History struct {
 }
 
 type HostConfig struct {
-	ID             int16
-	ApiKey         string
-	AuthMode       string
-	MigrationState string
-	CreatedAt      pgtype.Timestamptz
-	UpdatedAt      pgtype.Timestamptz
-	TvdbApiKey     string
+	ID                    int16
+	ApiKey                string
+	AuthMode              string
+	MigrationState        string
+	CreatedAt             pgtype.Timestamptz
+	UpdatedAt             pgtype.Timestamptz
+	TvdbApiKey            string
+	RecycleBin            string
+	RecycleBinCleanupDays int32
 }
 
 type Indexer struct {

@@ -12,19 +12,22 @@ import (
 )
 
 const getHostConfig = `-- name: GetHostConfig :one
-SELECT id, api_key, auth_mode, migration_state, tvdb_api_key, created_at, updated_at
+SELECT id, api_key, auth_mode, migration_state, tvdb_api_key,
+       recycle_bin, recycle_bin_cleanup_days, created_at, updated_at
 FROM host_config
 WHERE id = 1
 `
 
 type GetHostConfigRow struct {
-	ID             int16
-	ApiKey         string
-	AuthMode       string
-	MigrationState string
-	TvdbApiKey     string
-	CreatedAt      pgtype.Timestamptz
-	UpdatedAt      pgtype.Timestamptz
+	ID                    int16
+	ApiKey                string
+	AuthMode              string
+	MigrationState        string
+	TvdbApiKey            string
+	RecycleBin            string
+	RecycleBinCleanupDays int32
+	CreatedAt             pgtype.Timestamptz
+	UpdatedAt             pgtype.Timestamptz
 }
 
 func (q *Queries) GetHostConfig(ctx context.Context) (GetHostConfigRow, error) {
@@ -36,6 +39,8 @@ func (q *Queries) GetHostConfig(ctx context.Context) (GetHostConfigRow, error) {
 		&i.AuthMode,
 		&i.MigrationState,
 		&i.TvdbApiKey,
+		&i.RecycleBin,
+		&i.RecycleBinCleanupDays,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -43,21 +48,26 @@ func (q *Queries) GetHostConfig(ctx context.Context) (GetHostConfigRow, error) {
 }
 
 const upsertHostConfig = `-- name: UpsertHostConfig :exec
-INSERT INTO host_config (id, api_key, auth_mode, migration_state, tvdb_api_key)
-VALUES (1, $1, $2, $3, $4)
+INSERT INTO host_config (id, api_key, auth_mode, migration_state, tvdb_api_key,
+                         recycle_bin, recycle_bin_cleanup_days)
+VALUES (1, $1, $2, $3, $4, $5, $6)
 ON CONFLICT (id) DO UPDATE
 SET api_key = EXCLUDED.api_key,
     auth_mode = EXCLUDED.auth_mode,
     migration_state = EXCLUDED.migration_state,
     tvdb_api_key = EXCLUDED.tvdb_api_key,
+    recycle_bin = EXCLUDED.recycle_bin,
+    recycle_bin_cleanup_days = EXCLUDED.recycle_bin_cleanup_days,
     updated_at = now()
 `
 
 type UpsertHostConfigParams struct {
-	ApiKey         string
-	AuthMode       string
-	MigrationState string
-	TvdbApiKey     string
+	ApiKey                string
+	AuthMode              string
+	MigrationState        string
+	TvdbApiKey            string
+	RecycleBin            string
+	RecycleBinCleanupDays int32
 }
 
 func (q *Queries) UpsertHostConfig(ctx context.Context, arg UpsertHostConfigParams) error {
@@ -66,6 +76,8 @@ func (q *Queries) UpsertHostConfig(ctx context.Context, arg UpsertHostConfigPara
 		arg.AuthMode,
 		arg.MigrationState,
 		arg.TvdbApiKey,
+		arg.RecycleBin,
+		arg.RecycleBinCleanupDays,
 	)
 	return err
 }

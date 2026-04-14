@@ -40,12 +40,14 @@ func (s *SQLiteStore) Get(ctx context.Context) (HostConfig, error) {
 	createdAt, _ := time.Parse("2006-01-02 15:04:05", row.CreatedAt)
 	updatedAt, _ := time.Parse("2006-01-02 15:04:05", row.UpdatedAt)
 	return HostConfig{
-		APIKey:         row.ApiKey,
-		AuthMode:       row.AuthMode,
-		MigrationState: row.MigrationState,
-		TvdbApiKey:     row.TvdbApiKey,
-		CreatedAt:      createdAt,
-		UpdatedAt:      updatedAt,
+		APIKey:                row.ApiKey,
+		AuthMode:              row.AuthMode,
+		MigrationState:        row.MigrationState,
+		TvdbApiKey:            row.TvdbApiKey,
+		RecycleBin:            row.RecycleBin,
+		RecycleBinCleanupDays: int(row.RecycleBinCleanupDays),
+		CreatedAt:             createdAt,
+		UpdatedAt:             updatedAt,
 	}, nil
 }
 
@@ -55,10 +57,12 @@ func (s *SQLiteStore) Upsert(ctx context.Context, hc HostConfig) error {
 		// Wrap exec in an adapter that satisfies sqlc's DBTX interface for writes.
 		queries := sqlitegen.New(execAdapter{exec: exec})
 		return queries.UpsertHostConfig(ctx, sqlitegen.UpsertHostConfigParams{
-			ApiKey:         hc.APIKey,
-			AuthMode:       hc.AuthMode,
-			MigrationState: hc.MigrationState,
-			TvdbApiKey:     hc.TvdbApiKey,
+			ApiKey:                hc.APIKey,
+			AuthMode:              hc.AuthMode,
+			MigrationState:        hc.MigrationState,
+			TvdbApiKey:            hc.TvdbApiKey,
+			RecycleBin:            hc.RecycleBin,
+			RecycleBinCleanupDays: int64(hc.RecycleBinCleanupDays),
 		})
 	})
 }

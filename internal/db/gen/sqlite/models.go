@@ -106,13 +106,15 @@ type History struct {
 }
 
 type HostConfig struct {
-	ID             int64
-	ApiKey         string
-	AuthMode       string
-	MigrationState string
-	CreatedAt      string
-	UpdatedAt      string
-	TvdbApiKey     string
+	ID                    int64
+	ApiKey                string
+	AuthMode              string
+	MigrationState        string
+	CreatedAt             string
+	UpdatedAt             string
+	TvdbApiKey            string
+	RecycleBin            string
+	RecycleBinCleanupDays int64
 }
 
 type Indexer struct {
