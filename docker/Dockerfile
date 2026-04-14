@@ -65,7 +65,8 @@ RUN chmod +x /entrypoint.sh
 WORKDIR /config
 
 ENV PUID=1000 \
-    PGID=1000
+    PGID=1000 \
+    SONARR2_DB_DSN="file:/config/data/sonarr2.db?_journal=WAL&_busy_timeout=5000"
 
 EXPOSE 8989
 VOLUME ["/config", "/data"]
