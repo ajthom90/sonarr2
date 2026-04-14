@@ -1,0 +1,91 @@
+.page {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.title {
+  font-size: 1.5rem;
+  margin: 0 0 6px;
+}
+.subtitle {
+  color: var(--color-text-muted, #9aa0a6);
+  font-size: 0.9rem;
+  margin: 0 0 24px;
+  line-height: 1.5;
+  max-width: 800px;
+}
+.status,
+.error {
+  padding: 24px;
+  text-align: center;
+  color: var(--color-text-muted, #9aa0a6);
+  margin: 0;
+}
+.error {
+  color: var(--color-danger, #ef4444);
+}
+.tableWrapper {
+  background: var(--color-bg-surface, #1b1e22);
+  border: 1px solid var(--color-border, #2d3138);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.th {
+  text-align: left;
+  padding: 10px 12px;
+  background: var(--color-surface-hover, #242830);
+  border-bottom: 1px solid var(--color-border, #2d3138);
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: var(--color-text-muted, #9aa0a6);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.row:not(:last-child) .td {
+  border-bottom: 1px solid var(--color-border, #2d3138);
+}
+.td {
+  padding: 8px 12px;
+}
+.pillMissing {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 0.8rem;
+}
+.pillUpgrade {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 0.8rem;
+}
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 16px;
+}
+.pager button {
+  padding: 6px 14px;
+  border-radius: 4px;
+  border: 1px solid var(--color-border, #2d3138);
+  background: var(--color-bg-surface, #1b1e22);
+  color: inherit;
+  cursor: pointer;
+}
+.pager button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.pagerInfo {
+  color: var(--color-text-muted, #9aa0a6);
+  font-size: 0.9rem;
+}
