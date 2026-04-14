@@ -274,3 +274,15 @@ export interface RemotePathMapping {
   remotePath: string
   localPath: string
 }
+
+export interface NotificationResource {
+  id: number
+  name: string
+  implementation: string
+  fields: Record<string, unknown>
+  onGrab: boolean
+  onDownload: boolean
+  onHealthIssue: boolean
+  tags: number[]
+  added?: string
+}

@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from './client'
 import { apiV3 } from './v3'
-import type { Series, Episode, Page, SystemStatus, Command, HistoryEntry, HealthItem, WantedEpisode, Indexer, DownloadClient, QualityProfile, QualityDefinition, SeriesLookupResult, RootFolder, AddSeriesRequest, GeneralSettings, CustomFormat, BackupInfo, FilesystemListing, LibraryImportEntry, CreateRootFolderRequest, ProviderSchema, IndexerResource, DownloadClientResource, RemotePathMapping } from './types'
+import type { Series, Episode, Page, SystemStatus, Command, HistoryEntry, HealthItem, WantedEpisode, Indexer, DownloadClient, QualityProfile, QualityDefinition, SeriesLookupResult, RootFolder, AddSeriesRequest, GeneralSettings, CustomFormat, BackupInfo, FilesystemListing, LibraryImportEntry, CreateRootFolderRequest, ProviderSchema, IndexerResource, DownloadClientResource, RemotePathMapping, NotificationResource } from './types'
 
 export function useSeriesList() {
   return useQuery({
@@ -458,5 +458,61 @@ export function useDeleteRemotePathMapping() {
   return useMutation({
     mutationFn: (id: number) => apiV3.delete(`/remotepathmapping/${id}`),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['v3', 'remotepathmapping'] }),
+  })
+}
+
+// ── Notification / Import List / Metadata schema + CRUD (sub-project #3) ─────
+
+export function useNotificationSchema() {
+  return useQuery({
+    queryKey: ['v3', 'notification', 'schema'],
+    queryFn: () => apiV3.get<ProviderSchema[]>('/notification/schema'),
+  })
+}
+
+export function useNotifications() {
+  return useQuery({
+    queryKey: ['v3', 'notification'],
+    queryFn: () => apiV3.get<NotificationResource[]>('/notification'),
+  })
+}
+
+export function useCreateNotification() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (body: Omit<NotificationResource, 'id' | 'added'>) =>
+      apiV3.post<NotificationResource>('/notification', body),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['v3', 'notification'] }),
+  })
+}
+
+export function useUpdateNotification() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, ...body }: NotificationResource) =>
+      apiV3.put<NotificationResource>(`/notification/${id}`, body),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['v3', 'notification'] }),
+  })
+}
+
+export function useDeleteNotification() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => apiV3.delete(`/notification/${id}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['v3', 'notification'] }),
+  })
+}
+
+export function useImportListSchema() {
+  return useQuery({
+    queryKey: ['v3', 'importlist', 'schema'],
+    queryFn: () => apiV3.get<ProviderSchema[]>('/importlist/schema'),
+  })
+}
+
+export function useMetadataSchema() {
+  return useQuery({
+    queryKey: ['v3', 'metadata', 'schema'],
+    queryFn: () => apiV3.get<ProviderSchema[]>('/metadata/schema'),
   })
 }
