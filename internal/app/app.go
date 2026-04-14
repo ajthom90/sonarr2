@@ -45,12 +45,26 @@ import (
 	"github.com/ajthom90/sonarr2/internal/logging"
 	"github.com/ajthom90/sonarr2/internal/profiles"
 	"github.com/ajthom90/sonarr2/internal/providers/downloadclient"
+	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/aria2"
 	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/blackhole"
+	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/blackholetorrent"
+	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/blackholeusenet"
 	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/deluge"
+	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/dstation"
+	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/flood"
+	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/freebox"
+	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/hadouken"
 	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/nzbget"
+	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/nzbvortex"
+	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/pneumatic"
 	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/qbittorrent"
+	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/rqbit"
+	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/rtorrent"
 	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/sabnzbd"
 	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/transmission"
+	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/tribler"
+	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/utorrent"
+	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/vuze"
 	"github.com/ajthom90/sonarr2/internal/providers/indexer"
 	"github.com/ajthom90/sonarr2/internal/providers/indexer/broadcasthenet"
 	"github.com/ajthom90/sonarr2/internal/providers/indexer/iptorrents"
@@ -82,7 +96,10 @@ import (
 	notifysignal "github.com/ajthom90/sonarr2/internal/providers/notification/signal"
 	"github.com/ajthom90/sonarr2/internal/providers/notification/simplepush"
 	"github.com/ajthom90/sonarr2/internal/providers/notification/slack"
+	"github.com/ajthom90/sonarr2/internal/providers/notification/synology"
 	"github.com/ajthom90/sonarr2/internal/providers/notification/telegram"
+	"github.com/ajthom90/sonarr2/internal/providers/notification/trakt"
+	"github.com/ajthom90/sonarr2/internal/providers/notification/twitter"
 	notifwebhook "github.com/ajthom90/sonarr2/internal/providers/notification/webhook"
 	"github.com/ajthom90/sonarr2/internal/realtime"
 	"github.com/ajthom90/sonarr2/internal/releaseprofile"
@@ -307,6 +324,51 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 	dcReg.Register("Blackhole", func() downloadclient.DownloadClient {
 		return blackhole.New(blackhole.Settings{}, nil)
 	})
+	dcReg.Register("UsenetBlackhole", func() downloadclient.DownloadClient {
+		return blackholeusenet.New(blackholeusenet.Settings{}, nil)
+	})
+	dcReg.Register("TorrentBlackhole", func() downloadclient.DownloadClient {
+		return blackholetorrent.New(blackholetorrent.Settings{}, nil)
+	})
+	dcReg.Register("Aria2", func() downloadclient.DownloadClient {
+		return aria2.New(aria2.Settings{}, nil)
+	})
+	dcReg.Register("NzbVortex", func() downloadclient.DownloadClient {
+		return nzbvortex.New(nzbvortex.Settings{}, nil)
+	})
+	dcReg.Register("Pneumatic", func() downloadclient.DownloadClient {
+		return pneumatic.New(pneumatic.Settings{}, nil)
+	})
+	dcReg.Register("DownloadStation", func() downloadclient.DownloadClient {
+		return dstation.NewTorrent(dstation.Settings{}, nil)
+	})
+	dcReg.Register("UsenetDownloadStation", func() downloadclient.DownloadClient {
+		return dstation.NewUsenet(dstation.Settings{}, nil)
+	})
+	dcReg.Register("RTorrent", func() downloadclient.DownloadClient {
+		return rtorrent.New(rtorrent.Settings{}, nil)
+	})
+	dcReg.Register("UTorrent", func() downloadclient.DownloadClient {
+		return utorrent.New(utorrent.Settings{}, nil)
+	})
+	dcReg.Register("Vuze", func() downloadclient.DownloadClient {
+		return vuze.New(vuze.Settings{}, nil)
+	})
+	dcReg.Register("Hadouken", func() downloadclient.DownloadClient {
+		return hadouken.New(hadouken.Settings{}, nil)
+	})
+	dcReg.Register("Flood", func() downloadclient.DownloadClient {
+		return flood.New(flood.Settings{}, nil)
+	})
+	dcReg.Register("FreeboxDownload", func() downloadclient.DownloadClient {
+		return freebox.New(freebox.Settings{}, nil)
+	})
+	dcReg.Register("Tribler", func() downloadclient.DownloadClient {
+		return tribler.New(tribler.Settings{}, nil)
+	})
+	dcReg.Register("RQBit", func() downloadclient.DownloadClient {
+		return rqbit.New(rqbit.Settings{}, nil)
+	})
 
 	// Register built-in notification providers.
 	notifReg.Register("Discord", func() notification.Notification {
@@ -374,6 +436,15 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 	})
 	notifReg.Register("Signal", func() notification.Notification {
 		return notifysignal.New(notifysignal.Settings{}, nil)
+	})
+	notifReg.Register("Twitter", func() notification.Notification {
+		return twitter.New(twitter.Settings{}, nil)
+	})
+	notifReg.Register("Trakt", func() notification.Notification {
+		return trakt.New(trakt.Settings{}, nil)
+	})
+	notifReg.Register("SynologyIndexer", func() notification.Notification {
+		return synology.New(synology.Settings{}, nil)
 	})
 
 	// Provider instance stores.
