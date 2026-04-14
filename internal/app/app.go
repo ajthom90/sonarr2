@@ -112,6 +112,7 @@ import (
 	"github.com/ajthom90/sonarr2/internal/providers/notification/twitter"
 	notifwebhook "github.com/ajthom90/sonarr2/internal/providers/notification/webhook"
 	"github.com/ajthom90/sonarr2/internal/realtime"
+	"github.com/ajthom90/sonarr2/internal/recyclebin"
 	"github.com/ajthom90/sonarr2/internal/releaseprofile"
 	"github.com/ajthom90/sonarr2/internal/remotepathmapping"
 	"github.com/ajthom90/sonarr2/internal/rsssync"
@@ -762,6 +763,20 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 		hcStore = hostconfig.NewSQLiteStore(p)
 	}
 
+	// CleanUpRecycleBin: daily purge of entries older than
+	// host_config.recycle_bin_cleanup_days from the configured recycle bin.
+	// No-op when RecycleBin path is empty or CleanupDays is 0.
+	cleanupHandler := &recycleBinCleanupHandler{hostConfig: hcStore, log: log}
+	reg.Register("CleanUpRecycleBin", cleanupHandler)
+	if err := taskStore.Upsert(ctx, scheduler.ScheduledTask{
+		TypeName:      "CleanUpRecycleBin",
+		IntervalSecs:  86400,
+		NextExecution: time.Now().Add(24 * time.Hour),
+	}); err != nil {
+		_ = pool.Close()
+		return nil, fmt.Errorf("app: upsert CleanUpRecycleBin task: %w", err)
+	}
+
 	// Auth stores.
 	var userStore auth.UserStore
 	var sessionStore auth.SessionStore
@@ -1210,6 +1225,32 @@ func extractSQLitePath(dsn string) string {
 		return ""
 	}
 	return path
+}
+
+// recycleBinCleanupHandler purges old entries from the configured recycle
+// bin when the CleanUpRecycleBin scheduled task fires. When RecycleBin is
+// empty (feature disabled) or CleanupDays is 0, Handle is a no-op.
+type recycleBinCleanupHandler struct {
+	hostConfig hostconfig.Store
+	log        *slog.Logger
+}
+
+func (h *recycleBinCleanupHandler) Handle(ctx context.Context, _ commands.Command) error {
+	hc, err := h.hostConfig.Get(ctx)
+	if err != nil {
+		return fmt.Errorf("recycle-bin cleanup: get host config: %w", err)
+	}
+	maxAge := time.Duration(hc.RecycleBinCleanupDays) * 24 * time.Hour
+	removed, err := recyclebin.Cleanup(hc.RecycleBin, maxAge)
+	if err != nil {
+		return fmt.Errorf("recycle-bin cleanup: %w", err)
+	}
+	if removed > 0 {
+		h.log.Info("recycle-bin cleanup purged entries",
+			slog.Int("count", removed),
+			slog.String("path", hc.RecycleBin))
+	}
+	return nil
 }
 
 // backupTaskHandler wraps the backup Service as a command handler.
