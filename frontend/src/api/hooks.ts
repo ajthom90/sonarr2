@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from './client'
-import type { Series, Episode, Page, SystemStatus, Command, HistoryEntry, HealthItem, WantedEpisode, Indexer, DownloadClient, QualityProfile, QualityDefinition, SeriesLookupResult, RootFolder, AddSeriesRequest, GeneralSettings, CustomFormat, BackupInfo } from './types'
+import { apiV3 } from './v3'
+import type { Series, Episode, Page, SystemStatus, Command, HistoryEntry, HealthItem, WantedEpisode, Indexer, DownloadClient, QualityProfile, QualityDefinition, SeriesLookupResult, RootFolder, AddSeriesRequest, GeneralSettings, CustomFormat, BackupInfo, FilesystemListing, LibraryImportEntry, CreateRootFolderRequest } from './types'
 
 export function useSeriesList() {
   return useQuery({
@@ -291,5 +292,65 @@ export function useBackups() {
   return useQuery({
     queryKey: ['system', 'backups'],
     queryFn: () => api.get<BackupInfo[]>('/system/backup'),
+  })
+}
+
+export function useFilesystem(path: string) {
+  return useQuery({
+    queryKey: ['v3', 'filesystem', path],
+    queryFn: () => apiV3.get<FilesystemListing>(`/filesystem?path=${encodeURIComponent(path)}`),
+    enabled: path.length > 0,
+  })
+}
+
+export function useCreateRootFolder() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (body: CreateRootFolderRequest) => apiV3.post<RootFolder>('/rootfolder', body),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['rootfolders'] })
+      qc.invalidateQueries({ queryKey: ['v3', 'rootfolder'] })
+    },
+  })
+}
+
+export function useDeleteRootFolder() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => apiV3.delete(`/rootfolder/${id}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['rootfolders'] })
+      qc.invalidateQueries({ queryKey: ['v3', 'rootfolder'] })
+    },
+  })
+}
+
+export function useLibraryImportScan(
+  rootFolderId: number,
+  opts?: { previewOnly?: boolean; enabled?: boolean },
+) {
+  const preview = opts?.previewOnly ? '&previewOnly=true' : ''
+  return useQuery({
+    queryKey: ['v3', 'libraryimport', rootFolderId, opts?.previewOnly ?? false],
+    queryFn: () =>
+      apiV3.get<LibraryImportEntry[]>(
+        `/libraryimport/scan?rootFolderId=${rootFolderId}${preview}`,
+      ),
+    enabled: (opts?.enabled ?? true) && rootFolderId > 0,
+    staleTime: 60_000,
+  })
+}
+
+export function useLibraryImportPreview(rootFolderId: number) {
+  return useLibraryImportScan(rootFolderId, { previewOnly: true })
+}
+
+export function useAddSeriesV3() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (body: AddSeriesRequest) => apiV3.post<unknown>('/series', body),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['series'] })
+    },
   })
 }

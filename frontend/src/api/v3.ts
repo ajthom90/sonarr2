@@ -1,0 +1,18 @@
+import { apiFetchRaw, ApiError } from './client'
+
+async function v3<T>(path: string, init?: RequestInit): Promise<T> {
+  const res = await apiFetchRaw(`/api/v3${path}`, init)
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({ message: res.statusText }))
+    throw new ApiError(res.status, body.message ?? body.detail ?? res.statusText)
+  }
+  if (res.status === 204) return undefined as T
+  return res.json()
+}
+
+export const apiV3 = {
+  get: <T>(path: string) => v3<T>(path),
+  post: <T>(path: string, body?: unknown) =>
+    v3<T>(path, { method: 'POST', body: body ? JSON.stringify(body) : undefined }),
+  delete: (path: string) => v3<void>(path, { method: 'DELETE' }),
+}

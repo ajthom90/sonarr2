@@ -155,6 +155,9 @@ export interface AddSeriesRequest {
   monitored: boolean
   seriesType: string
   status: string
+  seasonFolder?: boolean
+  monitorNewItems?: 'all' | 'none'
+  addOptions?: AddSeriesAddOptions
 }
 
 export interface GeneralSettings {
@@ -187,4 +190,41 @@ export interface CustomFormat {
   name: string
   includeCustomFormatWhenRenaming: boolean
   specifications: CustomFormatSpec[]
+}
+
+export interface FilesystemEntry {
+  type: 'folder' | 'file'
+  name: string
+  path: string
+}
+
+export interface FilesystemListing {
+  parent: string
+  directories: FilesystemEntry[]
+  files: FilesystemEntry[]
+}
+
+export interface LibraryImportMatch {
+  tvdbId: number
+  title: string
+  year: number
+  overview?: string
+}
+
+export interface LibraryImportEntry {
+  folderName: string
+  relativePath: string
+  absolutePath: string
+  tvdbMatch: LibraryImportMatch | null
+  alreadyImported: boolean
+}
+
+export interface CreateRootFolderRequest {
+  path: string
+}
+
+export interface AddSeriesAddOptions {
+  monitor?: 'all' | 'none' | 'future' | 'missing' | 'existing' | 'pilot' | 'firstSeason' | 'lastSeason'
+  searchForMissingEpisodes?: boolean
+  searchForCutoffUnmetEpisodes?: boolean
 }
