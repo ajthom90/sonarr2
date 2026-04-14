@@ -160,6 +160,13 @@ type QualityProfile struct {
 	FormatItems       string
 }
 
+type RemotePathMapping struct {
+	ID         int64
+	Host       string
+	RemotePath string
+	LocalPath  string
+}
+
 type ScheduledTask struct {
 	TypeName      string
 	IntervalSecs  int64

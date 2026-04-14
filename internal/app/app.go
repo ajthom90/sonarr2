@@ -70,6 +70,7 @@ import (
 	"github.com/ajthom90/sonarr2/internal/providers/notification/telegram"
 	notifwebhook "github.com/ajthom90/sonarr2/internal/providers/notification/webhook"
 	"github.com/ajthom90/sonarr2/internal/realtime"
+	"github.com/ajthom90/sonarr2/internal/remotepathmapping"
 	"github.com/ajthom90/sonarr2/internal/rsssync"
 	"github.com/ajthom90/sonarr2/internal/scheduler"
 	"github.com/ajthom90/sonarr2/internal/tags"
@@ -93,6 +94,7 @@ type App struct {
 	customFormats   customformats.Store
 	tagStore        tags.Store
 	blocklistStore  blocklist.Store
+	rpmStore        remotepathmapping.Store
 	indexerRegistry *indexer.Registry
 	dcRegistry      *downloadclient.Registry
 	notifRegistry   *notification.Registry
@@ -185,6 +187,7 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 	var cfStore customformats.Store
 	var tagStore tags.Store
 	var blStore blocklist.Store
+	var rpmStore remotepathmapping.Store
 	switch p := pool.(type) {
 	case *db.PostgresPool:
 		qualityDefStore = profiles.NewPostgresQualityDefinitionStore(p)
@@ -192,12 +195,14 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 		cfStore = customformats.NewPostgresStore(p)
 		tagStore = tags.NewPostgresStore(p)
 		blStore = blocklist.NewPostgresStore(p)
+		rpmStore = remotepathmapping.NewPostgresStore(p)
 	case *db.SQLitePool:
 		qualityDefStore = profiles.NewSQLiteQualityDefinitionStore(p)
 		qualityProfileStore = profiles.NewSQLiteQualityProfileStore(p)
 		cfStore = customformats.NewSQLiteStore(p)
 		tagStore = tags.NewSQLiteStore(p)
 		blStore = blocklist.NewSQLiteStore(p)
+		rpmStore = remotepathmapping.NewSQLiteStore(p)
 	default:
 		_ = pool.Close()
 		return nil, fmt.Errorf("app: unsupported pool type for profiles/CF: %T", pool)
@@ -597,6 +602,7 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 			CustomFormats:        cfStore,
 			Tags:                 tagStore,
 			Blocklist:            blStore,
+			RemotePathMappings:   rpmStore,
 			Commands:             cmdQueue,
 			History:              histStore,
 			IndexerStore:         idxStore,
@@ -630,6 +636,7 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 		customFormats:   cfStore,
 		tagStore:        tagStore,
 		blocklistStore:  blStore,
+		rpmStore:        rpmStore,
 		indexerRegistry: idxReg,
 		dcRegistry:      dcReg,
 		notifRegistry:   notifReg,

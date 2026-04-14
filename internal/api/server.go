@@ -28,6 +28,7 @@ import (
 	"github.com/ajthom90/sonarr2/internal/providers/metadatasource"
 	"github.com/ajthom90/sonarr2/internal/providers/notification"
 	"github.com/ajthom90/sonarr2/internal/realtime"
+	"github.com/ajthom90/sonarr2/internal/remotepathmapping"
 	"github.com/ajthom90/sonarr2/internal/tags"
 	"github.com/ajthom90/sonarr2/web"
 	"github.com/go-chi/chi/v5"
@@ -59,6 +60,7 @@ type Deps struct {
 	CustomFormats        customformats.Store
 	Tags                 tags.Store
 	Blocklist            blocklist.Store
+	RemotePathMappings   remotepathmapping.Store
 	Commands             commands.Queue
 	History              history.Store
 	IndexerStore         indexer.InstanceStore
@@ -257,6 +259,10 @@ func HandlerWithDeps(log *slog.Logger, deps Deps) http.Handler {
 			if deps.Blocklist != nil {
 				bh := v3.NewBlocklistHandler(deps.Blocklist, log)
 				v3.MountBlocklist(r, bh)
+			}
+			if deps.RemotePathMappings != nil {
+				rpmh := v3.NewRemotePathMappingHandler(deps.RemotePathMappings, log)
+				v3.MountRemotePathMapping(r, rpmh)
 			}
 			v3.MountHealth(r, deps.HealthChecker)
 			v3.MountParse(r)

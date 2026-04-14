@@ -23,6 +23,7 @@ type Querier interface {
 	CreateIndexer(ctx context.Context, arg CreateIndexerParams) (Indexer, error)
 	CreateNotification(ctx context.Context, arg CreateNotificationParams) (Notification, error)
 	CreateQualityProfile(ctx context.Context, arg CreateQualityProfileParams) (QualityProfile, error)
+	CreateRemotePathMapping(ctx context.Context, arg CreateRemotePathMappingParams) (RemotePathMapping, error)
 	CreateSeries(ctx context.Context, arg CreateSeriesParams) (Series, error)
 	CreateTag(ctx context.Context, label string) (Tag, error)
 	DeleteBlocklist(ctx context.Context, id int64) error
@@ -36,6 +37,7 @@ type Querier interface {
 	DeleteNotification(ctx context.Context, id int64) error
 	DeleteOldCompleted(ctx context.Context, endedAt sql.NullString) (int64, error)
 	DeleteQualityProfile(ctx context.Context, id int64) error
+	DeleteRemotePathMapping(ctx context.Context, id int64) error
 	DeleteSeason(ctx context.Context, arg DeleteSeasonParams) error
 	DeleteSeries(ctx context.Context, id int64) error
 	DeleteSeriesStatistics(ctx context.Context, seriesID int64) error
@@ -57,6 +59,7 @@ type Querier interface {
 	GetNotificationByID(ctx context.Context, id int64) (Notification, error)
 	GetQualityDefinitionByID(ctx context.Context, id int64) (QualityDefinition, error)
 	GetQualityProfileByID(ctx context.Context, id int64) (QualityProfile, error)
+	GetRemotePathMappingByID(ctx context.Context, id int64) (RemotePathMapping, error)
 	GetScheduledTask(ctx context.Context, typeName string) (ScheduledTask, error)
 	GetSeason(ctx context.Context, arg GetSeasonParams) (Season, error)
 	GetSeries(ctx context.Context, id int64) (Series, error)
@@ -76,6 +79,7 @@ type Querier interface {
 	ListIndexers(ctx context.Context) ([]Indexer, error)
 	ListNotifications(ctx context.Context) ([]Notification, error)
 	ListQualityProfiles(ctx context.Context) ([]QualityProfile, error)
+	ListRemotePathMappings(ctx context.Context) ([]RemotePathMapping, error)
 	ListScheduledTasks(ctx context.Context) ([]ScheduledTask, error)
 	ListSeasonsForSeries(ctx context.Context, seriesID int64) ([]Season, error)
 	ListSeries(ctx context.Context) ([]Series, error)
@@ -92,6 +96,7 @@ type Querier interface {
 	UpdateNotification(ctx context.Context, arg UpdateNotificationParams) error
 	UpdateQualityDefinitionSizes(ctx context.Context, arg UpdateQualityDefinitionSizesParams) error
 	UpdateQualityProfile(ctx context.Context, arg UpdateQualityProfileParams) error
+	UpdateRemotePathMapping(ctx context.Context, arg UpdateRemotePathMappingParams) error
 	UpdateSeries(ctx context.Context, arg UpdateSeriesParams) error
 	UpdateTag(ctx context.Context, arg UpdateTagParams) error
 	UpdateTaskExecution(ctx context.Context, arg UpdateTaskExecutionParams) error
