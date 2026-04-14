@@ -40,7 +40,7 @@ tracks completeness.
 | Feature | Status |
 |---|---|
 | Sidebar restructure to Sonarr's 6-item nav | ✅ |
-| Series sub-items: Add New / Library Import / Mass Editor / Season Pass | ✅ routes, scaffolded pages |
+| Series sub-items: Add New / Library Import / Mass Editor / Season Pass | ✅ Library Import shipped end-to-end (see §2.5); Add New persists `qualityProfileId`/`seasonFolder`/`monitorNewItems`/`addOptions` correctly but the form still hardcodes Season Folder / Monitor mode to defaults — explicit UI controls are a follow-up. Mass Editor / Season Pass remain scaffolded. |
 | `/activity/queue` + `/activity/history` + `/activity/blocklist` | ✅ |
 | `/wanted/missing` + `/wanted/cutoffunmet` | ✅ (CutoffUnmet is a placeholder pending /api/v3/wanted/cutoff) |
 | 13 Settings sub-pages | ✅ (Tags wired end-to-end; others scaffolded as PagePlaceholder) |
@@ -64,6 +64,20 @@ tracks completeness.
 
 ### 2.5 Pending subsystems
 
+**Shipped since initial draft:**
+
+- **Root folders + Library Import** — ✅ DONE. Backend: `/api/v3/filesystem`
+  directory listing, `/api/v3/rootfolder` CRUD (`POST`/`DELETE`),
+  `/api/v3/libraryimport/scan`, and extended `POST /api/v3/series` with
+  `addOptions`. Frontend: new `FileBrowserModal` and `SearchOverrideModal`,
+  rewritten `/add/import` page with per-row Quality Profile / Monitor mode /
+  Season Folder / Series Type overrides, upgraded Media Management settings,
+  and Add Series migrated to consume the persisted root-folder list. Existing
+  series' implicit root paths are back-filled into a `root_folders` table on
+  first boot. See
+  [`docs/superpowers/plans/2026-04-14-root-folders-library-import.md`](../plans/2026-04-14-root-folders-library-import.md)
+  for the full implementation plan.
+
 The following are targeted for completion in follow-up commits. Each is
 non-trivial but isolated:
 
@@ -81,7 +95,7 @@ non-trivial but isolated:
 - **Series metadata config** — propers/repacks, retention, recycle-bin wiring, MediaInfo, Extras imports, script import, series types
 - **Scheduled tasks** — ImportListSync, UpdateSceneMapping, ApplicationUpdateCheck, CleanUpRecycleBin
 - **On-demand commands** — Rescan, Move, BulkMove, RenameFiles, Episode/Season/SeriesSearch, DownloadedEpisodesScan, TestProvider
-- **Expanded v3 API surface** — releaseprofile (✅), delayprofile (✅), remotepathmapping (✅), blocklist (✅) are done; manualimport / release / rename / queue/bulk / queue/grab / customfilter / autotagging / log / log/file / update / mediacover / filesystem / localization / config/{naming,mediamanagement,host,ui,downloadclient,indexer} are pending
+- **Expanded v3 API surface** — releaseprofile (✅), delayprofile (✅), remotepathmapping (✅), blocklist (✅), filesystem (✅), rootfolder CRUD (✅), libraryimport/scan (✅) are done; manualimport / release / rename / queue/bulk / queue/grab / customfilter / autotagging / log / log/file / update / mediacover / localization / config/{naming,mediamanagement,host,ui,downloadclient,indexer} are pending
 
 ## 3. Licensing
 
