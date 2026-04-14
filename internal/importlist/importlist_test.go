@@ -1,6 +1,7 @@
 package importlist_test
 
 import (
+	"context"
 	"errors"
 	"testing"
 
@@ -43,7 +44,7 @@ func TestStubFetchReturnsErrStub(t *testing.T) {
 		importlist.NewCustom(),
 	}
 	for _, p := range providers {
-		_, err := p.Fetch(nil)
+		_, err := p.Fetch(context.Background())
 		if !errors.Is(err, importlist.ErrStub) {
 			t.Errorf("%s Fetch returned %v, want ErrStub", p.Implementation(), err)
 		}
