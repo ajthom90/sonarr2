@@ -127,6 +127,32 @@ func (s *sqliteEpisodesStore) Update(ctx context.Context, in Episode) error {
 	return nil
 }
 
+func (s *sqliteEpisodesStore) SetMonitored(ctx context.Context, episodeID int64, monitored bool) error {
+	// Look up series_id first so we can publish EpisodeUpdated with it.
+	queries := sqlitegen.New(sqliteQuery{q: s.pool.RawReader()})
+	row, err := queries.GetEpisode(ctx, episodeID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return ErrNotFound
+	}
+	if err != nil {
+		return fmt.Errorf("library: set monitored (lookup): %w", err)
+	}
+	err = s.pool.Write(ctx, func(exec db.Executor) error {
+		wq := sqlitegen.New(&sqliteExec{exec: exec})
+		return wq.SetEpisodeMonitored(ctx, sqlitegen.SetEpisodeMonitoredParams{
+			Monitored: boolToInt64(monitored),
+			ID:        episodeID,
+		})
+	})
+	if err != nil {
+		return fmt.Errorf("library: set monitored: %w", err)
+	}
+	if err := s.bus.Publish(ctx, EpisodeUpdated{ID: episodeID, SeriesID: row.SeriesID}); err != nil {
+		return fmt.Errorf("library: publish EpisodeUpdated: %w", err)
+	}
+	return nil
+}
+
 func (s *sqliteEpisodesStore) Delete(ctx context.Context, id int64) error {
 	// Look up series_id first so we can publish the event.
 	queries := sqlitegen.New(sqliteQuery{q: s.pool.RawReader()})

@@ -100,6 +100,7 @@ type Querier interface {
 	ListSeries(ctx context.Context) ([]Series, error)
 	ListTags(ctx context.Context) ([]Tag, error)
 	RefreshLease(ctx context.Context, arg RefreshLeaseParams) error
+	SetEpisodeMonitored(ctx context.Context, arg SetEpisodeMonitoredParams) error
 	SumEpisodeFileSizesForSeries(ctx context.Context, seriesID int64) (SumEpisodeFileSizesForSeriesRow, error)
 	SweepExpiredLeases(ctx context.Context) (int64, error)
 	UpdateCustomFormat(ctx context.Context, arg UpdateCustomFormatParams) error

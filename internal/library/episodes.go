@@ -32,6 +32,10 @@ type EpisodesStore interface {
 	// Used by the calendar and wanted/missing API endpoints.
 	ListAll(ctx context.Context) ([]Episode, error)
 	Update(ctx context.Context, e Episode) error
+	// SetMonitored toggles just the monitored flag for a single episode.
+	// Used by library.ApplyMonitorMode to avoid a full Update round-trip
+	// per episode when applying a series-wide monitor rule.
+	SetMonitored(ctx context.Context, episodeID int64, monitored bool) error
 	Delete(ctx context.Context, id int64) error
 	// CountForSeries returns (total, monitored) episode counts for a series.
 	// Used by SeriesStatsStore.Recompute.

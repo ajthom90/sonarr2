@@ -137,7 +137,10 @@ func (e *fakeEpisodesStore) ListForSeries(_ context.Context, seriesID int64) ([]
 	return out, nil
 }
 func (e *fakeEpisodesStore) Update(_ context.Context, _ library.Episode) error { return nil }
-func (e *fakeEpisodesStore) Delete(_ context.Context, _ int64) error           { return nil }
+func (e *fakeEpisodesStore) SetMonitored(_ context.Context, _ int64, _ bool) error {
+	return nil
+}
+func (e *fakeEpisodesStore) Delete(_ context.Context, _ int64) error { return nil }
 func (e *fakeEpisodesStore) CountForSeries(_ context.Context, _ int64) (int, int, error) {
 	return 0, 0, nil
 }
