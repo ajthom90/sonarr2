@@ -200,7 +200,11 @@ func HandlerWithDeps(log *slog.Logger, deps Deps) http.Handler {
 
 			// Task 3 — series.
 			if deps.Series != nil && deps.Seasons != nil && deps.Stats != nil {
-				sh := v3.NewSeriesHandler(deps.Series, deps.Seasons, deps.Stats, log)
+				var enq v3.CommandEnqueuer
+				if deps.Commands != nil {
+					enq = &seriesCommandEnqueuer{queue: deps.Commands}
+				}
+				sh := v3.NewSeriesHandler(deps.Series, deps.Seasons, deps.Stats, deps.Episodes, enq, log)
 				v3.MountSeries(r, sh)
 			}
 
@@ -464,4 +468,21 @@ func requestLogger(log *slog.Logger) func(http.Handler) http.Handler {
 			next.ServeHTTP(ww, r)
 		})
 	}
+}
+
+// seriesCommandEnqueuer adapts commands.Queue to the narrower v3.CommandEnqueuer
+// interface the series handler wants: a single-arg map body rather than
+// the full priority/trigger/dedup tuple. Marshal errors are returned so the
+// caller can decide whether to surface them (series.create logs + ignores).
+type seriesCommandEnqueuer struct {
+	queue commands.Queue
+}
+
+func (s *seriesCommandEnqueuer) Enqueue(ctx context.Context, name string, body map[string]any) error {
+	raw, err := json.Marshal(body)
+	if err != nil {
+		return fmt.Errorf("marshal command body: %w", err)
+	}
+	_, err = s.queue.Enqueue(ctx, name, raw, commands.PriorityNormal, commands.TriggerManual, "")
+	return err
 }
