@@ -4,28 +4,9 @@ import (
 	"context"
 	"errors"
 	"testing"
-	"time"
 
-	"github.com/ajthom90/sonarr2/internal/db"
 	"github.com/ajthom90/sonarr2/internal/rootfolder"
 )
-
-func newTestStore(t *testing.T) rootfolder.Store {
-	t.Helper()
-	ctx := context.Background()
-	pool, err := db.OpenSQLite(ctx, db.SQLiteOptions{
-		DSN:         ":memory:",
-		BusyTimeout: 5 * time.Second,
-	})
-	if err != nil {
-		t.Fatalf("OpenSQLite: %v", err)
-	}
-	t.Cleanup(func() { _ = pool.Close() })
-	if err := db.Migrate(ctx, pool); err != nil {
-		t.Fatalf("Migrate: %v", err)
-	}
-	return rootfolder.NewSQLiteStore(pool)
-}
 
 func TestStore_CreateGetList(t *testing.T) {
 	store := newTestStore(t)
