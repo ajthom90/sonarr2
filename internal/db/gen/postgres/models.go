@@ -52,6 +52,20 @@ type CustomFormat struct {
 	Specifications      []byte
 }
 
+type DelayProfile struct {
+	ID                             int32
+	EnableUsenet                   bool
+	EnableTorrent                  bool
+	PreferredProtocol              string
+	UsenetDelay                    int32
+	TorrentDelay                   int32
+	SortOrder                      int32
+	BypassIfHighestQuality         bool
+	BypassIfAboveCustomFormatScore bool
+	MinimumCustomFormatScore       int32
+	Tags                           []byte
+}
+
 type DownloadClient struct {
 	ID                       int32
 	Name                     string
@@ -159,6 +173,16 @@ type QualityProfile struct {
 	MinFormatScore    int32
 	CutoffFormatScore int32
 	FormatItems       []byte
+}
+
+type ReleaseProfile struct {
+	ID        int32
+	Name      string
+	Enabled   bool
+	Required  []byte
+	Ignored   []byte
+	IndexerID int32
+	Tags      []byte
 }
 
 type RemotePathMapping struct {

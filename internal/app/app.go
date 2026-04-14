@@ -30,6 +30,7 @@ import (
 	"github.com/ajthom90/sonarr2/internal/config"
 	"github.com/ajthom90/sonarr2/internal/customformats"
 	"github.com/ajthom90/sonarr2/internal/db"
+	"github.com/ajthom90/sonarr2/internal/delayprofile"
 	"github.com/ajthom90/sonarr2/internal/decisionengine"
 	"github.com/ajthom90/sonarr2/internal/decisionengine/specs"
 	"github.com/ajthom90/sonarr2/internal/events"
@@ -70,6 +71,7 @@ import (
 	"github.com/ajthom90/sonarr2/internal/providers/notification/telegram"
 	notifwebhook "github.com/ajthom90/sonarr2/internal/providers/notification/webhook"
 	"github.com/ajthom90/sonarr2/internal/realtime"
+	"github.com/ajthom90/sonarr2/internal/releaseprofile"
 	"github.com/ajthom90/sonarr2/internal/remotepathmapping"
 	"github.com/ajthom90/sonarr2/internal/rsssync"
 	"github.com/ajthom90/sonarr2/internal/scheduler"
@@ -95,6 +97,8 @@ type App struct {
 	tagStore        tags.Store
 	blocklistStore  blocklist.Store
 	rpmStore        remotepathmapping.Store
+	releaseProfiles releaseprofile.Store
+	delayProfiles   delayprofile.Store
 	indexerRegistry *indexer.Registry
 	dcRegistry      *downloadclient.Registry
 	notifRegistry   *notification.Registry
@@ -188,6 +192,8 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 	var tagStore tags.Store
 	var blStore blocklist.Store
 	var rpmStore remotepathmapping.Store
+	var rpStore releaseprofile.Store
+	var dpStore delayprofile.Store
 	switch p := pool.(type) {
 	case *db.PostgresPool:
 		qualityDefStore = profiles.NewPostgresQualityDefinitionStore(p)
@@ -196,6 +202,8 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 		tagStore = tags.NewPostgresStore(p)
 		blStore = blocklist.NewPostgresStore(p)
 		rpmStore = remotepathmapping.NewPostgresStore(p)
+		rpStore = releaseprofile.NewPostgresStore(p)
+		dpStore = delayprofile.NewPostgresStore(p)
 	case *db.SQLitePool:
 		qualityDefStore = profiles.NewSQLiteQualityDefinitionStore(p)
 		qualityProfileStore = profiles.NewSQLiteQualityProfileStore(p)
@@ -203,6 +211,8 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 		tagStore = tags.NewSQLiteStore(p)
 		blStore = blocklist.NewSQLiteStore(p)
 		rpmStore = remotepathmapping.NewSQLiteStore(p)
+		rpStore = releaseprofile.NewSQLiteStore(p)
+		dpStore = delayprofile.NewSQLiteStore(p)
 	default:
 		_ = pool.Close()
 		return nil, fmt.Errorf("app: unsupported pool type for profiles/CF: %T", pool)
@@ -603,6 +613,8 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 			Tags:                 tagStore,
 			Blocklist:            blStore,
 			RemotePathMappings:   rpmStore,
+			ReleaseProfiles:      rpStore,
+			DelayProfiles:        dpStore,
 			Commands:             cmdQueue,
 			History:              histStore,
 			IndexerStore:         idxStore,
@@ -637,6 +649,8 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 		tagStore:        tagStore,
 		blocklistStore:  blStore,
 		rpmStore:        rpmStore,
+		releaseProfiles: rpStore,
+		delayProfiles:   dpStore,
 		indexerRegistry: idxReg,
 		dcRegistry:      dcReg,
 		notifRegistry:   notifReg,

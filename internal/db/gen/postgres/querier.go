@@ -18,6 +18,7 @@ type Querier interface {
 	CountEpisodesForSeries(ctx context.Context, seriesID int64) (CountEpisodesForSeriesRow, error)
 	CreateBlocklist(ctx context.Context, arg CreateBlocklistParams) (Blocklist, error)
 	CreateCustomFormat(ctx context.Context, arg CreateCustomFormatParams) (CustomFormat, error)
+	CreateDelayProfile(ctx context.Context, arg CreateDelayProfileParams) (DelayProfile, error)
 	CreateDownloadClient(ctx context.Context, arg CreateDownloadClientParams) (DownloadClient, error)
 	CreateEpisode(ctx context.Context, arg CreateEpisodeParams) (Episode, error)
 	CreateEpisodeFile(ctx context.Context, arg CreateEpisodeFileParams) (EpisodeFile, error)
@@ -25,12 +26,14 @@ type Querier interface {
 	CreateIndexer(ctx context.Context, arg CreateIndexerParams) (Indexer, error)
 	CreateNotification(ctx context.Context, arg CreateNotificationParams) (Notification, error)
 	CreateQualityProfile(ctx context.Context, arg CreateQualityProfileParams) (QualityProfile, error)
+	CreateReleaseProfile(ctx context.Context, arg CreateReleaseProfileParams) (ReleaseProfile, error)
 	CreateRemotePathMapping(ctx context.Context, arg CreateRemotePathMappingParams) (RemotePathMapping, error)
 	CreateSeries(ctx context.Context, arg CreateSeriesParams) (Series, error)
 	CreateTag(ctx context.Context, label string) (Tag, error)
 	DeleteBlocklist(ctx context.Context, id int32) error
 	DeleteBlocklistBySeries(ctx context.Context, seriesID int32) error
 	DeleteCustomFormat(ctx context.Context, id int32) error
+	DeleteDelayProfile(ctx context.Context, id int32) error
 	DeleteDownloadClient(ctx context.Context, id int32) error
 	DeleteEpisode(ctx context.Context, id int64) error
 	DeleteEpisodeFile(ctx context.Context, id int64) error
@@ -39,6 +42,7 @@ type Querier interface {
 	DeleteNotification(ctx context.Context, id int32) error
 	DeleteOldCompleted(ctx context.Context, endedAt pgtype.Timestamptz) (int64, error)
 	DeleteQualityProfile(ctx context.Context, id int32) error
+	DeleteReleaseProfile(ctx context.Context, id int32) error
 	DeleteRemotePathMapping(ctx context.Context, id int32) error
 	DeleteSeason(ctx context.Context, arg DeleteSeasonParams) error
 	DeleteSeries(ctx context.Context, id int64) error
@@ -52,6 +56,7 @@ type Querier interface {
 	GetBlocklistByID(ctx context.Context, id int32) (Blocklist, error)
 	GetCommand(ctx context.Context, id int64) (Command, error)
 	GetCustomFormatByID(ctx context.Context, id int32) (CustomFormat, error)
+	GetDelayProfileByID(ctx context.Context, id int32) (DelayProfile, error)
 	GetDownloadClientByID(ctx context.Context, id int32) (DownloadClient, error)
 	GetDueTasks(ctx context.Context) ([]ScheduledTask, error)
 	GetEpisode(ctx context.Context, id int64) (Episode, error)
@@ -61,6 +66,7 @@ type Querier interface {
 	GetNotificationByID(ctx context.Context, id int32) (Notification, error)
 	GetQualityDefinitionByID(ctx context.Context, id int32) (QualityDefinition, error)
 	GetQualityProfileByID(ctx context.Context, id int32) (QualityProfile, error)
+	GetReleaseProfileByID(ctx context.Context, id int32) (ReleaseProfile, error)
 	GetRemotePathMappingByID(ctx context.Context, id int32) (RemotePathMapping, error)
 	GetScheduledTask(ctx context.Context, typeName string) (ScheduledTask, error)
 	GetSeason(ctx context.Context, arg GetSeasonParams) (Season, error)
@@ -73,6 +79,7 @@ type Querier interface {
 	ListBlocklist(ctx context.Context, arg ListBlocklistParams) ([]Blocklist, error)
 	ListBlocklistBySeries(ctx context.Context, seriesID int32) ([]Blocklist, error)
 	ListCustomFormats(ctx context.Context) ([]CustomFormat, error)
+	ListDelayProfiles(ctx context.Context) ([]DelayProfile, error)
 	ListDownloadClients(ctx context.Context) ([]DownloadClient, error)
 	ListEpisodeFilesForSeries(ctx context.Context, seriesID int64) ([]EpisodeFile, error)
 	ListEpisodesForSeries(ctx context.Context, seriesID int64) ([]Episode, error)
@@ -81,6 +88,7 @@ type Querier interface {
 	ListIndexers(ctx context.Context) ([]Indexer, error)
 	ListNotifications(ctx context.Context) ([]Notification, error)
 	ListQualityProfiles(ctx context.Context) ([]QualityProfile, error)
+	ListReleaseProfiles(ctx context.Context) ([]ReleaseProfile, error)
 	ListRemotePathMappings(ctx context.Context) ([]RemotePathMapping, error)
 	ListScheduledTasks(ctx context.Context) ([]ScheduledTask, error)
 	ListSeasonsForSeries(ctx context.Context, seriesID int64) ([]Season, error)
@@ -90,12 +98,14 @@ type Querier interface {
 	SumEpisodeFileSizesForSeries(ctx context.Context, seriesID int64) (SumEpisodeFileSizesForSeriesRow, error)
 	SweepExpiredLeases(ctx context.Context) (int64, error)
 	UpdateCustomFormat(ctx context.Context, arg UpdateCustomFormatParams) error
+	UpdateDelayProfile(ctx context.Context, arg UpdateDelayProfileParams) error
 	UpdateDownloadClient(ctx context.Context, arg UpdateDownloadClientParams) error
 	UpdateEpisode(ctx context.Context, arg UpdateEpisodeParams) error
 	UpdateIndexer(ctx context.Context, arg UpdateIndexerParams) error
 	UpdateNotification(ctx context.Context, arg UpdateNotificationParams) error
 	UpdateQualityDefinitionSizes(ctx context.Context, arg UpdateQualityDefinitionSizesParams) error
 	UpdateQualityProfile(ctx context.Context, arg UpdateQualityProfileParams) error
+	UpdateReleaseProfile(ctx context.Context, arg UpdateReleaseProfileParams) error
 	UpdateRemotePathMapping(ctx context.Context, arg UpdateRemotePathMappingParams) error
 	UpdateSeries(ctx context.Context, arg UpdateSeriesParams) error
 	UpdateTag(ctx context.Context, arg UpdateTagParams) error

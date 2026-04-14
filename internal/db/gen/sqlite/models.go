@@ -53,6 +53,20 @@ type CustomFormat struct {
 	Specifications      string
 }
 
+type DelayProfile struct {
+	ID                             int64
+	EnableUsenet                   int64
+	EnableTorrent                  int64
+	PreferredProtocol              string
+	UsenetDelay                    int64
+	TorrentDelay                   int64
+	SortOrder                      int64
+	BypassIfHighestQuality         int64
+	BypassIfAboveCustomFormatScore int64
+	MinimumCustomFormatScore       int64
+	Tags                           string
+}
+
 type DownloadClient struct {
 	ID                       int64
 	Name                     string
@@ -160,6 +174,16 @@ type QualityProfile struct {
 	MinFormatScore    int64
 	CutoffFormatScore int64
 	FormatItems       string
+}
+
+type ReleaseProfile struct {
+	ID        int64
+	Name      string
+	Enabled   int64
+	Required  string
+	Ignored   string
+	IndexerID int64
+	Tags      string
 }
 
 type RemotePathMapping struct {

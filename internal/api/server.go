@@ -18,6 +18,7 @@ import (
 	"github.com/ajthom90/sonarr2/internal/buildinfo"
 	"github.com/ajthom90/sonarr2/internal/commands"
 	"github.com/ajthom90/sonarr2/internal/customformats"
+	"github.com/ajthom90/sonarr2/internal/delayprofile"
 	"github.com/ajthom90/sonarr2/internal/health"
 	"github.com/ajthom90/sonarr2/internal/history"
 	"github.com/ajthom90/sonarr2/internal/hostconfig"
@@ -28,6 +29,7 @@ import (
 	"github.com/ajthom90/sonarr2/internal/providers/metadatasource"
 	"github.com/ajthom90/sonarr2/internal/providers/notification"
 	"github.com/ajthom90/sonarr2/internal/realtime"
+	"github.com/ajthom90/sonarr2/internal/releaseprofile"
 	"github.com/ajthom90/sonarr2/internal/remotepathmapping"
 	"github.com/ajthom90/sonarr2/internal/tags"
 	"github.com/ajthom90/sonarr2/web"
@@ -61,6 +63,8 @@ type Deps struct {
 	Tags                 tags.Store
 	Blocklist            blocklist.Store
 	RemotePathMappings   remotepathmapping.Store
+	ReleaseProfiles      releaseprofile.Store
+	DelayProfiles        delayprofile.Store
 	Commands             commands.Queue
 	History              history.Store
 	IndexerStore         indexer.InstanceStore
@@ -263,6 +267,14 @@ func HandlerWithDeps(log *slog.Logger, deps Deps) http.Handler {
 			if deps.RemotePathMappings != nil {
 				rpmh := v3.NewRemotePathMappingHandler(deps.RemotePathMappings, log)
 				v3.MountRemotePathMapping(r, rpmh)
+			}
+			if deps.ReleaseProfiles != nil {
+				rph := v3.NewReleaseProfileHandler(deps.ReleaseProfiles, log)
+				v3.MountReleaseProfile(r, rph)
+			}
+			if deps.DelayProfiles != nil {
+				dph := v3.NewDelayProfileHandler(deps.DelayProfiles, log)
+				v3.MountDelayProfile(r, dph)
 			}
 			v3.MountHealth(r, deps.HealthChecker)
 			v3.MountParse(r)
