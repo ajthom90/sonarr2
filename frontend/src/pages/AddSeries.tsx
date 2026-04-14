@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useSeriesLookup, useRootFolders, useQualityProfiles, useAddSeries } from '../api/hooks'
+import { useSeriesLookup, useRootFolders, useQualityProfiles, useAddSeriesV3 } from '../api/hooks'
 import type { SeriesLookupResult } from '../api/types'
 import styles from './AddSeries.module.css'
 
@@ -19,7 +19,7 @@ export function AddSeries() {
   const { data: rootFolders } = useRootFolders()
   const { data: profilesPage } = useQualityProfiles()
   const profiles = profilesPage?.data
-  const addSeries = useAddSeries()
+  const addSeries = useAddSeriesV3()
 
   // Debounce search input
   const [debounceTimer, setDebounceTimer] = useState<ReturnType<typeof setTimeout> | null>(null)
@@ -53,6 +53,12 @@ export function AddSeries() {
       monitored,
       seriesType,
       status: selected.status || 'continuing',
+      seasonFolder: true,
+      monitorNewItems: 'all',
+      addOptions: {
+        monitor: 'all',
+        searchForMissingEpisodes: true,
+      },
     }, {
       onSuccess: () => navigate('/'),
     })
