@@ -1,0 +1,30 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+.label {
+  font-size: 0.85rem;
+  color: var(--color-text-muted, #9aa0a6);
+}
+.required {
+  color: var(--color-danger, #ef4444);
+}
+.input {
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--color-border, #2d3138);
+  background: var(--color-bg-surface, #1b1e22);
+  color: inherit;
+  font-size: 0.95rem;
+}
+.checkbox {
+  width: 18px;
+  height: 18px;
+}
+.help {
+  font-size: 0.8rem;
+  color: var(--color-text-muted, #9aa0a6);
+  margin: 2px 0 0;
+}
