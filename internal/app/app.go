@@ -801,6 +801,19 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 		hcStore = hostconfig.NewSQLiteStore(p)
 	}
 
+	// If no TVDB API key was supplied via env/yaml, seed the client from
+	// host_config.tvdb_api_key. Settings → General writes to that column;
+	// without this fallback the key is lost on every container restart and
+	// users see "TVDB API key is not configured" 503s until they re-save it
+	// in the UI. The PUT /api/v3/config/general handler still calls
+	// tvdbClient.SetApiKey live, so runtime updates keep working.
+	if cfg.TVDB.ApiKey == "" {
+		if hc, err := hcStore.Get(ctx); err == nil && hc.TvdbApiKey != "" {
+			tvdbClient.SetApiKey(hc.TvdbApiKey)
+			log.Info("tvdb: seeded API key from host_config")
+		}
+	}
+
 	// CleanUpRecycleBin: daily purge of entries older than
 	// host_config.recycle_bin_cleanup_days from the configured recycle bin.
 	// No-op when RecycleBin path is empty or CleanupDays is 0.
