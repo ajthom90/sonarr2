@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
 import { Link } from 'react-router-dom'
+import { ApiError } from '../api/client'
 import {
   useRootFolders,
   useCreateRootFolder,
@@ -261,12 +262,16 @@ function ScanAndGrid({
   }
 
   if (scan.isError) {
-    const err = scan.error as Error & { fixPath?: string }
-    const fixPath = err.fixPath
+    const err = scan.error
+    const fixPath =
+      err instanceof ApiError && typeof err.details.fixPath === 'string'
+        ? err.details.fixPath
+        : undefined
+    const message = err instanceof Error ? err.message : 'Scan failed'
     return (
       <div className={styles.page}>
         <div className={styles.banner}>
-          <span>{err.message}</span>
+          <span>{message}</span>
           {fixPath && (
             <Link to={fixPath} className={styles.bannerAction}>
               Configure

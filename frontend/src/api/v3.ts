@@ -3,8 +3,9 @@ import { apiFetchRaw, ApiError } from './client'
 async function v3<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await apiFetchRaw(`/api/v3${path}`, init)
   if (!res.ok) {
-    const body = await res.json().catch(() => ({ message: res.statusText }))
-    throw new ApiError(res.status, body.message ?? body.detail ?? res.statusText)
+    const body = (await res.json().catch(() => ({}))) as Record<string, unknown>
+    const message = (body.message ?? body.detail ?? res.statusText) as string
+    throw new ApiError(res.status, message, body)
   }
   if (res.status === 204) return undefined as T
   return res.json()

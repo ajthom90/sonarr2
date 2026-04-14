@@ -2,10 +2,19 @@ const API_BASE = '/api/v6'
 
 export class ApiError extends Error {
   status: number
-  constructor(status: number, message: string) {
+  /**
+   * details carries the full decoded JSON body from the server's error
+   * response, minus the already-extracted `message`/`detail` field. Callers
+   * can reach into it for endpoint-specific hints like `fixPath` (from
+   * /api/v3/libraryimport/scan) or `affectedSeries` (from DELETE
+   * /api/v3/rootfolder/{id}). Empty when the body isn't valid JSON.
+   */
+  details: Record<string, unknown>
+  constructor(status: number, message: string, details: Record<string, unknown> = {}) {
     super(message)
     this.name = 'ApiError'
     this.status = status
+    this.details = details
   }
 }
 
@@ -31,8 +40,9 @@ export async function apiFetchRaw(path: string, init?: RequestInit): Promise<Res
 async function fetchWithAuth<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await apiFetchRaw(url, init)
   if (!res.ok) {
-    const body = await res.json().catch(() => ({ detail: res.statusText }))
-    throw new ApiError(res.status, body.detail ?? body.message ?? res.statusText)
+    const body = (await res.json().catch(() => ({}))) as Record<string, unknown>
+    const message = (body.detail ?? body.message ?? res.statusText) as string
+    throw new ApiError(res.status, message, body)
   }
   if (res.status === 204) return undefined as T
   return res.json()

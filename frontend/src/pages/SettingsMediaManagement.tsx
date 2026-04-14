@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { ApiError } from '../api/client'
 import { useRootFolders, useCreateRootFolder, useDeleteRootFolder } from '../api/hooks'
 import type { RootFolder } from '../api/types'
 import { FileBrowserModal } from '../components/FileBrowserModal'
@@ -146,7 +147,9 @@ function RootFoldersSection() {
   const createRF = useCreateRootFolder()
   const deleteRF = useDeleteRootFolder()
   const [browserOpen, setBrowserOpen] = useState(false)
-  const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [deleteError, setDeleteError] = useState<
+    { message: string; affectedSeries: string[] } | null
+  >(null)
 
   const folders: RootFolder[] = rootFolders ?? []
 
@@ -165,7 +168,11 @@ function RootFoldersSection() {
       await deleteRF.mutateAsync(rf.id)
       setDeleteError(null)
     } catch (err) {
-      setDeleteError((err as Error).message)
+      const affectedSeries =
+        err instanceof ApiError && Array.isArray(err.details.affectedSeries)
+          ? (err.details.affectedSeries as string[])
+          : []
+      setDeleteError({ message: (err as Error).message, affectedSeries })
     }
   }
 
@@ -233,10 +240,17 @@ function RootFoldersSection() {
 
       {deleteError && (
         <div className={styles.errorMessage}>
-          {deleteError}
+          <div>{deleteError.message}</div>
+          {deleteError.affectedSeries.length > 0 && (
+            <ul style={{ margin: '6px 0 0', paddingLeft: 20 }}>
+              {deleteError.affectedSeries.map((title) => (
+                <li key={title}>{title}</li>
+              ))}
+            </ul>
+          )}
           <button
             onClick={() => setDeleteError(null)}
-            style={{ marginLeft: 8 }}
+            style={{ marginTop: 8 }}
           >
             Dismiss
           </button>
