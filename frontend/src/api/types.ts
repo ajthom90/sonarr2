@@ -228,3 +228,49 @@ export interface AddSeriesAddOptions {
   searchForMissingEpisodes?: boolean
   searchForCutoffUnmetEpisodes?: boolean
 }
+
+export interface ProviderFieldSchema {
+  name: string
+  label: string
+  type: 'text' | 'password' | 'number' | 'checkbox' | 'select' | 'multiselect'
+  required?: boolean
+  default?: string
+  placeholder?: string
+  helpText?: string
+  advanced?: boolean
+}
+
+export interface ProviderSchema {
+  implementation: string
+  name: string
+  fields: ProviderFieldSchema[]
+}
+
+export interface IndexerResource {
+  id: number
+  name: string
+  implementation: string
+  fields: Record<string, unknown>
+  enableRss: boolean
+  enableAutomaticSearch: boolean
+  enableInteractiveSearch: boolean
+  priority: number
+  added?: string
+}
+
+export interface DownloadClientResource {
+  id: number
+  name: string
+  implementation: string
+  fields: Record<string, unknown>
+  enable: boolean
+  priority: number
+  added?: string
+}
+
+export interface RemotePathMapping {
+  id: number
+  host: string
+  remotePath: string
+  localPath: string
+}

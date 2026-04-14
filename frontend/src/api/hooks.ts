@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from './client'
 import { apiV3 } from './v3'
-import type { Series, Episode, Page, SystemStatus, Command, HistoryEntry, HealthItem, WantedEpisode, Indexer, DownloadClient, QualityProfile, QualityDefinition, SeriesLookupResult, RootFolder, AddSeriesRequest, GeneralSettings, CustomFormat, BackupInfo, FilesystemListing, LibraryImportEntry, CreateRootFolderRequest } from './types'
+import type { Series, Episode, Page, SystemStatus, Command, HistoryEntry, HealthItem, WantedEpisode, Indexer, DownloadClient, QualityProfile, QualityDefinition, SeriesLookupResult, RootFolder, AddSeriesRequest, GeneralSettings, CustomFormat, BackupInfo, FilesystemListing, LibraryImportEntry, CreateRootFolderRequest, ProviderSchema, IndexerResource, DownloadClientResource, RemotePathMapping } from './types'
 
 export function useSeriesList() {
   return useQuery({
@@ -352,5 +352,111 @@ export function useAddSeriesV3() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['series'] })
     },
+  })
+}
+
+// ── Provider settings (sub-project #2) ───────────────────────────────────────
+
+export function useIndexerSchema() {
+  return useQuery({
+    queryKey: ['v3', 'indexer', 'schema'],
+    queryFn: () => apiV3.get<ProviderSchema[]>('/indexer/schema'),
+  })
+}
+
+export function useIndexersV3() {
+  return useQuery({
+    queryKey: ['v3', 'indexer'],
+    queryFn: () => apiV3.get<IndexerResource[]>('/indexer'),
+  })
+}
+
+export function useCreateIndexer() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (body: Omit<IndexerResource, 'id' | 'added'>) =>
+      apiV3.post<IndexerResource>('/indexer', body),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['v3', 'indexer'] }),
+  })
+}
+
+export function useUpdateIndexer() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, ...body }: IndexerResource) =>
+      apiV3.put<IndexerResource>(`/indexer/${id}`, body),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['v3', 'indexer'] }),
+  })
+}
+
+export function useDeleteIndexerV3() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => apiV3.delete(`/indexer/${id}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['v3', 'indexer'] }),
+  })
+}
+
+export function useDownloadClientSchema() {
+  return useQuery({
+    queryKey: ['v3', 'downloadclient', 'schema'],
+    queryFn: () => apiV3.get<ProviderSchema[]>('/downloadclient/schema'),
+  })
+}
+
+export function useDownloadClientsV3() {
+  return useQuery({
+    queryKey: ['v3', 'downloadclient'],
+    queryFn: () => apiV3.get<DownloadClientResource[]>('/downloadclient'),
+  })
+}
+
+export function useCreateDownloadClient() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (body: Omit<DownloadClientResource, 'id' | 'added'>) =>
+      apiV3.post<DownloadClientResource>('/downloadclient', body),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['v3', 'downloadclient'] }),
+  })
+}
+
+export function useUpdateDownloadClient() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, ...body }: DownloadClientResource) =>
+      apiV3.put<DownloadClientResource>(`/downloadclient/${id}`, body),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['v3', 'downloadclient'] }),
+  })
+}
+
+export function useDeleteDownloadClientV3() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => apiV3.delete(`/downloadclient/${id}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['v3', 'downloadclient'] }),
+  })
+}
+
+export function useRemotePathMappings() {
+  return useQuery({
+    queryKey: ['v3', 'remotepathmapping'],
+    queryFn: () => apiV3.get<RemotePathMapping[]>('/remotepathmapping'),
+  })
+}
+
+export function useCreateRemotePathMapping() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (body: Omit<RemotePathMapping, 'id'>) =>
+      apiV3.post<RemotePathMapping>('/remotepathmapping', body),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['v3', 'remotepathmapping'] }),
+  })
+}
+
+export function useDeleteRemotePathMapping() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => apiV3.delete(`/remotepathmapping/${id}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['v3', 'remotepathmapping'] }),
   })
 }

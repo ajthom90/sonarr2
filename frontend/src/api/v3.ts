@@ -15,5 +15,7 @@ export const apiV3 = {
   get: <T>(path: string) => v3<T>(path),
   post: <T>(path: string, body?: unknown) =>
     v3<T>(path, { method: 'POST', body: body ? JSON.stringify(body) : undefined }),
+  put: <T>(path: string, body: unknown) =>
+    v3<T>(path, { method: 'PUT', body: JSON.stringify(body) }),
   delete: (path: string) => v3<void>(path, { method: 'DELETE' }),
 }
