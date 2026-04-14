@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"testing"
+
+	"github.com/ajthom90/sonarr2/internal/db"
 )
 
 func TestSeriesStoreCreateAndGet(t *testing.T) {
@@ -187,5 +189,45 @@ func TestSeriesStoreDelete(t *testing.T) {
 	}
 	if deleted[0].ID != created.ID {
 		t.Errorf("SeriesDeleted.ID = %d, want %d", deleted[0].ID, created.ID)
+	}
+}
+
+func TestSeriesStoreCreate_PersistsLibraryImportFields(t *testing.T) {
+	lib, pool, _, _ := setupSQLiteLibrary(t)
+
+	// Seed a quality_profiles row so the FK on series.quality_profile_id resolves.
+	if err := pool.Write(context.Background(), func(exec db.Executor) error {
+		_, err := exec.ExecContext(context.Background(),
+			`INSERT INTO quality_profiles (id, name) VALUES (1, 'Any')`)
+		return err
+	}); err != nil {
+		t.Fatalf("seed quality profile: %v", err)
+	}
+
+	in := Series{
+		TvdbID:           12345,
+		Title:            "Test Show",
+		Slug:             "test-show",
+		Status:           "continuing",
+		SeriesType:       "standard",
+		Path:             "/data/tv/Test Show",
+		Monitored:        true,
+		QualityProfileID: 1,
+		SeasonFolder:     true,
+		MonitorNewItems:  "all",
+	}
+	got, err := lib.Series.Create(context.Background(), in)
+	if err != nil {
+		t.Fatalf("Create: %v", err)
+	}
+	if got.QualityProfileID != 1 || !got.SeasonFolder || got.MonitorNewItems != "all" {
+		t.Fatalf("library import fields not persisted: %+v", got)
+	}
+	loaded, err := lib.Series.Get(context.Background(), got.ID)
+	if err != nil {
+		t.Fatalf("Get: %v", err)
+	}
+	if loaded.QualityProfileID != 1 || !loaded.SeasonFolder || loaded.MonitorNewItems != "all" {
+		t.Fatalf("library import fields not round-tripped: %+v", loaded)
 	}
 }

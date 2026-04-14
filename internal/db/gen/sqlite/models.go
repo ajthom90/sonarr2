@@ -9,6 +9,14 @@ import (
 	"time"
 )
 
+type AutoTag struct {
+	ID                      int64
+	Name                    string
+	RemoveTagsAutomatically int64
+	Tags                    string
+	Specifications          string
+}
+
 type Blocklist struct {
 	ID              int64
 	SeriesID        int64
@@ -131,6 +139,30 @@ type HostConfig struct {
 	RecycleBinCleanupDays int64
 }
 
+type ImportList struct {
+	ID                     int64
+	Name                   string
+	Implementation         string
+	Settings               string
+	EnableAutomaticAdd     int64
+	ShouldMonitor          string
+	ShouldMonitorExisting  int64
+	ShouldSearch           int64
+	RootFolderPath         string
+	QualityProfileID       int64
+	SeriesType             string
+	SeasonFolder           int64
+	Tags                   string
+	ListType               string
+	MinRefreshIntervalMins int64
+}
+
+type ImportListExclusion struct {
+	ID     int64
+	TvdbID int64
+	Title  string
+}
+
 type Indexer struct {
 	ID                      int64
 	Name                    string
@@ -193,6 +225,27 @@ type RemotePathMapping struct {
 	LocalPath  string
 }
 
+type RootFolder struct {
+	ID        int64
+	Path      string
+	CreatedAt string
+}
+
+type SceneMapping struct {
+	ID                int64
+	TvdbID            int64
+	SeasonNumber      sql.NullInt64
+	SceneSeasonNumber sql.NullInt64
+	SceneOrigin       string
+	Comment           string
+	FilterRegex       string
+	ParseTerm         string
+	SearchTerm        string
+	Title             string
+	Type              string
+	UpdatedAt         time.Time
+}
+
 type ScheduledTask struct {
 	TypeName      string
 	IntervalSecs  int64
@@ -207,17 +260,20 @@ type Season struct {
 }
 
 type Series struct {
-	ID         int64
-	TvdbID     int64
-	Title      string
-	Slug       string
-	Status     string
-	SeriesType string
-	Path       string
-	Monitored  int64
-	Added      string
-	CreatedAt  string
-	UpdatedAt  string
+	ID               int64
+	TvdbID           int64
+	Title            string
+	Slug             string
+	Status           string
+	SeriesType       string
+	Path             string
+	Monitored        int64
+	Added            string
+	CreatedAt        string
+	UpdatedAt        string
+	QualityProfileID sql.NullInt64
+	SeasonFolder     int64
+	MonitorNewItems  string
 }
 
 type SeriesStatistic struct {

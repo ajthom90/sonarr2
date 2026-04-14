@@ -1,0 +1,68 @@
+.page {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.pageTitle {
+  font-size: 1.5rem;
+  margin: 0 0 16px;
+}
+.banner {
+  padding: 12px 16px;
+  border-radius: 6px;
+  background: rgba(59, 130, 246, 0.08);
+  border-left: 4px solid var(--color-accent, #3b82f6);
+  margin-bottom: 24px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+.status,
+.error {
+  padding: 24px;
+  text-align: center;
+  color: var(--color-text-muted, #9aa0a6);
+  margin: 0;
+}
+.error {
+  color: var(--color-danger, #ef4444);
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+.card {
+  background: var(--color-bg-surface, #1b1e22);
+  border: 1px solid var(--color-border, #2d3138);
+  border-radius: 6px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  opacity: 0.85;
+}
+.cardHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.cardName {
+  font-weight: 600;
+}
+.cardImpl {
+  font-size: 0.8rem;
+  color: var(--color-text-muted, #9aa0a6);
+}
+.cardFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+}
+.notYet {
+  color: var(--color-text-muted, #9aa0a6);
+  font-style: italic;
+}
+.fieldCount {
+  color: var(--color-text-muted, #9aa0a6);
+}

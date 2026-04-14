@@ -1,6 +1,8 @@
 import { useState } from 'react'
-import { useRootFolders } from '../api/hooks'
+import { ApiError } from '../api/client'
+import { useRootFolders, useCreateRootFolder, useDeleteRootFolder } from '../api/hooks'
 import type { RootFolder } from '../api/types'
+import { FileBrowserModal } from '../components/FileBrowserModal'
 import styles from './SettingsMediaManagement.module.css'
 
 // ── localStorage keys for naming config (backend not yet available) ──────────
@@ -142,16 +144,35 @@ function EpisodeNamingSection() {
 
 function RootFoldersSection() {
   const { data: rootFolders, isLoading, isError, error } = useRootFolders()
-  const [newPath, setNewPath] = useState('')
+  const createRF = useCreateRootFolder()
+  const deleteRF = useDeleteRootFolder()
+  const [browserOpen, setBrowserOpen] = useState(false)
+  const [deleteError, setDeleteError] = useState<
+    { message: string; affectedSeries: string[] } | null
+  >(null)
 
   const folders: RootFolder[] = rootFolders ?? []
 
-  function handleAdd() {
-    // Root folders are created implicitly when adding series to new paths.
-    // This input is informational for now.
-    if (newPath.trim()) {
-      alert(`Root folders are created automatically when you add a series to a new path. Use "${newPath.trim()}" as the path when adding a series.`)
-      setNewPath('')
+  async function handleSelect(path: string) {
+    setBrowserOpen(false)
+    try {
+      await createRF.mutateAsync({ path })
+    } catch (err) {
+      alert((err as Error).message)
+    }
+  }
+
+  async function handleDelete(rf: RootFolder) {
+    if (!confirm(`Remove ${rf.path}? This will not delete any files on disk.`)) return
+    try {
+      await deleteRF.mutateAsync(rf.id)
+      setDeleteError(null)
+    } catch (err) {
+      const affectedSeries =
+        err instanceof ApiError && Array.isArray(err.details.affectedSeries)
+          ? (err.details.affectedSeries as string[])
+          : []
+      setDeleteError({ message: (err as Error).message, affectedSeries })
     }
   }
 
@@ -159,17 +180,14 @@ function RootFoldersSection() {
     <section className={styles.section}>
       <h2 className={styles.sectionTitle}>Root Folders</h2>
 
-      {isLoading && <p className={styles.stateMessage}>Loading root folders...</p>}
+      {isLoading && <p className={styles.stateMessage}>Loading root folders…</p>}
       {isError && (
         <p className={styles.errorMessage}>
-          Failed to load root folders: {error instanceof Error ? error.message : 'Unknown error'}
+          Failed to load root folders: {error instanceof Error ? error.message : 'unknown error'}
         </p>
       )}
-
       {!isLoading && !isError && folders.length === 0 && (
-        <p className={styles.stateMessage}>
-          No root folders found. Root folders are created when you add series.
-        </p>
+        <p className={styles.stateMessage}>No root folders yet.</p>
       )}
 
       {folders.length > 0 && (
@@ -180,6 +198,7 @@ function RootFoldersSection() {
                 <th className={styles.th}>Path</th>
                 <th className={styles.th}>Free Space</th>
                 <th className={styles.th}>Accessible</th>
+                <th className={styles.th}></th>
               </tr>
             </thead>
             <tbody>
@@ -194,6 +213,11 @@ function RootFoldersSection() {
                       {folder.accessible ? 'Yes' : 'No'}
                     </span>
                   </td>
+                  <td className={styles.td}>
+                    <button className={styles.deleteBtn} onClick={() => handleDelete(folder)}>
+                      Delete
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -202,18 +226,36 @@ function RootFoldersSection() {
       )}
 
       <div className={styles.addRow}>
-        <input
-          type="text"
-          className={styles.addInput}
-          placeholder="/path/to/tv/shows"
-          value={newPath}
-          onChange={(e) => setNewPath(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Enter') handleAdd() }}
-        />
-        <button className={styles.addBtn} onClick={handleAdd}>
+        <button className={styles.addBtn} onClick={() => setBrowserOpen(true)}>
           Add Root Folder
         </button>
       </div>
+
+      <FileBrowserModal
+        isOpen={browserOpen}
+        initialPath="/"
+        onSelect={handleSelect}
+        onCancel={() => setBrowserOpen(false)}
+      />
+
+      {deleteError && (
+        <div className={styles.errorMessage}>
+          <div>{deleteError.message}</div>
+          {deleteError.affectedSeries.length > 0 && (
+            <ul style={{ margin: '6px 0 0', paddingLeft: 20 }}>
+              {deleteError.affectedSeries.map((title) => (
+                <li key={title}>{title}</li>
+              ))}
+            </ul>
+          )}
+          <button
+            onClick={() => setDeleteError(null)}
+            style={{ marginTop: 8 }}
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
     </section>
   )
 }

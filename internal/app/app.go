@@ -115,6 +115,7 @@ import (
 	"github.com/ajthom90/sonarr2/internal/recyclebin"
 	"github.com/ajthom90/sonarr2/internal/releaseprofile"
 	"github.com/ajthom90/sonarr2/internal/remotepathmapping"
+	"github.com/ajthom90/sonarr2/internal/rootfolder"
 	"github.com/ajthom90/sonarr2/internal/rsssync"
 	"github.com/ajthom90/sonarr2/internal/scheduler"
 	"github.com/ajthom90/sonarr2/internal/tags"
@@ -236,6 +237,7 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 	var rpmStore remotepathmapping.Store
 	var rpStore releaseprofile.Store
 	var dpStore delayprofile.Store
+	var rfStore rootfolder.Store
 	switch p := pool.(type) {
 	case *db.PostgresPool:
 		qualityDefStore = profiles.NewPostgresQualityDefinitionStore(p)
@@ -246,6 +248,7 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 		rpmStore = remotepathmapping.NewPostgresStore(p)
 		rpStore = releaseprofile.NewPostgresStore(p)
 		dpStore = delayprofile.NewPostgresStore(p)
+		rfStore = rootfolder.NewPostgresStore(p)
 	case *db.SQLitePool:
 		qualityDefStore = profiles.NewSQLiteQualityDefinitionStore(p)
 		qualityProfileStore = profiles.NewSQLiteQualityProfileStore(p)
@@ -255,9 +258,18 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 		rpmStore = remotepathmapping.NewSQLiteStore(p)
 		rpStore = releaseprofile.NewSQLiteStore(p)
 		dpStore = delayprofile.NewSQLiteStore(p)
+		rfStore = rootfolder.NewSQLiteStore(p)
 	default:
 		_ = pool.Close()
 		return nil, fmt.Errorf("app: unsupported pool type for profiles/CF: %T", pool)
+	}
+
+	// Backfill root_folders from existing series paths. Idempotent — derives
+	// distinct filepath.Dir(series.path) values and skips rows that already
+	// exist. Safe to run every boot.
+	if err := rootfolder.BackfillFromSeries(ctx, rfStore, lib.Series); err != nil {
+		_ = pool.Close()
+		return nil, fmt.Errorf("app: rootfolder backfill: %w", err)
 	}
 
 	// Seed a default "Any" quality profile that allows all qualities if none exist.
@@ -833,6 +845,7 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 			Blocklist:            blStore,
 			RemotePathMappings:   rpmStore,
 			ReleaseProfiles:      rpStore,
+			RootFolders:          rfStore,
 			DelayProfiles:        dpStore,
 			MetadataRegistry:     metaReg,
 			ImportListRegistry:   ilReg,

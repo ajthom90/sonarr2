@@ -28,6 +28,7 @@ type Querier interface {
 	CreateQualityProfile(ctx context.Context, arg CreateQualityProfileParams) (QualityProfile, error)
 	CreateReleaseProfile(ctx context.Context, arg CreateReleaseProfileParams) (ReleaseProfile, error)
 	CreateRemotePathMapping(ctx context.Context, arg CreateRemotePathMappingParams) (RemotePathMapping, error)
+	CreateRootFolder(ctx context.Context, path string) (RootFolder, error)
 	CreateSeries(ctx context.Context, arg CreateSeriesParams) (Series, error)
 	CreateTag(ctx context.Context, label string) (Tag, error)
 	DeleteBlocklist(ctx context.Context, id int32) error
@@ -44,6 +45,7 @@ type Querier interface {
 	DeleteQualityProfile(ctx context.Context, id int32) error
 	DeleteReleaseProfile(ctx context.Context, id int32) error
 	DeleteRemotePathMapping(ctx context.Context, id int32) error
+	DeleteRootFolder(ctx context.Context, id int32) error
 	DeleteSeason(ctx context.Context, arg DeleteSeasonParams) error
 	DeleteSeries(ctx context.Context, id int64) error
 	DeleteSeriesStatistics(ctx context.Context, seriesID int64) error
@@ -68,6 +70,8 @@ type Querier interface {
 	GetQualityProfileByID(ctx context.Context, id int32) (QualityProfile, error)
 	GetReleaseProfileByID(ctx context.Context, id int32) (ReleaseProfile, error)
 	GetRemotePathMappingByID(ctx context.Context, id int32) (RemotePathMapping, error)
+	GetRootFolder(ctx context.Context, id int32) (RootFolder, error)
+	GetRootFolderByPath(ctx context.Context, path string) (RootFolder, error)
 	GetScheduledTask(ctx context.Context, typeName string) (ScheduledTask, error)
 	GetSeason(ctx context.Context, arg GetSeasonParams) (Season, error)
 	GetSeries(ctx context.Context, id int64) (Series, error)
@@ -90,11 +94,13 @@ type Querier interface {
 	ListQualityProfiles(ctx context.Context) ([]QualityProfile, error)
 	ListReleaseProfiles(ctx context.Context) ([]ReleaseProfile, error)
 	ListRemotePathMappings(ctx context.Context) ([]RemotePathMapping, error)
+	ListRootFolders(ctx context.Context) ([]RootFolder, error)
 	ListScheduledTasks(ctx context.Context) ([]ScheduledTask, error)
 	ListSeasonsForSeries(ctx context.Context, seriesID int64) ([]Season, error)
 	ListSeries(ctx context.Context) ([]Series, error)
 	ListTags(ctx context.Context) ([]Tag, error)
 	RefreshLease(ctx context.Context, arg RefreshLeaseParams) error
+	SetEpisodeMonitored(ctx context.Context, arg SetEpisodeMonitoredParams) error
 	SumEpisodeFileSizesForSeries(ctx context.Context, seriesID int64) (SumEpisodeFileSizesForSeriesRow, error)
 	SweepExpiredLeases(ctx context.Context) (int64, error)
 	UpdateCustomFormat(ctx context.Context, arg UpdateCustomFormatParams) error

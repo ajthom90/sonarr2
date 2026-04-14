@@ -163,6 +163,23 @@ func (q *Queries) ListEpisodesForSeries(ctx context.Context, seriesID int64) ([]
 	return items, nil
 }
 
+const setEpisodeMonitored = `-- name: SetEpisodeMonitored :exec
+UPDATE episodes
+SET monitored = $1,
+    updated_at = now()
+WHERE id = $2
+`
+
+type SetEpisodeMonitoredParams struct {
+	Monitored bool
+	ID        int64
+}
+
+func (q *Queries) SetEpisodeMonitored(ctx context.Context, arg SetEpisodeMonitoredParams) error {
+	_, err := q.db.Exec(ctx, setEpisodeMonitored, arg.Monitored, arg.ID)
+	return err
+}
+
 const updateEpisode = `-- name: UpdateEpisode :exec
 UPDATE episodes
 SET absolute_episode_number = $2,

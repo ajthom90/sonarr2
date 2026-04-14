@@ -8,17 +8,20 @@ import (
 // Series is a TV show tracked by sonarr2. It corresponds to one row in
 // the `series` table.
 type Series struct {
-	ID         int64
-	TvdbID     int64
-	Title      string
-	Slug       string
-	Status     string // continuing | ended | upcoming
-	SeriesType string // standard | daily | anime
-	Path       string
-	Monitored  bool
-	Added      time.Time
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
+	ID               int64
+	TvdbID           int64
+	Title            string
+	Slug             string
+	Status           string // continuing | ended | upcoming
+	SeriesType       string // standard | daily | anime
+	Path             string
+	Monitored        bool
+	QualityProfileID int64 // 0 = unassigned
+	SeasonFolder     bool
+	MonitorNewItems  string // "all" | "none"
+	Added            time.Time
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
 }
 
 // SeriesStore reads and writes Series rows. Create, Update, and Delete

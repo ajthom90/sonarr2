@@ -33,6 +33,7 @@ import (
 	"github.com/ajthom90/sonarr2/internal/realtime"
 	"github.com/ajthom90/sonarr2/internal/releaseprofile"
 	"github.com/ajthom90/sonarr2/internal/remotepathmapping"
+	"github.com/ajthom90/sonarr2/internal/rootfolder"
 	"github.com/ajthom90/sonarr2/internal/tags"
 	"github.com/ajthom90/sonarr2/web"
 	"github.com/go-chi/chi/v5"
@@ -66,6 +67,7 @@ type Deps struct {
 	Blocklist            blocklist.Store
 	RemotePathMappings   remotepathmapping.Store
 	ReleaseProfiles      releaseprofile.Store
+	RootFolders          rootfolder.Store
 	DelayProfiles        delayprofile.Store
 	MetadataRegistry     *metadata.Registry
 	ImportListRegistry   *importlist.Registry
@@ -198,7 +200,11 @@ func HandlerWithDeps(log *slog.Logger, deps Deps) http.Handler {
 
 			// Task 3 — series.
 			if deps.Series != nil && deps.Seasons != nil && deps.Stats != nil {
-				sh := v3.NewSeriesHandler(deps.Series, deps.Seasons, deps.Stats, log)
+				var enq v3.CommandEnqueuer
+				if deps.Commands != nil {
+					enq = &seriesCommandEnqueuer{queue: deps.Commands}
+				}
+				sh := v3.NewSeriesHandler(deps.Series, deps.Seasons, deps.Stats, deps.Episodes, enq, log)
 				v3.MountSeries(r, sh)
 			}
 
@@ -258,9 +264,12 @@ func HandlerWithDeps(log *slog.Logger, deps Deps) http.Handler {
 			if deps.MetadataSource != nil {
 				v3.MountSeriesLookup(r, deps.MetadataSource)
 			}
-			if deps.Series != nil {
-				rfh := v3.NewRootFolderHandler(deps.Series, log)
-				v3.MountRootFolder(r, rfh)
+			if deps.RootFolders != nil && deps.Series != nil {
+				v3.MountRootFolder(r, deps.RootFolders, deps.Series)
+			}
+			v3.MountFilesystem(r)
+			if deps.RootFolders != nil && deps.Series != nil && deps.HostConfig != nil && deps.MetadataSource != nil {
+				v3.MountLibraryImport(r, deps.RootFolders, deps.Series, deps.HostConfig, deps.MetadataSource)
 			}
 			if deps.Tags != nil {
 				th := v3.NewTagHandler(deps.Tags, log)
@@ -463,4 +472,21 @@ func requestLogger(log *slog.Logger) func(http.Handler) http.Handler {
 			next.ServeHTTP(ww, r)
 		})
 	}
+}
+
+// seriesCommandEnqueuer adapts commands.Queue to the narrower v3.CommandEnqueuer
+// interface the series handler wants: a single-arg map body rather than
+// the full priority/trigger/dedup tuple. Marshal errors are returned so the
+// caller can decide whether to surface them (series.create logs + ignores).
+type seriesCommandEnqueuer struct {
+	queue commands.Queue
+}
+
+func (s *seriesCommandEnqueuer) Enqueue(ctx context.Context, name string, body map[string]any) error {
+	raw, err := json.Marshal(body)
+	if err != nil {
+		return fmt.Errorf("marshal command body: %w", err)
+	}
+	_, err = s.queue.Enqueue(ctx, name, raw, commands.PriorityNormal, commands.TriggerManual, "")
+	return err
 }

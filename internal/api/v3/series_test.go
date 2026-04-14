@@ -24,6 +24,8 @@ import (
 
 // setupLibrary returns a *library.Library backed by an in-memory SQLite pool
 // with all migrations applied. The returned cleanup func closes the pool.
+// Two quality profiles (id=1 "Any", id=2 "HD-1080p") are seeded so tests
+// can reference either without tripping the series.quality_profile_id FK.
 func setupLibrary(t *testing.T) *library.Library {
 	t.Helper()
 	ctx := context.Background()
@@ -38,6 +40,17 @@ func setupLibrary(t *testing.T) *library.Library {
 	if err := db.Migrate(ctx, pool); err != nil {
 		t.Fatalf("Migrate: %v", err)
 	}
+	// Seed profiles referenced by tests that use qualityProfileId in request
+	// bodies. Without this the series FK would fail.
+	if err := pool.Write(ctx, func(exec db.Executor) error {
+		if _, err := exec.ExecContext(ctx, `INSERT INTO quality_profiles (id, name) VALUES (1, 'Any')`); err != nil {
+			return err
+		}
+		_, err := exec.ExecContext(ctx, `INSERT INTO quality_profiles (id, name) VALUES (2, 'HD-1080p')`)
+		return err
+	}); err != nil {
+		t.Fatalf("seed quality profiles: %v", err)
+	}
 	bus := events.NewBus(4)
 	lib, err := library.New(pool, bus)
 	if err != nil {
@@ -46,11 +59,28 @@ func setupLibrary(t *testing.T) *library.Library {
 	return lib
 }
 
+// fakeCommands is a no-op CommandEnqueuer that records the enqueue calls
+// so tests can assert (or ignore) post-create background work.
+type fakeCommands struct {
+	calls []struct {
+		Name string
+		Body map[string]any
+	}
+}
+
+func (f *fakeCommands) Enqueue(_ context.Context, name string, body map[string]any) error {
+	f.calls = append(f.calls, struct {
+		Name string
+		Body map[string]any
+	}{Name: name, Body: body})
+	return nil
+}
+
 // buildRouter builds a chi.Router with the series routes but no auth
 // middleware so tests can exercise handlers directly.
 func buildRouter(lib *library.Library) http.Handler {
 	r := chi.NewRouter()
-	h := NewSeriesHandler(lib.Series, lib.Seasons, lib.Stats, slog.New(slog.NewJSONHandler(io.Discard, nil)))
+	h := NewSeriesHandler(lib.Series, lib.Seasons, lib.Stats, lib.Episodes, &fakeCommands{}, slog.New(slog.NewJSONHandler(io.Discard, nil)))
 	MountSeries(r, h)
 	return r
 }
@@ -298,4 +328,82 @@ func TestSeriesGoldenFieldNames(t *testing.T) {
 // itoa is a trivial int64→string helper so tests don't need strconv.
 func itoa(id int64) string {
 	return strconv.FormatInt(id, 10)
+}
+
+// TestSeriesCreate_PersistsLibraryImportFields verifies that POST
+// /api/v3/series accepts the library-import fields (qualityProfileId,
+// seasonFolder, monitorNewItems) on the way in and echoes them back
+// unchanged on the way out — proving both the input-mapping and the
+// response-rendering paths are wired.
+func TestSeriesCreate_PersistsLibraryImportFields(t *testing.T) {
+	lib := setupLibrary(t)
+
+	body, err := json.Marshal(map[string]any{
+		"title":            "Test",
+		"tvdbId":           9999,
+		"path":             "/tmp/fixtures/Test",
+		"seriesType":       "standard",
+		"monitored":        true,
+		"qualityProfileId": 2,
+		"seasonFolder":     false,
+		"monitorNewItems":  "all",
+	})
+	if err != nil {
+		t.Fatalf("marshal body: %v", err)
+	}
+
+	router := buildRouter(lib)
+	req := httptest.NewRequest(http.MethodPost, "/api/v3/series", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	rr := httptest.NewRecorder()
+	router.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusCreated {
+		t.Fatalf("status = %d, want 201; body = %s", rr.Code, rr.Body.String())
+	}
+
+	var res struct {
+		QualityProfileID int    `json:"qualityProfileId"`
+		SeasonFolder     bool   `json:"seasonFolder"`
+		MonitorNewItems  string `json:"monitorNewItems"`
+	}
+	if err := json.NewDecoder(rr.Body).Decode(&res); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if res.QualityProfileID != 2 {
+		t.Errorf("qualityProfileId = %d, want 2", res.QualityProfileID)
+	}
+	if res.SeasonFolder != false {
+		t.Errorf("seasonFolder = %v, want false", res.SeasonFolder)
+	}
+	if res.MonitorNewItems != "all" {
+		t.Errorf("monitorNewItems = %q, want %q", res.MonitorNewItems, "all")
+	}
+}
+
+// TestSeriesCreate_InvalidMonitorMode verifies that a bogus addOptions.monitor
+// value is rejected with 400 before any DB writes happen.
+func TestSeriesCreate_InvalidMonitorMode(t *testing.T) {
+	lib := setupLibrary(t)
+
+	body, err := json.Marshal(map[string]any{
+		"title":      "Test",
+		"tvdbId":     9999,
+		"path":       "/tmp/x",
+		"monitored":  true,
+		"addOptions": map[string]any{"monitor": "bogus"},
+	})
+	if err != nil {
+		t.Fatalf("marshal body: %v", err)
+	}
+
+	router := buildRouter(lib)
+	req := httptest.NewRequest(http.MethodPost, "/api/v3/series", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	rr := httptest.NewRecorder()
+	router.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusBadRequest {
+		t.Fatalf("status = %d, want 400; body = %s", rr.Code, rr.Body.String())
+	}
 }

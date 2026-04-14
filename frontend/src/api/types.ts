@@ -155,6 +155,9 @@ export interface AddSeriesRequest {
   monitored: boolean
   seriesType: string
   status: string
+  seasonFolder?: boolean
+  monitorNewItems?: 'all' | 'none'
+  addOptions?: AddSeriesAddOptions
 }
 
 export interface GeneralSettings {
@@ -187,4 +190,99 @@ export interface CustomFormat {
   name: string
   includeCustomFormatWhenRenaming: boolean
   specifications: CustomFormatSpec[]
+}
+
+export interface FilesystemEntry {
+  type: 'folder' | 'file'
+  name: string
+  path: string
+}
+
+export interface FilesystemListing {
+  parent: string
+  directories: FilesystemEntry[]
+  files: FilesystemEntry[]
+}
+
+export interface LibraryImportMatch {
+  tvdbId: number
+  title: string
+  year: number
+  overview?: string
+}
+
+export interface LibraryImportEntry {
+  folderName: string
+  relativePath: string
+  absolutePath: string
+  tvdbMatch: LibraryImportMatch | null
+  alreadyImported: boolean
+}
+
+export interface CreateRootFolderRequest {
+  path: string
+}
+
+export interface AddSeriesAddOptions {
+  monitor?: 'all' | 'none' | 'future' | 'missing' | 'existing' | 'pilot' | 'firstSeason' | 'lastSeason'
+  searchForMissingEpisodes?: boolean
+  searchForCutoffUnmetEpisodes?: boolean
+}
+
+export interface ProviderFieldSchema {
+  name: string
+  label: string
+  type: 'text' | 'password' | 'number' | 'checkbox' | 'select' | 'multiselect'
+  required?: boolean
+  default?: string
+  placeholder?: string
+  helpText?: string
+  advanced?: boolean
+}
+
+export interface ProviderSchema {
+  implementation: string
+  name: string
+  fields: ProviderFieldSchema[]
+}
+
+export interface IndexerResource {
+  id: number
+  name: string
+  implementation: string
+  fields: Record<string, unknown>
+  enableRss: boolean
+  enableAutomaticSearch: boolean
+  enableInteractiveSearch: boolean
+  priority: number
+  added?: string
+}
+
+export interface DownloadClientResource {
+  id: number
+  name: string
+  implementation: string
+  fields: Record<string, unknown>
+  enable: boolean
+  priority: number
+  added?: string
+}
+
+export interface RemotePathMapping {
+  id: number
+  host: string
+  remotePath: string
+  localPath: string
+}
+
+export interface NotificationResource {
+  id: number
+  name: string
+  implementation: string
+  fields: Record<string, unknown>
+  onGrab: boolean
+  onDownload: boolean
+  onHealthIssue: boolean
+  tags: number[]
+  added?: string
 }

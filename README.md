@@ -44,6 +44,11 @@ tasks. Not ready for end users (pre-v1).
 - **Import pipeline** — completed downloads scanned, parsed, matched to episodes, moved/hardlinked into series library with configurable naming tokens
 - **File organizer** — naming token system for episode filenames (series title, season, episode, quality, release group)
 - **Sonarr v3 API** — 35+ endpoints with wire-compatible JSON: series CRUD, episodes, episode files, quality profiles, quality definitions, custom formats, commands, history (paged), calendar, indexer/download client/notification CRUD + schema, root folders, parse, health, wanted/missing, system status
+- **Root folders + file browser** — `/api/v3/filesystem` directory-listing endpoint and `POST`/`DELETE /api/v3/rootfolder` CRUD backing a `FileBrowserModal` on the Settings → Media Management page. Existing series' implicit root paths are persisted into a `root_folders` table on first boot.
+- **Library Import** — Series → Library Import scans a root folder, auto-matches each sub-folder against TVDB (with a concurrency cap), and bulk-imports series with per-row Quality Profile / Monitor mode / Season Folder / Series Type overrides. Requires a TVDB API key configured in Settings → General.
+- **Indexers + Download Clients settings pages** — schema-driven add/edit/delete UI for all 10 indexer and 20 download-client providers. Download Clients page also has a Remote Path Mappings sub-panel. Test / Test All actions remain deferred pending per-provider test endpoints on the backend.
+- **Connect (notifications) settings page** — schema-driven add/edit/delete for all 24 notification providers with OnGrab / OnDownload / OnHealthIssue event triggers + tag binding. The full 13-event Sonarr trigger set will arrive when the backend expands its supported events.
+- **Import Lists + Metadata settings (preview)** — read-only catalogs listing the 11 Import List providers and 4 Metadata consumers that sonarr2 has registered. Persisted add/edit/delete arrives in a follow-up sub-project once backend stores land.
 - **API v6** — clean REST surface alongside v3: cursor pagination, RFC 9457 error envelopes, ~48 endpoints for series, episodes, profiles, commands, history, providers, notifications
 - **API key authentication** — `X-Api-Key` header or `?apikey=` query param, matching Sonarr's convention
 - **Filesystem watcher** — fsnotify-based monitoring with 2-second debouncing; detects changes in series folders for instant scan
@@ -72,6 +77,8 @@ make build
 docker build -f docker/Dockerfile -t sonarr2 .
 docker run -p 8989:8989 -v ./config:/config sonarr2
 ```
+
+**Docker deployments:** mount your media library into the container (e.g. `-v /host/media:/data`). The `/api/v3/filesystem` endpoint only sees what the process can access, so Library Import won't find folders that aren't bind-mounted.
 
 ## Development
 

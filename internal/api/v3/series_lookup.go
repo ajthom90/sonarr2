@@ -26,7 +26,7 @@ func handleSeriesLookup(source metadatasource.MetadataSource) http.HandlerFunc {
 		if err != nil {
 			msg := err.Error()
 			if strings.Contains(msg, "401") || strings.Contains(msg, "login") {
-				msg = "TVDB API key is not configured. Set the SONARR2_TVDB_API_KEY environment variable."
+				msg = "TVDB API key is not configured. Set it in Settings → General."
 			}
 			writeJSON(w, http.StatusServiceUnavailable, map[string]string{"message": msg})
 			return

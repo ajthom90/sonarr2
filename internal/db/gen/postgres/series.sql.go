@@ -7,22 +7,27 @@ package postgres
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createSeries = `-- name: CreateSeries :one
-INSERT INTO series (tvdb_id, title, slug, status, series_type, path, monitored)
-VALUES ($1, $2, $3, $4, $5, $6, $7)
-RETURNING id, tvdb_id, title, slug, status, series_type, path, monitored, added, created_at, updated_at
+INSERT INTO series (tvdb_id, title, slug, status, series_type, path, monitored, quality_profile_id, season_folder, monitor_new_items)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+RETURNING id, tvdb_id, title, slug, status, series_type, path, monitored, added, created_at, updated_at, quality_profile_id, season_folder, monitor_new_items
 `
 
 type CreateSeriesParams struct {
-	TvdbID     int64
-	Title      string
-	Slug       string
-	Status     string
-	SeriesType string
-	Path       string
-	Monitored  bool
+	TvdbID           int64
+	Title            string
+	Slug             string
+	Status           string
+	SeriesType       string
+	Path             string
+	Monitored        bool
+	QualityProfileID pgtype.Int4
+	SeasonFolder     bool
+	MonitorNewItems  string
 }
 
 func (q *Queries) CreateSeries(ctx context.Context, arg CreateSeriesParams) (Series, error) {
@@ -34,6 +39,9 @@ func (q *Queries) CreateSeries(ctx context.Context, arg CreateSeriesParams) (Ser
 		arg.SeriesType,
 		arg.Path,
 		arg.Monitored,
+		arg.QualityProfileID,
+		arg.SeasonFolder,
+		arg.MonitorNewItems,
 	)
 	var i Series
 	err := row.Scan(
@@ -48,6 +56,9 @@ func (q *Queries) CreateSeries(ctx context.Context, arg CreateSeriesParams) (Ser
 		&i.Added,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.QualityProfileID,
+		&i.SeasonFolder,
+		&i.MonitorNewItems,
 	)
 	return i, err
 }
@@ -62,7 +73,7 @@ func (q *Queries) DeleteSeries(ctx context.Context, id int64) error {
 }
 
 const getSeries = `-- name: GetSeries :one
-SELECT id, tvdb_id, title, slug, status, series_type, path, monitored, added, created_at, updated_at
+SELECT id, tvdb_id, title, slug, status, series_type, path, monitored, added, created_at, updated_at, quality_profile_id, season_folder, monitor_new_items
 FROM series
 WHERE id = $1
 `
@@ -82,12 +93,15 @@ func (q *Queries) GetSeries(ctx context.Context, id int64) (Series, error) {
 		&i.Added,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.QualityProfileID,
+		&i.SeasonFolder,
+		&i.MonitorNewItems,
 	)
 	return i, err
 }
 
 const getSeriesBySlug = `-- name: GetSeriesBySlug :one
-SELECT id, tvdb_id, title, slug, status, series_type, path, monitored, added, created_at, updated_at
+SELECT id, tvdb_id, title, slug, status, series_type, path, monitored, added, created_at, updated_at, quality_profile_id, season_folder, monitor_new_items
 FROM series
 WHERE slug = $1
 `
@@ -107,12 +121,15 @@ func (q *Queries) GetSeriesBySlug(ctx context.Context, slug string) (Series, err
 		&i.Added,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.QualityProfileID,
+		&i.SeasonFolder,
+		&i.MonitorNewItems,
 	)
 	return i, err
 }
 
 const getSeriesByTvdbID = `-- name: GetSeriesByTvdbID :one
-SELECT id, tvdb_id, title, slug, status, series_type, path, monitored, added, created_at, updated_at
+SELECT id, tvdb_id, title, slug, status, series_type, path, monitored, added, created_at, updated_at, quality_profile_id, season_folder, monitor_new_items
 FROM series
 WHERE tvdb_id = $1
 `
@@ -132,12 +149,15 @@ func (q *Queries) GetSeriesByTvdbID(ctx context.Context, tvdbID int64) (Series, 
 		&i.Added,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.QualityProfileID,
+		&i.SeasonFolder,
+		&i.MonitorNewItems,
 	)
 	return i, err
 }
 
 const listSeries = `-- name: ListSeries :many
-SELECT id, tvdb_id, title, slug, status, series_type, path, monitored, added, created_at, updated_at
+SELECT id, tvdb_id, title, slug, status, series_type, path, monitored, added, created_at, updated_at, quality_profile_id, season_folder, monitor_new_items
 FROM series
 ORDER BY title
 `
@@ -163,6 +183,9 @@ func (q *Queries) ListSeries(ctx context.Context) ([]Series, error) {
 			&i.Added,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.QualityProfileID,
+			&i.SeasonFolder,
+			&i.MonitorNewItems,
 		); err != nil {
 			return nil, err
 		}
@@ -183,19 +206,25 @@ SET tvdb_id = $2,
     series_type = $6,
     path = $7,
     monitored = $8,
+    quality_profile_id = $9,
+    season_folder = $10,
+    monitor_new_items = $11,
     updated_at = now()
 WHERE id = $1
 `
 
 type UpdateSeriesParams struct {
-	ID         int64
-	TvdbID     int64
-	Title      string
-	Slug       string
-	Status     string
-	SeriesType string
-	Path       string
-	Monitored  bool
+	ID               int64
+	TvdbID           int64
+	Title            string
+	Slug             string
+	Status           string
+	SeriesType       string
+	Path             string
+	Monitored        bool
+	QualityProfileID pgtype.Int4
+	SeasonFolder     bool
+	MonitorNewItems  string
 }
 
 func (q *Queries) UpdateSeries(ctx context.Context, arg UpdateSeriesParams) error {
@@ -208,6 +237,9 @@ func (q *Queries) UpdateSeries(ctx context.Context, arg UpdateSeriesParams) erro
 		arg.SeriesType,
 		arg.Path,
 		arg.Monitored,
+		arg.QualityProfileID,
+		arg.SeasonFolder,
+		arg.MonitorNewItems,
 	)
 	return err
 }

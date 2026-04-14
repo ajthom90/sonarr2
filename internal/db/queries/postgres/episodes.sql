@@ -34,6 +34,12 @@ SET absolute_episode_number = $2,
     updated_at = now()
 WHERE id = $1;
 
+-- name: SetEpisodeMonitored :exec
+UPDATE episodes
+SET monitored = $1,
+    updated_at = now()
+WHERE id = $2;
+
 -- name: DeleteEpisode :exec
 DELETE FROM episodes WHERE id = $1;
 

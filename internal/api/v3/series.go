@@ -2,6 +2,7 @@
 package v3
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"log/slog"
@@ -15,6 +16,13 @@ import (
 
 	"github.com/ajthom90/sonarr2/internal/library"
 )
+
+// CommandEnqueuer is the minimal interface the series handler needs to
+// enqueue post-create background work (e.g., "SeriesSearch"). It is
+// narrower than commands.Queue so tests can supply a no-op fake.
+type CommandEnqueuer interface {
+	Enqueue(ctx context.Context, name string, body map[string]any) error
+}
 
 // seriesResource is the Sonarr v3 JSON shape for a series.
 type seriesResource struct {
@@ -75,19 +83,32 @@ type statisticsResource struct {
 
 // seriesHandler handles all /api/v3/series endpoints.
 type seriesHandler struct {
-	series  library.SeriesStore
-	seasons library.SeasonsStore
-	stats   library.SeriesStatsStore
-	log     *slog.Logger
+	series   library.SeriesStore
+	seasons  library.SeasonsStore
+	stats    library.SeriesStatsStore
+	episodes library.EpisodesStore
+	commands CommandEnqueuer
+	log      *slog.Logger
 }
 
-// NewSeriesHandler constructs a seriesHandler.
-func NewSeriesHandler(series library.SeriesStore, seasons library.SeasonsStore, stats library.SeriesStatsStore, log *slog.Logger) *seriesHandler {
+// NewSeriesHandler constructs a seriesHandler. episodes and commands may be
+// nil in minimal/test configurations — when nil the addOptions post-create
+// hooks (monitor mode apply, SeriesSearch enqueue) are skipped.
+func NewSeriesHandler(
+	series library.SeriesStore,
+	seasons library.SeasonsStore,
+	stats library.SeriesStatsStore,
+	episodes library.EpisodesStore,
+	commands CommandEnqueuer,
+	log *slog.Logger,
+) *seriesHandler {
 	return &seriesHandler{
-		series:  series,
-		seasons: seasons,
-		stats:   stats,
-		log:     log,
+		series:   series,
+		seasons:  seasons,
+		stats:    stats,
+		episodes: episodes,
+		commands: commands,
+		log:      log,
 	}
 }
 
@@ -165,6 +186,11 @@ func (h *seriesHandler) toResource(s library.Series, seasons []library.Season, s
 		rootFolder = filepath.Dir(s.Path)
 	}
 
+	monitorNewItems := s.MonitorNewItems
+	if monitorNewItems == "" {
+		monitorNewItems = "all"
+	}
+
 	return seriesResource{
 		ID:               s.ID,
 		Title:            s.Title,
@@ -173,8 +199,8 @@ func (h *seriesHandler) toResource(s library.Series, seasons []library.Season, s
 		Images:           []any{},
 		Seasons:          seasonResources,
 		Path:             s.Path,
-		QualityProfileID: 1,
-		SeasonFolder:     true,
+		QualityProfileID: int(s.QualityProfileID),
+		SeasonFolder:     s.SeasonFolder,
 		Monitored:        s.Monitored,
 		TvdbID:           s.TvdbID,
 		SeriesType:       s.SeriesType,
@@ -188,7 +214,7 @@ func (h *seriesHandler) toResource(s library.Series, seasons []library.Season, s
 		Statistics:       statsRes,
 		AlternateTitles:  []any{},
 		OriginalLanguage: map[string]any{},
-		MonitorNewItems:  "all",
+		MonitorNewItems:  monitorNewItems,
 		Ended:            s.Status == "ended",
 	}
 }
@@ -265,17 +291,43 @@ func (h *seriesHandler) get(w http.ResponseWriter, r *http.Request) {
 
 // seriesInput is the JSON body for POST and PUT requests.
 type seriesInput struct {
-	Title      string `json:"title"`
-	TvdbID     int64  `json:"tvdbId"`
-	Slug       string `json:"titleSlug"`
-	Status     string `json:"status"`
-	SeriesType string `json:"seriesType"`
-	Path       string `json:"path"`
-	Monitored  bool   `json:"monitored"`
-	Seasons    []struct {
+	Title            string `json:"title"`
+	TvdbID           int64  `json:"tvdbId"`
+	Slug             string `json:"titleSlug"`
+	Status           string `json:"status"`
+	SeriesType       string `json:"seriesType"`
+	Path             string `json:"path"`
+	Monitored        bool   `json:"monitored"`
+	QualityProfileID int64  `json:"qualityProfileId"`
+	SeasonFolder     *bool  `json:"seasonFolder"`
+	MonitorNewItems  string `json:"monitorNewItems"`
+	Seasons          []struct {
 		SeasonNumber int  `json:"seasonNumber"`
 		Monitored    bool `json:"monitored"`
 	} `json:"seasons"`
+	AddOptions *addOptionsInput `json:"addOptions"`
+}
+
+// addOptionsInput is the nested JSON object on POST /api/v3/series that
+// controls post-create actions (monitor mode, search).
+type addOptionsInput struct {
+	Monitor                      string `json:"monitor"`
+	SearchForMissingEpisodes     bool   `json:"searchForMissingEpisodes"`
+	SearchForCutoffUnmetEpisodes bool   `json:"searchForCutoffUnmetEpisodes"`
+}
+
+// validMonitorModes enumerates addOptions.monitor values accepted by the API.
+// Empty string is also valid (treated as "all" by library.ApplyMonitorMode).
+var validMonitorModes = map[string]bool{
+	"":            true,
+	"all":         true,
+	"none":        true,
+	"future":      true,
+	"missing":     true,
+	"existing":    true,
+	"pilot":       true,
+	"firstSeason": true,
+	"lastSeason":  true,
 }
 
 // create handles POST /api/v3/series.
@@ -296,15 +348,34 @@ func (h *seriesHandler) create(w http.ResponseWriter, r *http.Request) {
 	if input.Slug == "" {
 		input.Slug = strings.ToLower(strings.ReplaceAll(input.Title, " ", "-"))
 	}
+	if input.MonitorNewItems == "" {
+		input.MonitorNewItems = "all"
+	}
+	// SeasonFolder defaults to true when not supplied.
+	seasonFolder := true
+	if input.SeasonFolder != nil {
+		seasonFolder = *input.SeasonFolder
+	}
+	// Validate addOptions.monitor early so the user gets a 400 before any
+	// DB writes happen.
+	if input.AddOptions != nil {
+		if _, ok := validMonitorModes[input.AddOptions.Monitor]; !ok {
+			writeError(w, http.StatusBadRequest, "invalid monitor mode: "+input.AddOptions.Monitor)
+			return
+		}
+	}
 
 	s, err := h.series.Create(ctx, library.Series{
-		TvdbID:     input.TvdbID,
-		Title:      input.Title,
-		Slug:       input.Slug,
-		Status:     input.Status,
-		SeriesType: input.SeriesType,
-		Path:       input.Path,
-		Monitored:  input.Monitored,
+		TvdbID:           input.TvdbID,
+		Title:            input.Title,
+		Slug:             input.Slug,
+		Status:           input.Status,
+		SeriesType:       input.SeriesType,
+		Path:             input.Path,
+		Monitored:        input.Monitored,
+		QualityProfileID: input.QualityProfileID,
+		SeasonFolder:     seasonFolder,
+		MonitorNewItems:  input.MonitorNewItems,
 	})
 	if err != nil {
 		h.log.Error("series create", slog.String("err", err.Error()))
@@ -319,6 +390,21 @@ func (h *seriesHandler) create(w http.ResponseWriter, r *http.Request) {
 			SeasonNumber: int32(seasonIn.SeasonNumber),
 			Monitored:    seasonIn.Monitored,
 		})
+	}
+
+	// Apply post-create addOptions. Monitor-mode apply is non-fatal: if it
+	// fails we log and continue so the series is still returned as created.
+	// Only meaningful when episodes+commands deps were wired; skipped in
+	// minimal test configurations.
+	if input.AddOptions != nil {
+		if h.episodes != nil {
+			if err := library.ApplyMonitorMode(ctx, h.episodes, s.ID, input.AddOptions.Monitor); err != nil {
+				h.log.Error("apply monitor mode", slog.String("err", err.Error()))
+			}
+		}
+		if input.AddOptions.SearchForMissingEpisodes && h.commands != nil {
+			_ = h.commands.Enqueue(ctx, "SeriesSearch", map[string]any{"seriesId": s.ID})
+		}
 	}
 
 	seasons, _ := h.seasons.ListForSeries(ctx, s.ID)
@@ -351,7 +437,9 @@ func (h *seriesHandler) update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Apply updates — only overwrite non-zero fields.
+	// Apply updates — only overwrite non-zero fields so callers can omit
+	// unchanged values. For booleans where we need to distinguish "not
+	// provided" from "false", the input field is a pointer.
 	if input.Title != "" {
 		existing.Title = input.Title
 	}
@@ -366,6 +454,15 @@ func (h *seriesHandler) update(w http.ResponseWriter, r *http.Request) {
 	}
 	if input.Slug != "" {
 		existing.Slug = input.Slug
+	}
+	if input.QualityProfileID != 0 {
+		existing.QualityProfileID = input.QualityProfileID
+	}
+	if input.SeasonFolder != nil {
+		existing.SeasonFolder = *input.SeasonFolder
+	}
+	if input.MonitorNewItems != "" {
+		existing.MonitorNewItems = input.MonitorNewItems
 	}
 	existing.Monitored = input.Monitored
 
