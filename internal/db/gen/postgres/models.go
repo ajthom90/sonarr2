@@ -259,17 +259,20 @@ type Season struct {
 }
 
 type Series struct {
-	ID         int64
-	TvdbID     int64
-	Title      string
-	Slug       string
-	Status     string
-	SeriesType string
-	Path       string
-	Monitored  bool
-	Added      pgtype.Timestamptz
-	CreatedAt  pgtype.Timestamptz
-	UpdatedAt  pgtype.Timestamptz
+	ID               int64
+	TvdbID           int64
+	Title            string
+	Slug             string
+	Status           string
+	SeriesType       string
+	Path             string
+	Monitored        bool
+	Added            pgtype.Timestamptz
+	CreatedAt        pgtype.Timestamptz
+	UpdatedAt        pgtype.Timestamptz
+	QualityProfileID pgtype.Int4
+	SeasonFolder     bool
+	MonitorNewItems  string
 }
 
 type SeriesStatistic struct {

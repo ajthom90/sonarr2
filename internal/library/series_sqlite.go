@@ -40,17 +40,24 @@ func parseSqliteTime(s string) time.Time {
 }
 
 func (s *sqliteSeriesStore) Create(ctx context.Context, in Series) (Series, error) {
+	monitorNewItems := in.MonitorNewItems
+	if monitorNewItems == "" {
+		monitorNewItems = "all"
+	}
 	var out Series
 	err := s.pool.Write(ctx, func(exec db.Executor) error {
 		queries := sqlitegen.New(&sqliteExec{exec: exec})
 		row, err := queries.CreateSeries(ctx, sqlitegen.CreateSeriesParams{
-			TvdbID:     in.TvdbID,
-			Title:      in.Title,
-			Slug:       in.Slug,
-			Status:     in.Status,
-			SeriesType: in.SeriesType,
-			Path:       in.Path,
-			Monitored:  boolToInt64(in.Monitored),
+			TvdbID:           in.TvdbID,
+			Title:            in.Title,
+			Slug:             in.Slug,
+			Status:           in.Status,
+			SeriesType:       in.SeriesType,
+			Path:             in.Path,
+			Monitored:        boolToInt64(in.Monitored),
+			QualityProfileID: sql.NullInt64{Int64: in.QualityProfileID, Valid: in.QualityProfileID != 0},
+			SeasonFolder:     boolToInt64(in.SeasonFolder),
+			MonitorNewItems:  monitorNewItems,
 		})
 		if err != nil {
 			return fmt.Errorf("library: create series: %w", err)
@@ -121,17 +128,24 @@ func (s *sqliteSeriesStore) List(ctx context.Context) ([]Series, error) {
 }
 
 func (s *sqliteSeriesStore) Update(ctx context.Context, in Series) error {
+	monitorNewItems := in.MonitorNewItems
+	if monitorNewItems == "" {
+		monitorNewItems = "all"
+	}
 	err := s.pool.Write(ctx, func(exec db.Executor) error {
 		queries := sqlitegen.New(&sqliteExec{exec: exec})
 		return queries.UpdateSeries(ctx, sqlitegen.UpdateSeriesParams{
-			ID:         in.ID,
-			TvdbID:     in.TvdbID,
-			Title:      in.Title,
-			Slug:       in.Slug,
-			Status:     in.Status,
-			SeriesType: in.SeriesType,
-			Path:       in.Path,
-			Monitored:  boolToInt64(in.Monitored),
+			ID:               in.ID,
+			TvdbID:           in.TvdbID,
+			Title:            in.Title,
+			Slug:             in.Slug,
+			Status:           in.Status,
+			SeriesType:       in.SeriesType,
+			Path:             in.Path,
+			Monitored:        boolToInt64(in.Monitored),
+			QualityProfileID: sql.NullInt64{Int64: in.QualityProfileID, Valid: in.QualityProfileID != 0},
+			SeasonFolder:     boolToInt64(in.SeasonFolder),
+			MonitorNewItems:  monitorNewItems,
 		})
 	})
 	if err != nil {
@@ -158,18 +172,25 @@ func (s *sqliteSeriesStore) Delete(ctx context.Context, id int64) error {
 }
 
 func seriesFromSqlite(r sqlitegen.Series) Series {
+	qpID := int64(0)
+	if r.QualityProfileID.Valid {
+		qpID = r.QualityProfileID.Int64
+	}
 	return Series{
-		ID:         r.ID,
-		TvdbID:     r.TvdbID,
-		Title:      r.Title,
-		Slug:       r.Slug,
-		Status:     r.Status,
-		SeriesType: r.SeriesType,
-		Path:       r.Path,
-		Monitored:  r.Monitored != 0,
-		Added:      parseSqliteTime(r.Added),
-		CreatedAt:  parseSqliteTime(r.CreatedAt),
-		UpdatedAt:  parseSqliteTime(r.UpdatedAt),
+		ID:               r.ID,
+		TvdbID:           r.TvdbID,
+		Title:            r.Title,
+		Slug:             r.Slug,
+		Status:           r.Status,
+		SeriesType:       r.SeriesType,
+		Path:             r.Path,
+		Monitored:        r.Monitored != 0,
+		QualityProfileID: qpID,
+		SeasonFolder:     r.SeasonFolder != 0,
+		MonitorNewItems:  r.MonitorNewItems,
+		Added:            parseSqliteTime(r.Added),
+		CreatedAt:        parseSqliteTime(r.CreatedAt),
+		UpdatedAt:        parseSqliteTime(r.UpdatedAt),
 	}
 }
 

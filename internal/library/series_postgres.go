@@ -9,6 +9,7 @@ import (
 	pggen "github.com/ajthom90/sonarr2/internal/db/gen/postgres"
 	"github.com/ajthom90/sonarr2/internal/events"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 // postgresSeriesStore implements SeriesStore against a Postgres pool.
@@ -27,14 +28,21 @@ func newPostgresSeriesStore(pool *db.PostgresPool, bus events.Bus) *postgresSeri
 }
 
 func (s *postgresSeriesStore) Create(ctx context.Context, in Series) (Series, error) {
+	monitorNewItems := in.MonitorNewItems
+	if monitorNewItems == "" {
+		monitorNewItems = "all"
+	}
 	row, err := s.q.CreateSeries(ctx, pggen.CreateSeriesParams{
-		TvdbID:     in.TvdbID,
-		Title:      in.Title,
-		Slug:       in.Slug,
-		Status:     in.Status,
-		SeriesType: in.SeriesType,
-		Path:       in.Path,
-		Monitored:  in.Monitored,
+		TvdbID:           in.TvdbID,
+		Title:            in.Title,
+		Slug:             in.Slug,
+		Status:           in.Status,
+		SeriesType:       in.SeriesType,
+		Path:             in.Path,
+		Monitored:        in.Monitored,
+		QualityProfileID: qualityProfileIDToPg(in.QualityProfileID),
+		SeasonFolder:     in.SeasonFolder,
+		MonitorNewItems:  monitorNewItems,
 	})
 	if err != nil {
 		return Series{}, fmt.Errorf("library: create series: %w", err)
@@ -97,15 +105,22 @@ func (s *postgresSeriesStore) List(ctx context.Context) ([]Series, error) {
 }
 
 func (s *postgresSeriesStore) Update(ctx context.Context, in Series) error {
+	monitorNewItems := in.MonitorNewItems
+	if monitorNewItems == "" {
+		monitorNewItems = "all"
+	}
 	if err := s.q.UpdateSeries(ctx, pggen.UpdateSeriesParams{
-		ID:         in.ID,
-		TvdbID:     in.TvdbID,
-		Title:      in.Title,
-		Slug:       in.Slug,
-		Status:     in.Status,
-		SeriesType: in.SeriesType,
-		Path:       in.Path,
-		Monitored:  in.Monitored,
+		ID:               in.ID,
+		TvdbID:           in.TvdbID,
+		Title:            in.Title,
+		Slug:             in.Slug,
+		Status:           in.Status,
+		SeriesType:       in.SeriesType,
+		Path:             in.Path,
+		Monitored:        in.Monitored,
+		QualityProfileID: qualityProfileIDToPg(in.QualityProfileID),
+		SeasonFolder:     in.SeasonFolder,
+		MonitorNewItems:  monitorNewItems,
 	}); err != nil {
 		return fmt.Errorf("library: update series: %w", err)
 	}
@@ -128,17 +143,34 @@ func (s *postgresSeriesStore) Delete(ctx context.Context, id int64) error {
 // seriesFromPostgres converts a sqlc-generated pggen.Series row to the
 // canonical library.Series struct.
 func seriesFromPostgres(r pggen.Series) Series {
-	return Series{
-		ID:         r.ID,
-		TvdbID:     r.TvdbID,
-		Title:      r.Title,
-		Slug:       r.Slug,
-		Status:     r.Status,
-		SeriesType: r.SeriesType,
-		Path:       r.Path,
-		Monitored:  r.Monitored,
-		Added:      r.Added.Time,
-		CreatedAt:  r.CreatedAt.Time,
-		UpdatedAt:  r.UpdatedAt.Time,
+	qpID := int64(0)
+	if r.QualityProfileID.Valid {
+		qpID = int64(r.QualityProfileID.Int32)
 	}
+	return Series{
+		ID:               r.ID,
+		TvdbID:           r.TvdbID,
+		Title:            r.Title,
+		Slug:             r.Slug,
+		Status:           r.Status,
+		SeriesType:       r.SeriesType,
+		Path:             r.Path,
+		Monitored:        r.Monitored,
+		QualityProfileID: qpID,
+		SeasonFolder:     r.SeasonFolder,
+		MonitorNewItems:  r.MonitorNewItems,
+		Added:            r.Added.Time,
+		CreatedAt:        r.CreatedAt.Time,
+		UpdatedAt:        r.UpdatedAt.Time,
+	}
+}
+
+// qualityProfileIDToPg converts a domain quality-profile id (0 == unassigned) to
+// a pgtype.Int4 nullable value. quality_profile_id column is Postgres INTEGER
+// because quality_profiles.id is SERIAL (int32).
+func qualityProfileIDToPg(id int64) pgtype.Int4 {
+	if id == 0 {
+		return pgtype.Int4{}
+	}
+	return pgtype.Int4{Int32: int32(id), Valid: true}
 }
