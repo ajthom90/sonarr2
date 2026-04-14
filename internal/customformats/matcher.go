@@ -129,7 +129,7 @@ func parseGB(s string) int64 {
 			f = f*10 + float64(c-'0')
 		} else {
 			divisor *= 10
-			f = f + float64(c-'0')/divisor
+			f += float64(c-'0') / divisor
 		}
 	}
 	return int64(f*(1<<30)) * sign

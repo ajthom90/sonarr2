@@ -2,8 +2,9 @@
 package freebox
 
 import (
-	"github.com/ajthom90/sonarr2/internal/providers/downloadclient"
 	"net/http"
+
+	"github.com/ajthom90/sonarr2/internal/providers/downloadclient"
 )
 
 type Settings struct {
@@ -19,15 +20,15 @@ type Settings struct {
 	AddPaused  bool   `json:"addPaused" form:"checkbox" label:"Add Paused"`
 }
 
-type FreeboxDownload struct {
+type Download struct {
 	downloadclient.StubTorrent
 	settings Settings
 	client   *http.Client
 }
 
-func New(s Settings, client *http.Client) *FreeboxDownload {
-	return &FreeboxDownload{settings: s, client: client}
+func New(s Settings, client *http.Client) *Download {
+	return &Download{settings: s, client: client}
 }
-func (f *FreeboxDownload) Implementation() string { return "FreeboxDownload" }
-func (f *FreeboxDownload) DefaultName() string    { return "Freebox Download" }
-func (f *FreeboxDownload) Settings() any          { return &f.settings }
+func (f *Download) Implementation() string { return "FreeboxDownload" }
+func (f *Download) DefaultName() string    { return "Freebox Download" }
+func (f *Download) Settings() any          { return &f.settings }

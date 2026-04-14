@@ -10,8 +10,9 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/ajthom90/sonarr2/internal/providers/notification"
 	"net/http"
+
+	"github.com/ajthom90/sonarr2/internal/providers/notification"
 )
 
 // Plex updates the Plex library when notified.

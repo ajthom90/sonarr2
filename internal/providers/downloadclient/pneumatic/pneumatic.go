@@ -3,8 +3,9 @@
 package pneumatic
 
 import (
-	"github.com/ajthom90/sonarr2/internal/providers/downloadclient"
 	"net/http"
+
+	"github.com/ajthom90/sonarr2/internal/providers/downloadclient"
 )
 
 type Settings struct {
