@@ -8,59 +8,15 @@ import (
 	"strconv"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 
 	v3 "github.com/ajthom90/sonarr2/internal/api/v3"
-	"github.com/ajthom90/sonarr2/internal/db"
-	"github.com/ajthom90/sonarr2/internal/events"
 	"github.com/ajthom90/sonarr2/internal/library"
-	"github.com/ajthom90/sonarr2/internal/rootfolder"
 )
 
-// testHarness bundles the two stores a rootfolder handler needs, along
-// with the pool they share so tests can seed quality profiles before
-// creating series rows (series FK onto quality_profiles).
-type testHarness struct {
-	rootFolder rootfolder.Store
-	series     library.SeriesStore
-	pool       *db.SQLitePool
-}
-
-func newTestHarness(t *testing.T) *testHarness {
-	t.Helper()
-	ctx := context.Background()
-	pool, err := db.OpenSQLite(ctx, db.SQLiteOptions{
-		DSN:         ":memory:",
-		BusyTimeout: 5 * time.Second,
-	})
-	if err != nil {
-		t.Fatalf("OpenSQLite: %v", err)
-	}
-	t.Cleanup(func() { _ = pool.Close() })
-	if err := db.Migrate(ctx, pool); err != nil {
-		t.Fatalf("Migrate: %v", err)
-	}
-	// Seed the "Any" quality profile so series Create calls don't fail on FK.
-	if err := pool.Write(ctx, func(exec db.Executor) error {
-		_, err := exec.ExecContext(ctx, `INSERT INTO quality_profiles (id, name) VALUES (1, 'Any')`)
-		return err
-	}); err != nil {
-		t.Fatalf("seed quality profile: %v", err)
-	}
-	lib, err := library.New(pool, events.NewBus(4))
-	if err != nil {
-		t.Fatalf("library.New: %v", err)
-	}
-	return &testHarness{
-		rootFolder: rootfolder.NewSQLiteStore(pool),
-		series:     lib.Series,
-		pool:       pool,
-	}
-}
-
-func (h *testHarness) router() chi.Router {
+// rootFolderRouter mounts only the rootfolder endpoints against h's stores.
+func (h *testHarness) rootFolderRouter() chi.Router {
 	r := chi.NewRouter()
 	v3.MountRootFolder(r, h.rootFolder, h.series)
 	return r
@@ -74,7 +30,7 @@ func TestRootFolder_PostCreatesRow(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/api/v3/rootfolder", strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	rr := httptest.NewRecorder()
-	h.router().ServeHTTP(rr, req)
+	h.rootFolderRouter().ServeHTTP(rr, req)
 
 	if rr.Code != http.StatusCreated {
 		t.Fatalf("status = %d, want 201; body = %s", rr.Code, rr.Body.String())
@@ -103,7 +59,7 @@ func TestRootFolder_PostRejectsNonExistent(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/api/v3/rootfolder", strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	rr := httptest.NewRecorder()
-	h.router().ServeHTTP(rr, req)
+	h.rootFolderRouter().ServeHTTP(rr, req)
 
 	if rr.Code != http.StatusBadRequest {
 		t.Fatalf("status = %d, want 400; body = %s", rr.Code, rr.Body.String())
@@ -119,7 +75,7 @@ func TestRootFolder_PostRejectsDuplicate(t *testing.T) {
 		req := httptest.NewRequest(http.MethodPost, "/api/v3/rootfolder", strings.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
 		rr := httptest.NewRecorder()
-		h.router().ServeHTTP(rr, req)
+		h.rootFolderRouter().ServeHTTP(rr, req)
 		if rr.Code != want {
 			t.Fatalf("attempt %d: status = %d, want %d; body = %s",
 				i+1, rr.Code, want, rr.Body.String())
@@ -137,7 +93,7 @@ func TestRootFolder_GetListsPersisted(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v3/rootfolder", nil)
 	rr := httptest.NewRecorder()
-	h.router().ServeHTTP(rr, req)
+	h.rootFolderRouter().ServeHTTP(rr, req)
 
 	if rr.Code != http.StatusOK {
 		t.Fatalf("status = %d, want 200; body = %s", rr.Code, rr.Body.String())
@@ -179,7 +135,7 @@ func TestRootFolder_DeleteBlockedWhenSeriesReferences(t *testing.T) {
 	req := httptest.NewRequest(http.MethodDelete,
 		"/api/v3/rootfolder/"+strconv.FormatInt(rf.ID, 10), nil)
 	rr := httptest.NewRecorder()
-	h.router().ServeHTTP(rr, req)
+	h.rootFolderRouter().ServeHTTP(rr, req)
 
 	if rr.Code != http.StatusConflict {
 		t.Fatalf("status = %d, want 409; body = %s", rr.Code, rr.Body.String())
@@ -210,7 +166,7 @@ func TestRootFolder_DeleteUnused(t *testing.T) {
 	req := httptest.NewRequest(http.MethodDelete,
 		"/api/v3/rootfolder/"+strconv.FormatInt(rf.ID, 10), nil)
 	rr := httptest.NewRecorder()
-	h.router().ServeHTTP(rr, req)
+	h.rootFolderRouter().ServeHTTP(rr, req)
 
 	if rr.Code != http.StatusNoContent {
 		t.Fatalf("status = %d, want 204; body = %s", rr.Code, rr.Body.String())
