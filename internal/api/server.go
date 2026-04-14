@@ -14,6 +14,7 @@ import (
 	v6 "github.com/ajthom90/sonarr2/internal/api/v6"
 	"github.com/ajthom90/sonarr2/internal/auth"
 	"github.com/ajthom90/sonarr2/internal/backup"
+	"github.com/ajthom90/sonarr2/internal/blocklist"
 	"github.com/ajthom90/sonarr2/internal/buildinfo"
 	"github.com/ajthom90/sonarr2/internal/commands"
 	"github.com/ajthom90/sonarr2/internal/customformats"
@@ -57,6 +58,7 @@ type Deps struct {
 	QualityDefs          profiles.QualityDefinitionStore
 	CustomFormats        customformats.Store
 	Tags                 tags.Store
+	Blocklist            blocklist.Store
 	Commands             commands.Queue
 	History              history.Store
 	IndexerStore         indexer.InstanceStore
@@ -251,6 +253,10 @@ func HandlerWithDeps(log *slog.Logger, deps Deps) http.Handler {
 				v3.MountTag(r, th)
 			} else {
 				v3.MountTag(r, nil)
+			}
+			if deps.Blocklist != nil {
+				bh := v3.NewBlocklistHandler(deps.Blocklist, log)
+				v3.MountBlocklist(r, bh)
 			}
 			v3.MountHealth(r, deps.HealthChecker)
 			v3.MountParse(r)

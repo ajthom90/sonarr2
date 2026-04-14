@@ -10,8 +10,11 @@ import (
 )
 
 type Querier interface {
+	ClearBlocklist(ctx context.Context) error
 	CompleteCommand(ctx context.Context, arg CompleteCommandParams) error
+	CountBlocklist(ctx context.Context) (int64, error)
 	CountEpisodesForSeries(ctx context.Context, seriesID int64) (CountEpisodesForSeriesRow, error)
+	CreateBlocklist(ctx context.Context, arg CreateBlocklistParams) (Blocklist, error)
 	CreateCustomFormat(ctx context.Context, arg CreateCustomFormatParams) (CustomFormat, error)
 	CreateDownloadClient(ctx context.Context, arg CreateDownloadClientParams) (DownloadClient, error)
 	CreateEpisode(ctx context.Context, arg CreateEpisodeParams) (Episode, error)
@@ -22,6 +25,8 @@ type Querier interface {
 	CreateQualityProfile(ctx context.Context, arg CreateQualityProfileParams) (QualityProfile, error)
 	CreateSeries(ctx context.Context, arg CreateSeriesParams) (Series, error)
 	CreateTag(ctx context.Context, label string) (Tag, error)
+	DeleteBlocklist(ctx context.Context, id int64) error
+	DeleteBlocklistBySeries(ctx context.Context, seriesID int64) error
 	DeleteCustomFormat(ctx context.Context, id int64) error
 	DeleteDownloadClient(ctx context.Context, id int64) error
 	DeleteEpisode(ctx context.Context, id int64) error
@@ -40,6 +45,7 @@ type Querier interface {
 	FindByDownloadID(ctx context.Context, downloadID string) ([]History, error)
 	FindDuplicate(ctx context.Context, dedupKey string) (int64, error)
 	GetAllQualityDefinitions(ctx context.Context) ([]QualityDefinition, error)
+	GetBlocklistByID(ctx context.Context, id int64) (Blocklist, error)
 	GetCommand(ctx context.Context, id int64) (Command, error)
 	GetCustomFormatByID(ctx context.Context, id int64) (CustomFormat, error)
 	GetDownloadClientByID(ctx context.Context, id int64) (DownloadClient, error)
@@ -59,6 +65,8 @@ type Querier interface {
 	GetSeriesStatistics(ctx context.Context, seriesID int64) (SeriesStatistic, error)
 	GetTagByID(ctx context.Context, id int64) (Tag, error)
 	GetTagByLabel(ctx context.Context, label string) (Tag, error)
+	ListBlocklist(ctx context.Context, arg ListBlocklistParams) ([]Blocklist, error)
+	ListBlocklistBySeries(ctx context.Context, seriesID int64) ([]Blocklist, error)
 	ListCustomFormats(ctx context.Context) ([]CustomFormat, error)
 	ListDownloadClients(ctx context.Context) ([]DownloadClient, error)
 	ListEpisodeFilesForSeries(ctx context.Context, seriesID int64) ([]EpisodeFile, error)

@@ -23,6 +23,7 @@ import (
 	"github.com/ajthom90/sonarr2/internal/api"
 	"github.com/ajthom90/sonarr2/internal/auth"
 	"github.com/ajthom90/sonarr2/internal/backup"
+	"github.com/ajthom90/sonarr2/internal/blocklist"
 	"github.com/ajthom90/sonarr2/internal/buildinfo"
 	"github.com/ajthom90/sonarr2/internal/commands"
 	"github.com/ajthom90/sonarr2/internal/commands/handlers"
@@ -91,6 +92,7 @@ type App struct {
 	qualityProfiles profiles.QualityProfileStore
 	customFormats   customformats.Store
 	tagStore        tags.Store
+	blocklistStore  blocklist.Store
 	indexerRegistry *indexer.Registry
 	dcRegistry      *downloadclient.Registry
 	notifRegistry   *notification.Registry
@@ -182,17 +184,20 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 	var qualityProfileStore profiles.QualityProfileStore
 	var cfStore customformats.Store
 	var tagStore tags.Store
+	var blStore blocklist.Store
 	switch p := pool.(type) {
 	case *db.PostgresPool:
 		qualityDefStore = profiles.NewPostgresQualityDefinitionStore(p)
 		qualityProfileStore = profiles.NewPostgresQualityProfileStore(p)
 		cfStore = customformats.NewPostgresStore(p)
 		tagStore = tags.NewPostgresStore(p)
+		blStore = blocklist.NewPostgresStore(p)
 	case *db.SQLitePool:
 		qualityDefStore = profiles.NewSQLiteQualityDefinitionStore(p)
 		qualityProfileStore = profiles.NewSQLiteQualityProfileStore(p)
 		cfStore = customformats.NewSQLiteStore(p)
 		tagStore = tags.NewSQLiteStore(p)
+		blStore = blocklist.NewSQLiteStore(p)
 	default:
 		_ = pool.Close()
 		return nil, fmt.Errorf("app: unsupported pool type for profiles/CF: %T", pool)
@@ -591,6 +596,7 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 			QualityDefs:          qualityDefStore,
 			CustomFormats:        cfStore,
 			Tags:                 tagStore,
+			Blocklist:            blStore,
 			Commands:             cmdQueue,
 			History:              histStore,
 			IndexerStore:         idxStore,
@@ -623,6 +629,7 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 		qualityProfiles: qualityProfileStore,
 		customFormats:   cfStore,
 		tagStore:        tagStore,
+		blocklistStore:  blStore,
 		indexerRegistry: idxReg,
 		dcRegistry:      dcReg,
 		notifRegistry:   notifReg,

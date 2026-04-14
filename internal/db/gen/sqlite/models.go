@@ -6,7 +6,26 @@ package sqlite
 
 import (
 	"database/sql"
+	"time"
 )
+
+type Blocklist struct {
+	ID              int64
+	SeriesID        int64
+	EpisodeIds      string
+	SourceTitle     string
+	Quality         string
+	Languages       string
+	Date            time.Time
+	PublishedDate   sql.NullTime
+	Size            sql.NullInt64
+	Protocol        string
+	Indexer         string
+	IndexerFlags    int64
+	ReleaseType     string
+	Message         string
+	TorrentInfoHash sql.NullString
+}
 
 type Command struct {
 	ID         int64

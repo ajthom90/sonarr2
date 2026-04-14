@@ -8,6 +8,24 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type Blocklist struct {
+	ID              int32
+	SeriesID        int32
+	EpisodeIds      []byte
+	SourceTitle     string
+	Quality         []byte
+	Languages       []byte
+	Date            pgtype.Timestamptz
+	PublishedDate   pgtype.Timestamptz
+	Size            pgtype.Int8
+	Protocol        string
+	Indexer         string
+	IndexerFlags    int32
+	ReleaseType     string
+	Message         string
+	TorrentInfoHash pgtype.Text
+}
+
 type Command struct {
 	ID         int64
 	Name       string
