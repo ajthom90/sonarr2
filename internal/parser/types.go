@@ -67,4 +67,16 @@ type ParsedEpisodeInfo struct {
 	Quality                ParsedQuality
 	// ReleaseTitle is the original unparsed title, kept for logging.
 	ReleaseTitle string
+
+	// Languages is the list of detected/declared languages on the release.
+	// Populated by the indexer when provided (Sonarr's Language enum names).
+	Languages []string
+	// IndexerFlags is the list of indexer-provided flags on this release
+	// (e.g. "Freeleech", "DoubleUpload"). Matches Sonarr's IndexerFlags enum.
+	IndexerFlags []string
+	// Size is the release size in bytes, when known.
+	Size int64
+	// ReleaseType classifies the release: "single" (one episode),
+	// "season" (full season pack), or "multi" (multiple seasons/episodes).
+	ReleaseType string
 }
