@@ -33,6 +33,7 @@ import (
 	"github.com/ajthom90/sonarr2/internal/realtime"
 	"github.com/ajthom90/sonarr2/internal/releaseprofile"
 	"github.com/ajthom90/sonarr2/internal/remotepathmapping"
+	"github.com/ajthom90/sonarr2/internal/rootfolder"
 	"github.com/ajthom90/sonarr2/internal/tags"
 	"github.com/ajthom90/sonarr2/web"
 	"github.com/go-chi/chi/v5"
@@ -66,6 +67,7 @@ type Deps struct {
 	Blocklist            blocklist.Store
 	RemotePathMappings   remotepathmapping.Store
 	ReleaseProfiles      releaseprofile.Store
+	RootFolders          rootfolder.Store
 	DelayProfiles        delayprofile.Store
 	MetadataRegistry     *metadata.Registry
 	ImportListRegistry   *importlist.Registry
@@ -258,9 +260,8 @@ func HandlerWithDeps(log *slog.Logger, deps Deps) http.Handler {
 			if deps.MetadataSource != nil {
 				v3.MountSeriesLookup(r, deps.MetadataSource)
 			}
-			if deps.Series != nil {
-				rfh := v3.NewRootFolderHandler(deps.Series, log)
-				v3.MountRootFolder(r, rfh)
+			if deps.RootFolders != nil && deps.Series != nil {
+				v3.MountRootFolder(r, deps.RootFolders, deps.Series)
 			}
 			if deps.Tags != nil {
 				th := v3.NewTagHandler(deps.Tags, log)

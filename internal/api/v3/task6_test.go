@@ -180,61 +180,8 @@ func (s *stubDCClient) Status(_ context.Context) (downloadclient.Status, error) 
 }
 
 // --- RootFolder tests ---
-
-func TestRootFolderList(t *testing.T) {
-	lib := setupLibrary(t)
-	ctx := context.Background()
-
-	// Create series with shared root folder.
-	type seriesSpec struct {
-		tvdbID int64
-		path   string
-		slug   string
-	}
-	specs := []seriesSpec{
-		{101, "/tv/Show A", "show-a"},
-		{102, "/tv/Show B", "show-b"},
-		{103, "/tv2/Show C", "show-c"},
-	}
-	for _, sp := range specs {
-		_, err := lib.Series.Create(ctx, library.Series{
-			TvdbID: sp.tvdbID, Title: sp.path, Slug: sp.slug,
-			Status: "continuing", SeriesType: "standard",
-			Path: sp.path, Monitored: true,
-		})
-		if err != nil {
-			t.Fatalf("Create series %q: %v", sp.path, err)
-		}
-	}
-
-	r := chi.NewRouter()
-	h := NewRootFolderHandler(lib.Series, slog.New(slog.NewJSONHandler(io.Discard, nil)))
-	MountRootFolder(r, h)
-
-	req := httptest.NewRequest(http.MethodGet, "/api/v3/rootfolder", nil)
-	rr := httptest.NewRecorder()
-	r.ServeHTTP(rr, req)
-
-	if rr.Code != http.StatusOK {
-		t.Fatalf("status = %d, want 200; body = %s", rr.Code, rr.Body.String())
-	}
-
-	var result []map[string]any
-	if err := json.NewDecoder(rr.Body).Decode(&result); err != nil {
-		t.Fatalf("decode: %v", err)
-	}
-	// Should have 2 distinct root folders: /tv and /tv2.
-	if len(result) != 2 {
-		t.Errorf("got %d root folders, want 2", len(result))
-	}
-	for _, rf := range result {
-		for _, field := range []string{"id", "path", "freeSpace", "unmappedFolders", "accessible"} {
-			if _, ok := rf[field]; !ok {
-				t.Errorf("missing field %q in rootfolder response", field)
-			}
-		}
-	}
-}
+// The previous TestRootFolderList has been moved to rootfolder_test.go now
+// that MountRootFolder takes a persistent rootfolder.Store.
 
 // --- Tag tests ---
 
