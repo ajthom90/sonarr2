@@ -232,6 +232,10 @@ func HandlerWithDeps(log *slog.Logger, deps Deps) http.Handler {
 			if deps.Episodes != nil {
 				cal := v3.NewCalendarHandler(deps.Episodes, log)
 				v3.MountCalendar(r, cal)
+				if deps.Series != nil {
+					feed := v3.NewCalendarFeedHandler(deps.Episodes, deps.Series, log)
+					v3.MountCalendarFeed(r, feed)
+				}
 			}
 
 			// Task 6 — providers + utility.
