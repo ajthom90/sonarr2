@@ -67,9 +67,13 @@ import (
 	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/vuze"
 	"github.com/ajthom90/sonarr2/internal/providers/indexer"
 	"github.com/ajthom90/sonarr2/internal/providers/indexer/broadcasthenet"
+	"github.com/ajthom90/sonarr2/internal/providers/indexer/fanzub"
+	"github.com/ajthom90/sonarr2/internal/providers/indexer/filelist"
+	"github.com/ajthom90/sonarr2/internal/providers/indexer/hdbits"
 	"github.com/ajthom90/sonarr2/internal/providers/indexer/iptorrents"
 	"github.com/ajthom90/sonarr2/internal/providers/indexer/newznab"
 	"github.com/ajthom90/sonarr2/internal/providers/indexer/nyaa"
+	"github.com/ajthom90/sonarr2/internal/providers/indexer/torrentleech"
 	"github.com/ajthom90/sonarr2/internal/providers/indexer/torrentrss"
 	"github.com/ajthom90/sonarr2/internal/providers/indexer/torznab"
 	"github.com/ajthom90/sonarr2/internal/providers/metadatasource"
@@ -303,6 +307,18 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 	})
 	idxReg.Register("BroadcastheNet", func() indexer.Indexer {
 		return broadcasthenet.New(broadcasthenet.Settings{}, nil)
+	})
+	idxReg.Register("FileList", func() indexer.Indexer {
+		return filelist.New(filelist.Settings{}, nil)
+	})
+	idxReg.Register("HDBits", func() indexer.Indexer {
+		return hdbits.New(hdbits.Settings{}, nil)
+	})
+	idxReg.Register("Torrentleech", func() indexer.Indexer {
+		return torrentleech.New(torrentleech.Settings{}, nil)
+	})
+	idxReg.Register("Fanzub", func() indexer.Indexer {
+		return fanzub.New(fanzub.Settings{}, nil)
 	})
 
 	// Register built-in download client providers.
