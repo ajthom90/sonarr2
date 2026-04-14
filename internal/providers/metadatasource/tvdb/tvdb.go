@@ -90,7 +90,7 @@ func (c *Client) SearchSeries(ctx context.Context, query string) ([]metadatasour
 			Title:    r.Name,
 			Year:     year,
 			Overview: r.Overview,
-			Status:   r.Status.Name,
+			Status:   r.Status,
 			Network:  r.Network,
 			Slug:     r.Slug,
 		})

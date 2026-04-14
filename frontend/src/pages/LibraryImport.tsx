@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
 import { Link } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import { ApiError } from '../api/client'
+import { apiV3 } from '../api/v3'
 import {
   useRootFolders,
   useCreateRootFolder,
@@ -60,6 +62,7 @@ function slugify(s: string): string {
 }
 
 export function LibraryImport() {
+  const qc = useQueryClient()
   const { data: rootFoldersRaw } = useRootFolders()
   const rootFolders = rootFoldersRaw ?? []
   const createRF = useCreateRootFolder()
@@ -68,6 +71,8 @@ export function LibraryImport() {
 
   async function pickFolder(path: string) {
     setBrowserOpen(false)
+    // Try local cache first — the happy path when the root folder list is
+    // already loaded in React Query.
     const existing = rootFolders.find((rf) => rf.path === path)
     if (existing) {
       setSelectedRFId(existing.id)
@@ -77,6 +82,25 @@ export function LibraryImport() {
       const created = (await createRF.mutateAsync({ path })) as RootFolder
       setSelectedRFId(created.id)
     } catch (err) {
+      // 409 means the server already has a root folder at this path but our
+      // local cache didn't know — likely the user added it earlier, got a
+      // scan error (e.g. missing TVDB key), navigated away, and came back.
+      // Re-fetch the list and adopt the existing row instead of erroring.
+      if (err instanceof ApiError && err.status === 409) {
+        try {
+          const fresh = await qc.fetchQuery<RootFolder[]>({
+            queryKey: ['rootfolders'],
+            queryFn: () => apiV3.get<RootFolder[]>('/rootfolder'),
+          })
+          const match = fresh.find((rf) => rf.path === path)
+          if (match) {
+            setSelectedRFId(match.id)
+            return
+          }
+        } catch {
+          // fall through to alert below
+        }
+      }
       alert(`Failed to add root folder: ${(err as Error).message}`)
     }
   }

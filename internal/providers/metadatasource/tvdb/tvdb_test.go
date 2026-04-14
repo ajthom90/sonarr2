@@ -59,7 +59,7 @@ func TestTVDBSearchSeries(t *testing.T) {
 					"name": "The Simpsons",
 					"year": "1989",
 					"overview": "The adventures of a working-class hero.",
-					"status": {"name": "Continuing"},
+					"status": "Continuing",
 					"network": "FOX",
 					"slug": "the-simpsons"
 				},
@@ -68,7 +68,7 @@ func TestTVDBSearchSeries(t *testing.T) {
 					"name": "The Simpsons 2",
 					"year": "2010",
 					"overview": "A sequel.",
-					"status": {"name": "Ended"},
+					"status": "Ended",
 					"network": "FOX",
 					"slug": "the-simpsons-2"
 				}

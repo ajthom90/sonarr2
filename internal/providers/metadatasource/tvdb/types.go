@@ -20,17 +20,18 @@ type tvdbSearchResponse struct {
 }
 
 // tvdbSearchResult is a single result in the search response.
-// Note: tvdb_id is a string in the search response.
+// Note: tvdb_id is a string in the search response, and status is a bare
+// string here ("Continuing" / "Ended" / ...) — NOT a nested {name: ...}
+// object like the /v4/series/{id} endpoint. See tvdbSeries.Status for
+// that shape.
 type tvdbSearchResult struct {
 	TvdbID   string `json:"tvdb_id"`
 	Name     string `json:"name"`
 	Year     string `json:"year"`
 	Overview string `json:"overview"`
-	Status   struct {
-		Name string `json:"name"`
-	} `json:"status"`
-	Network string `json:"network"`
-	Slug    string `json:"slug"`
+	Status   string `json:"status"`
+	Network  string `json:"network"`
+	Slug     string `json:"slug"`
 }
 
 // tvdbSeriesResponse is the response from GET /v4/series/{id}.

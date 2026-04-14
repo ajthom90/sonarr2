@@ -286,3 +286,29 @@ export interface NotificationResource {
   tags: number[]
   added?: string
 }
+
+export interface WantedEpisodeV3 {
+  id: number
+  seriesId: number
+  tvdbId: number
+  episodeFileId: number
+  seasonNumber: number
+  episodeNumber: number
+  absoluteEpisodeNumber?: number | null
+  title: string
+  airDate: string
+  airDateUtc: string
+  overview: string
+  hasFile: boolean
+  monitored: boolean
+  runtime: number
+}
+
+export interface PagedEpisodeResponse {
+  page: number
+  pageSize: number
+  sortKey: string
+  sortDirection: string
+  totalRecords: number
+  records: WantedEpisodeV3[]
+}
