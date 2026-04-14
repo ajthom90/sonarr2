@@ -78,6 +78,17 @@ tracks completeness.
   [`docs/superpowers/plans/2026-04-14-root-folders-library-import.md`](../plans/2026-04-14-root-folders-library-import.md)
   for the full implementation plan.
 
+- **Indexers + Download Clients settings pages** — ✅ DONE. Frontend-only
+  (backend was already wired). Shared `ProviderListSection`,
+  `ProviderPickerModal`, `ProviderSettingsModal`, and `SchemaFormField`
+  components driven by the existing `/api/v3/indexer/schema` +
+  `/api/v3/downloadclient/schema` endpoints. Two thin page wrappers
+  (`/settings/indexers`, `/settings/downloadclients`) plus a
+  `RemotePathMappingsPanel` bundled into the Download Clients page. Test /
+  Test All actions are deferred pending per-provider test endpoints. See
+  [`docs/superpowers/plans/2026-04-14-provider-settings-pages.md`](../plans/2026-04-14-provider-settings-pages.md)
+  for the full implementation plan.
+
 The following are targeted for completion in follow-up commits. Each is
 non-trivial but isolated:
 
