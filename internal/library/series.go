@@ -16,7 +16,7 @@ type Series struct {
 	SeriesType       string // standard | daily | anime
 	Path             string
 	Monitored        bool
-	QualityProfileID int64  // 0 = unassigned
+	QualityProfileID int64 // 0 = unassigned
 	SeasonFolder     bool
 	MonitorNewItems  string // "all" | "none"
 	Added            time.Time
