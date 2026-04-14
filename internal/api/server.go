@@ -293,6 +293,8 @@ func HandlerWithDeps(log *slog.Logger, deps Deps) http.Handler {
 				v3.MountImportList(r, ih)
 			}
 			v3.MountAutoTagging(r, v3.NewAutoTaggingHandler(log))
+			v3.MountRelease(r, v3.NewReleaseHandler(log))
+			v3.MountManualImport(r, v3.NewManualImportHandler(log))
 			v3.MountHealth(r, deps.HealthChecker)
 			v3.MountParse(r)
 			if deps.Episodes != nil {
