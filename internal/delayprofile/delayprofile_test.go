@@ -33,13 +33,13 @@ func TestCRUDAndSeed(t *testing.T) {
 	}
 
 	created, err := s.Create(ctx, delayprofile.Profile{
-		EnableUsenet:  true,
-		EnableTorrent: true,
+		EnableUsenet:      true,
+		EnableTorrent:     true,
 		PreferredProtocol: delayprofile.ProtocolTorrent,
-		UsenetDelay:   60,
-		TorrentDelay:  30,
-		Order:         1,
-		Tags:          []int{5, 6},
+		UsenetDelay:       60,
+		TorrentDelay:      30,
+		Order:             1,
+		Tags:              []int{5, 6},
 	})
 	if err != nil {
 		t.Fatalf("Create: %v", err)
@@ -68,9 +68,9 @@ func TestApplicableProfile(t *testing.T) {
 	}
 
 	tests := []struct {
-		name    string
-		tags    []int
-		wantID  int
+		name   string
+		tags   []int
+		wantID int
 	}{
 		{"matches first", []int{10}, 1},
 		{"matches second", []int{20, 30}, 2},

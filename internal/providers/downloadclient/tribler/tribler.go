@@ -7,10 +7,10 @@ import (
 )
 
 type Settings struct {
-	Host     string `json:"host" form:"text" label:"Host" required:"true"`
-	Port     int    `json:"port" form:"number" label:"Port" placeholder:"20100"`
-	APIKey   string `json:"apiKey" form:"text" label:"API Key" privacy:"apiKey"`
-	UseSSL   bool   `json:"useSsl" form:"checkbox" label:"Use SSL"`
+	Host   string `json:"host" form:"text" label:"Host" required:"true"`
+	Port   int    `json:"port" form:"number" label:"Port" placeholder:"20100"`
+	APIKey string `json:"apiKey" form:"text" label:"API Key" privacy:"apiKey"`
+	UseSSL bool   `json:"useSsl" form:"checkbox" label:"Use SSL"`
 }
 
 type Tribler struct {

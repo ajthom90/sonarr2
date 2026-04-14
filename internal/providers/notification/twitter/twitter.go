@@ -40,8 +40,8 @@ func (t *Twitter) Settings() any          { return &t.settings }
 
 var errNotImplemented = errors.New("twitter: OAuth 1.0a flow not yet implemented in sonarr2")
 
-func (t *Twitter) Test(context.Context) error                               { return errNotImplemented }
-func (t *Twitter) OnGrab(context.Context, notification.GrabMessage) error   { return errNotImplemented }
+func (t *Twitter) Test(context.Context) error                             { return errNotImplemented }
+func (t *Twitter) OnGrab(context.Context, notification.GrabMessage) error { return errNotImplemented }
 func (t *Twitter) OnDownload(context.Context, notification.DownloadMessage) error {
 	return errNotImplemented
 }

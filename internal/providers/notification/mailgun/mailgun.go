@@ -15,11 +15,11 @@ import (
 
 // Settings for Mailgun.
 type Settings struct {
-	APIKey       string `json:"apiKey" form:"text" label:"API Key" required:"true" privacy:"apiKey"`
-	UseEuEndpoint bool  `json:"useEuEndpoint" form:"checkbox" label:"Use EU Endpoint"`
-	Domain       string `json:"domain" form:"text" label:"Domain" required:"true"`
-	FromAddress  string `json:"from" form:"text" label:"From Address" required:"true"`
-	Recipients   string `json:"recipients" form:"text" label:"Recipients" required:"true" placeholder:"CSV"`
+	APIKey        string `json:"apiKey" form:"text" label:"API Key" required:"true" privacy:"apiKey"`
+	UseEuEndpoint bool   `json:"useEuEndpoint" form:"checkbox" label:"Use EU Endpoint"`
+	Domain        string `json:"domain" form:"text" label:"Domain" required:"true"`
+	FromAddress   string `json:"from" form:"text" label:"From Address" required:"true"`
+	Recipients    string `json:"recipients" form:"text" label:"Recipients" required:"true" placeholder:"CSV"`
 }
 
 type Mailgun struct {

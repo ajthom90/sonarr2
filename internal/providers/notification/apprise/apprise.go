@@ -16,12 +16,12 @@ import (
 
 // Settings for an Apprise notification provider.
 type Settings struct {
-	ServerURL     string `json:"serverUrl" form:"text" label:"Server URL" required:"true" placeholder:"https://apprise.example/notify/abc123"`
+	ServerURL        string `json:"serverUrl" form:"text" label:"Server URL" required:"true" placeholder:"https://apprise.example/notify/abc123"`
 	NotificationType string `json:"notificationType" form:"text" label:"Notification Type" placeholder:"info"`
-	Tags          string `json:"tags" form:"text" label:"Tags"`
-	StatelessURLs string `json:"statelessUrls" form:"text" label:"Stateless URLs"`
-	AuthUsername  string `json:"authUsername" form:"text" label:"Auth Username"`
-	AuthPassword  string `json:"authPassword" form:"password" label:"Auth Password" privacy:"password"`
+	Tags             string `json:"tags" form:"text" label:"Tags"`
+	StatelessURLs    string `json:"statelessUrls" form:"text" label:"Stateless URLs"`
+	AuthUsername     string `json:"authUsername" form:"text" label:"Auth Username"`
+	AuthPassword     string `json:"authPassword" form:"password" label:"Auth Password" privacy:"password"`
 }
 
 // Apprise dispatches events through a user-hosted Apprise instance.

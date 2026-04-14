@@ -27,16 +27,16 @@ func (s *sqliteStore) Create(ctx context.Context, p Profile) (Profile, error) {
 	err := s.pool.Write(ctx, func(exec db.Executor) error {
 		q := sqlitegen.New(&sqliteExec{exec: exec})
 		row, err := q.CreateDelayProfile(ctx, sqlitegen.CreateDelayProfileParams{
-			EnableUsenet:                     boolToInt64(p.EnableUsenet),
-			EnableTorrent:                    boolToInt64(p.EnableTorrent),
-			PreferredProtocol:                string(p.PreferredProtocol),
-			UsenetDelay:                      int64(p.UsenetDelay),
-			TorrentDelay:                     int64(p.TorrentDelay),
-			SortOrder:                        int64(p.Order),
-			BypassIfHighestQuality:           boolToInt64(p.BypassIfHighestQuality),
-			BypassIfAboveCustomFormatScore:   boolToInt64(p.BypassIfAboveCustomFormatScore),
-			MinimumCustomFormatScore:         int64(p.MinimumCustomFormatScore),
-			Tags:                             string(tags),
+			EnableUsenet:                   boolToInt64(p.EnableUsenet),
+			EnableTorrent:                  boolToInt64(p.EnableTorrent),
+			PreferredProtocol:              string(p.PreferredProtocol),
+			UsenetDelay:                    int64(p.UsenetDelay),
+			TorrentDelay:                   int64(p.TorrentDelay),
+			SortOrder:                      int64(p.Order),
+			BypassIfHighestQuality:         boolToInt64(p.BypassIfHighestQuality),
+			BypassIfAboveCustomFormatScore: boolToInt64(p.BypassIfAboveCustomFormatScore),
+			MinimumCustomFormatScore:       int64(p.MinimumCustomFormatScore),
+			Tags:                           string(tags),
 		})
 		if err != nil {
 			return err
@@ -84,17 +84,17 @@ func (s *sqliteStore) Update(ctx context.Context, p Profile) error {
 	return s.pool.Write(ctx, func(exec db.Executor) error {
 		q := sqlitegen.New(&sqliteExec{exec: exec})
 		return q.UpdateDelayProfile(ctx, sqlitegen.UpdateDelayProfileParams{
-			ID:                               int64(p.ID),
-			EnableUsenet:                     boolToInt64(p.EnableUsenet),
-			EnableTorrent:                    boolToInt64(p.EnableTorrent),
-			PreferredProtocol:                string(p.PreferredProtocol),
-			UsenetDelay:                      int64(p.UsenetDelay),
-			TorrentDelay:                     int64(p.TorrentDelay),
-			SortOrder:                        int64(p.Order),
-			BypassIfHighestQuality:           boolToInt64(p.BypassIfHighestQuality),
-			BypassIfAboveCustomFormatScore:   boolToInt64(p.BypassIfAboveCustomFormatScore),
-			MinimumCustomFormatScore:         int64(p.MinimumCustomFormatScore),
-			Tags:                             string(tags),
+			ID:                             int64(p.ID),
+			EnableUsenet:                   boolToInt64(p.EnableUsenet),
+			EnableTorrent:                  boolToInt64(p.EnableTorrent),
+			PreferredProtocol:              string(p.PreferredProtocol),
+			UsenetDelay:                    int64(p.UsenetDelay),
+			TorrentDelay:                   int64(p.TorrentDelay),
+			SortOrder:                      int64(p.Order),
+			BypassIfHighestQuality:         boolToInt64(p.BypassIfHighestQuality),
+			BypassIfAboveCustomFormatScore: boolToInt64(p.BypassIfAboveCustomFormatScore),
+			MinimumCustomFormatScore:       int64(p.MinimumCustomFormatScore),
+			Tags:                           string(tags),
 		})
 	})
 }
@@ -112,17 +112,17 @@ func fromSQLite(r sqlitegen.DelayProfile) (Profile, error) {
 		return Profile{}, fmt.Errorf("delayprofile: unmarshal tags: %w", err)
 	}
 	return Profile{
-		ID:                              int(r.ID),
-		EnableUsenet:                    r.EnableUsenet != 0,
-		EnableTorrent:                   r.EnableTorrent != 0,
-		PreferredProtocol:               Protocol(r.PreferredProtocol),
-		UsenetDelay:                     int(r.UsenetDelay),
-		TorrentDelay:                    int(r.TorrentDelay),
-		Order:                           int(r.SortOrder),
-		BypassIfHighestQuality:          r.BypassIfHighestQuality != 0,
-		BypassIfAboveCustomFormatScore:  r.BypassIfAboveCustomFormatScore != 0,
-		MinimumCustomFormatScore:        int(r.MinimumCustomFormatScore),
-		Tags:                            nonNilInt(tags),
+		ID:                             int(r.ID),
+		EnableUsenet:                   r.EnableUsenet != 0,
+		EnableTorrent:                  r.EnableTorrent != 0,
+		PreferredProtocol:              Protocol(r.PreferredProtocol),
+		UsenetDelay:                    int(r.UsenetDelay),
+		TorrentDelay:                   int(r.TorrentDelay),
+		Order:                          int(r.SortOrder),
+		BypassIfHighestQuality:         r.BypassIfHighestQuality != 0,
+		BypassIfAboveCustomFormatScore: r.BypassIfAboveCustomFormatScore != 0,
+		MinimumCustomFormatScore:       int(r.MinimumCustomFormatScore),
+		Tags:                           nonNilInt(tags),
 	}, nil
 }
 

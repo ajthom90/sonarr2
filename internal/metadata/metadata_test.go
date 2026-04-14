@@ -22,8 +22,8 @@ func TestKodiEpisodeNfo(t *testing.T) {
 
 	c := kodi.New(kodi.Settings{EpisodeMetadata: true, EpisodeImages: true})
 	err := c.OnEpisodeFileImport(context.Background(), metadata.Context{
-		Series:  metadata.SeriesInfo{Title: "Show"},
-		Episode: metadata.EpisodeInfo{Title: "Pilot", SeasonNumber: 1, EpisodeNumber: 1, AirDate: "2020-01-01", Overview: "A pilot."},
+		Series:      metadata.SeriesInfo{Title: "Show"},
+		Episode:     metadata.EpisodeInfo{Title: "Pilot", SeasonNumber: 1, EpisodeNumber: 1, AirDate: "2020-01-01", Overview: "A pilot."},
 		EpisodeFile: metadata.EpisodeFileInfo{Path: videoPath},
 	})
 	if err != nil {

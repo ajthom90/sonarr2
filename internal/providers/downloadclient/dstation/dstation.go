@@ -10,14 +10,14 @@ import (
 )
 
 type Settings struct {
-	Host         string `json:"host" form:"text" label:"Host" required:"true"`
-	Port         int    `json:"port" form:"number" label:"Port" placeholder:"5000"`
-	Username     string `json:"username" form:"text" label:"Username" required:"true"`
-	Password     string `json:"password" form:"password" label:"Password" required:"true" privacy:"password"`
-	UseSSL       bool   `json:"useSsl" form:"checkbox" label:"Use SSL"`
-	URLBase      string `json:"urlBase" form:"text" label:"URL Base"`
-	Category     string `json:"category" form:"text" label:"Category"`
-	Directory    string `json:"directory" form:"text" label:"Directory"`
+	Host      string `json:"host" form:"text" label:"Host" required:"true"`
+	Port      int    `json:"port" form:"number" label:"Port" placeholder:"5000"`
+	Username  string `json:"username" form:"text" label:"Username" required:"true"`
+	Password  string `json:"password" form:"password" label:"Password" required:"true" privacy:"password"`
+	UseSSL    bool   `json:"useSsl" form:"checkbox" label:"Use SSL"`
+	URLBase   string `json:"urlBase" form:"text" label:"URL Base"`
+	Category  string `json:"category" form:"text" label:"Category"`
+	Directory string `json:"directory" form:"text" label:"Directory"`
 }
 
 // Torrent variant of Synology Download Station.
@@ -27,10 +27,12 @@ type Torrent struct {
 	client   *http.Client
 }
 
-func NewTorrent(s Settings, client *http.Client) *Torrent { return &Torrent{settings: s, client: client} }
-func (t *Torrent) Implementation() string                 { return "DownloadStation" }
-func (t *Torrent) DefaultName() string                    { return "Synology Download Station (Torrent)" }
-func (t *Torrent) Settings() any                          { return &t.settings }
+func NewTorrent(s Settings, client *http.Client) *Torrent {
+	return &Torrent{settings: s, client: client}
+}
+func (t *Torrent) Implementation() string { return "DownloadStation" }
+func (t *Torrent) DefaultName() string    { return "Synology Download Station (Torrent)" }
+func (t *Torrent) Settings() any          { return &t.settings }
 
 // Usenet variant of Synology Download Station.
 type Usenet struct {

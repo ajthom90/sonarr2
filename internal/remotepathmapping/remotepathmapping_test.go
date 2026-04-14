@@ -82,7 +82,7 @@ func TestTranslate(t *testing.T) {
 		{"sab.local", "/downloads/Show.S01E01/", "/mnt/nas/downloads/Show.S01E01/"},
 		{"SAB.LOCAL", "/downloads/foo", "/mnt/nas/downloads/foo"},
 		{"qbit", "C:\\Torrents\\foo", "Z:\\mount\\torrents\\foo"},
-		{"other", "/downloads/x", "/downloads/x"}, // no matching host
+		{"other", "/downloads/x", "/downloads/x"},   // no matching host
 		{"sab.local", "/other/path", "/other/path"}, // host match but no prefix
 		{"", "/downloads/x", "/downloads/x"},
 	}

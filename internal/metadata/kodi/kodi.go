@@ -21,13 +21,13 @@ import (
 // Settings for the Kodi metadata consumer. Matches Sonarr's
 // XbmcMetadataSettings.
 type Settings struct {
-	SeriesMetadata        bool `json:"seriesMetadata" form:"checkbox" label:"Series Metadata"`
-	SeriesMetadataURL     bool `json:"seriesMetadataUrl" form:"checkbox" label:"Series Metadata URL"`
+	SeriesMetadata             bool `json:"seriesMetadata" form:"checkbox" label:"Series Metadata"`
+	SeriesMetadataURL          bool `json:"seriesMetadataUrl" form:"checkbox" label:"Series Metadata URL"`
 	SeriesMetadataEpisodeGuide bool `json:"seriesMetadataEpisodeGuide" form:"checkbox" label:"Series Metadata Episode Guide"`
-	EpisodeMetadata       bool `json:"episodeMetadata" form:"checkbox" label:"Episode Metadata"`
-	SeriesImages          bool `json:"seriesImages" form:"checkbox" label:"Series Images"`
-	SeasonImages          bool `json:"seasonImages" form:"checkbox" label:"Season Images"`
-	EpisodeImages         bool `json:"episodeImages" form:"checkbox" label:"Episode Images"`
+	EpisodeMetadata            bool `json:"episodeMetadata" form:"checkbox" label:"Episode Metadata"`
+	SeriesImages               bool `json:"seriesImages" form:"checkbox" label:"Series Images"`
+	SeasonImages               bool `json:"seasonImages" form:"checkbox" label:"Season Images"`
+	EpisodeImages              bool `json:"episodeImages" form:"checkbox" label:"Episode Images"`
 }
 
 // Kodi implements metadata.Consumer.
@@ -46,20 +46,20 @@ func (k *Kodi) Settings() any          { return &k.settings }
 
 // tvshowNfo is the XML schema Kodi reads from tvshow.nfo at the series root.
 type tvshowNfo struct {
-	XMLName      xml.Name `xml:"tvshow"`
-	Title        string   `xml:"title"`
-	Plot         string   `xml:"plot,omitempty"`
-	Year         int      `xml:"year,omitempty"`
-	Runtime      int      `xml:"runtime,omitempty"`
-	Status       string   `xml:"status,omitempty"`
-	Studio       string   `xml:"studio,omitempty"`
-	MPAA         string   `xml:"mpaa,omitempty"`
-	Genres       []string `xml:"genre,omitempty"`
+	XMLName      xml.Name   `xml:"tvshow"`
+	Title        string     `xml:"title"`
+	Plot         string     `xml:"plot,omitempty"`
+	Year         int        `xml:"year,omitempty"`
+	Runtime      int        `xml:"runtime,omitempty"`
+	Status       string     `xml:"status,omitempty"`
+	Studio       string     `xml:"studio,omitempty"`
+	MPAA         string     `xml:"mpaa,omitempty"`
+	Genres       []string   `xml:"genre,omitempty"`
 	UniqueIDs    []uniqueID `xml:"uniqueid,omitempty"`
-	TvdbID       string   `xml:"tvdbid,omitempty"`
-	ImdbID       string   `xml:"imdb_id,omitempty"`
-	Actors       []actor  `xml:"actor,omitempty"`
-	EpisodeGuide *guide   `xml:"episodeguide,omitempty"`
+	TvdbID       string     `xml:"tvdbid,omitempty"`
+	ImdbID       string     `xml:"imdb_id,omitempty"`
+	Actors       []actor    `xml:"actor,omitempty"`
+	EpisodeGuide *guide     `xml:"episodeguide,omitempty"`
 }
 
 type uniqueID struct {
@@ -84,15 +84,15 @@ type guide struct {
 
 // episodeNfo is the XML schema Kodi reads from <episode>.nfo next to a video file.
 type episodeNfo struct {
-	XMLName   xml.Name `xml:"episodedetails"`
-	Title     string   `xml:"title"`
-	Season    int      `xml:"season"`
-	Episode   int      `xml:"episode"`
-	Aired     string   `xml:"aired,omitempty"`
-	Plot      string   `xml:"plot,omitempty"`
-	Runtime   int      `xml:"runtime,omitempty"`
+	XMLName   xml.Name   `xml:"episodedetails"`
+	Title     string     `xml:"title"`
+	Season    int        `xml:"season"`
+	Episode   int        `xml:"episode"`
+	Aired     string     `xml:"aired,omitempty"`
+	Plot      string     `xml:"plot,omitempty"`
+	Runtime   int        `xml:"runtime,omitempty"`
 	UniqueIDs []uniqueID `xml:"uniqueid,omitempty"`
-	Thumb     string   `xml:"thumb,omitempty"`
+	Thumb     string     `xml:"thumb,omitempty"`
 }
 
 // --- Consumer methods ------------------------------------------------------

@@ -65,10 +65,10 @@ func TestMatch(t *testing.T) {
 		want  bool
 	}{
 		{"Show.S01E01.1080p.WEB-DL.x264", true},
-		{"Show.S01E01.720p.WEB-DL.x264", false},          // missing 1080p
-		{"Show.S01E01.1080p.HDTV.x264", false},           // missing WEB-DL regex
-		{"Show.S01E01.1080p.WEB-DL.CAM.x264", false},     // ignored
-		{"Show.S01E01.WEB-dl.1080P.x264", true},          // case-insensitive
+		{"Show.S01E01.720p.WEB-DL.x264", false},      // missing 1080p
+		{"Show.S01E01.1080p.HDTV.x264", false},       // missing WEB-DL regex
+		{"Show.S01E01.1080p.WEB-DL.CAM.x264", false}, // ignored
+		{"Show.S01E01.WEB-dl.1080P.x264", true},      // case-insensitive
 	}
 	for _, c := range cases {
 		if got := releaseprofile.Match(p, c.title); got != c.want {

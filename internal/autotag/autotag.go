@@ -41,14 +41,14 @@ type Rule struct {
 
 // SeriesAttr is the subset of a Series relevant to spec matching.
 type SeriesAttr struct {
-	Title           string
-	Genres          []string
-	Status          string
-	SeriesType      string
-	Network         string
-	Year            int
-	OriginalLang    string
-	RootFolderPath  string
+	Title          string
+	Genres         []string
+	Status         string
+	SeriesType     string
+	Network        string
+	Year           int
+	OriginalLang   string
+	RootFolderPath string
 }
 
 // Store persists auto-tag rules.

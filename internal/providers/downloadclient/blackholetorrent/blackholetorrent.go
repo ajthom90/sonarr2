@@ -20,10 +20,10 @@ func New(s Settings, client *http.Client) *TorrentBlackhole {
 	return &TorrentBlackhole{inner: blackhole.New(s, client)}
 }
 
-func (t *TorrentBlackhole) Implementation() string                { return "TorrentBlackhole" }
-func (t *TorrentBlackhole) DefaultName() string                   { return "Torrent Blackhole" }
-func (t *TorrentBlackhole) Settings() any                         { return t.inner.Settings() }
-func (t *TorrentBlackhole) Protocol() indexer.DownloadProtocol    { return indexer.ProtocolTorrent }
+func (t *TorrentBlackhole) Implementation() string             { return "TorrentBlackhole" }
+func (t *TorrentBlackhole) DefaultName() string                { return "Torrent Blackhole" }
+func (t *TorrentBlackhole) Settings() any                      { return t.inner.Settings() }
+func (t *TorrentBlackhole) Protocol() indexer.DownloadProtocol { return indexer.ProtocolTorrent }
 func (t *TorrentBlackhole) Add(ctx context.Context, url, title string) (string, error) {
 	return t.inner.Add(ctx, url, title)
 }

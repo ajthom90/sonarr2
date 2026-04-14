@@ -18,17 +18,17 @@ import (
 )
 
 type delayProfileResource struct {
-	ID                              int    `json:"id"`
-	EnableUsenet                    bool   `json:"enableUsenet"`
-	EnableTorrent                   bool   `json:"enableTorrent"`
-	PreferredProtocol               string `json:"preferredProtocol"`
-	UsenetDelay                     int    `json:"usenetDelay"`
-	TorrentDelay                    int    `json:"torrentDelay"`
-	Order                           int    `json:"order"`
-	BypassIfHighestQuality          bool   `json:"bypassIfHighestQuality"`
-	BypassIfAboveCustomFormatScore  bool   `json:"bypassIfAboveCustomFormatScore"`
-	MinimumCustomFormatScore        int    `json:"minimumCustomFormatScore"`
-	Tags                            []int  `json:"tags"`
+	ID                             int    `json:"id"`
+	EnableUsenet                   bool   `json:"enableUsenet"`
+	EnableTorrent                  bool   `json:"enableTorrent"`
+	PreferredProtocol              string `json:"preferredProtocol"`
+	UsenetDelay                    int    `json:"usenetDelay"`
+	TorrentDelay                   int    `json:"torrentDelay"`
+	Order                          int    `json:"order"`
+	BypassIfHighestQuality         bool   `json:"bypassIfHighestQuality"`
+	BypassIfAboveCustomFormatScore bool   `json:"bypassIfAboveCustomFormatScore"`
+	MinimumCustomFormatScore       int    `json:"minimumCustomFormatScore"`
+	Tags                           []int  `json:"tags"`
 }
 
 type DelayProfileHandler struct {
@@ -52,33 +52,33 @@ func MountDelayProfile(r chi.Router, h *DelayProfileHandler) {
 
 func toDelayProfileResource(p delayprofile.Profile) delayProfileResource {
 	return delayProfileResource{
-		ID:                              p.ID,
-		EnableUsenet:                    p.EnableUsenet,
-		EnableTorrent:                   p.EnableTorrent,
-		PreferredProtocol:               string(p.PreferredProtocol),
-		UsenetDelay:                     p.UsenetDelay,
-		TorrentDelay:                    p.TorrentDelay,
-		Order:                           p.Order,
-		BypassIfHighestQuality:          p.BypassIfHighestQuality,
-		BypassIfAboveCustomFormatScore:  p.BypassIfAboveCustomFormatScore,
-		MinimumCustomFormatScore:        p.MinimumCustomFormatScore,
-		Tags:                            nonNilIntSlice(p.Tags),
+		ID:                             p.ID,
+		EnableUsenet:                   p.EnableUsenet,
+		EnableTorrent:                  p.EnableTorrent,
+		PreferredProtocol:              string(p.PreferredProtocol),
+		UsenetDelay:                    p.UsenetDelay,
+		TorrentDelay:                   p.TorrentDelay,
+		Order:                          p.Order,
+		BypassIfHighestQuality:         p.BypassIfHighestQuality,
+		BypassIfAboveCustomFormatScore: p.BypassIfAboveCustomFormatScore,
+		MinimumCustomFormatScore:       p.MinimumCustomFormatScore,
+		Tags:                           nonNilIntSlice(p.Tags),
 	}
 }
 
 func fromDelayProfileResource(body delayProfileResource) delayprofile.Profile {
 	return delayprofile.Profile{
-		ID:                              body.ID,
-		EnableUsenet:                    body.EnableUsenet,
-		EnableTorrent:                   body.EnableTorrent,
-		PreferredProtocol:               delayprofile.Protocol(body.PreferredProtocol),
-		UsenetDelay:                     body.UsenetDelay,
-		TorrentDelay:                    body.TorrentDelay,
-		Order:                           body.Order,
-		BypassIfHighestQuality:          body.BypassIfHighestQuality,
-		BypassIfAboveCustomFormatScore:  body.BypassIfAboveCustomFormatScore,
-		MinimumCustomFormatScore:        body.MinimumCustomFormatScore,
-		Tags:                            body.Tags,
+		ID:                             body.ID,
+		EnableUsenet:                   body.EnableUsenet,
+		EnableTorrent:                  body.EnableTorrent,
+		PreferredProtocol:              delayprofile.Protocol(body.PreferredProtocol),
+		UsenetDelay:                    body.UsenetDelay,
+		TorrentDelay:                   body.TorrentDelay,
+		Order:                          body.Order,
+		BypassIfHighestQuality:         body.BypassIfHighestQuality,
+		BypassIfAboveCustomFormatScore: body.BypassIfAboveCustomFormatScore,
+		MinimumCustomFormatScore:       body.MinimumCustomFormatScore,
+		Tags:                           body.Tags,
 	}
 }
 

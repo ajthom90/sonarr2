@@ -8,8 +8,8 @@ import (
 )
 
 type Settings struct {
-	NzbFolder    string `json:"nzbFolder" form:"text" label:"NZB Folder" required:"true"`
-	StrmFolder   string `json:"strmFolder" form:"text" label:"STRM Folder"`
+	NzbFolder  string `json:"nzbFolder" form:"text" label:"NZB Folder" required:"true"`
+	StrmFolder string `json:"strmFolder" form:"text" label:"STRM Folder"`
 }
 
 type Pneumatic struct {

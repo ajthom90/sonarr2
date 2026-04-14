@@ -30,13 +30,13 @@ func (w *WDTV) DefaultName() string    { return "WDTV" }
 func (w *WDTV) Settings() any          { return &w.settings }
 
 type wdtvEpisodeXML struct {
-	XMLName     xml.Name `xml:"details"`
-	Title       string   `xml:"title"`
-	Season      int      `xml:"season_number"`
-	Episode     int      `xml:"episode_number"`
-	FirstAired  string   `xml:"firstaired,omitempty"`
-	Overview    string   `xml:"overview,omitempty"`
-	Runtime     int      `xml:"runtime,omitempty"`
+	XMLName    xml.Name `xml:"details"`
+	Title      string   `xml:"title"`
+	Season     int      `xml:"season_number"`
+	Episode    int      `xml:"episode_number"`
+	FirstAired string   `xml:"firstaired,omitempty"`
+	Overview   string   `xml:"overview,omitempty"`
+	Runtime    int      `xml:"runtime,omitempty"`
 }
 
 func (w *WDTV) OnEpisodeFileImport(_ context.Context, c metadata.Context) error {

@@ -45,9 +45,9 @@ func (a *AniList) Settings() any          { return &a.Cfg }
 // --- MyAnimeList -----------------------------------------------------------
 
 type MALSettings struct {
-	AuthToken   string `json:"authToken" form:"text" label:"Auth Token" privacy:"apiKey"`
-	ListType    string `json:"listType" form:"text" label:"List Type" placeholder:"watching|plan_to_watch|completed|on_hold|dropped"`
-	Username    string `json:"username" form:"text" label:"Username"`
+	AuthToken string `json:"authToken" form:"text" label:"Auth Token" privacy:"apiKey"`
+	ListType  string `json:"listType" form:"text" label:"List Type" placeholder:"watching|plan_to_watch|completed|on_hold|dropped"`
+	Username  string `json:"username" form:"text" label:"Username"`
 }
 
 type MyAnimeList struct {
@@ -55,10 +55,10 @@ type MyAnimeList struct {
 	Cfg MALSettings
 }
 
-func NewMyAnimeList() *MyAnimeList              { return &MyAnimeList{} }
-func (m *MyAnimeList) Implementation() string   { return "MyAnimeListImport" }
-func (m *MyAnimeList) DefaultName() string      { return "MyAnimeList" }
-func (m *MyAnimeList) Settings() any            { return &m.Cfg }
+func NewMyAnimeList() *MyAnimeList            { return &MyAnimeList{} }
+func (m *MyAnimeList) Implementation() string { return "MyAnimeListImport" }
+func (m *MyAnimeList) DefaultName() string    { return "MyAnimeList" }
+func (m *MyAnimeList) Settings() any          { return &m.Cfg }
 
 // --- Plex Watchlist --------------------------------------------------------
 
@@ -71,10 +71,10 @@ type PlexWatchlist struct {
 	Cfg PlexWatchlistSettings
 }
 
-func NewPlexWatchlist() *PlexWatchlist            { return &PlexWatchlist{} }
-func (p *PlexWatchlist) Implementation() string   { return "PlexImport" }
-func (p *PlexWatchlist) DefaultName() string      { return "Plex Watchlist" }
-func (p *PlexWatchlist) Settings() any            { return &p.Cfg }
+func NewPlexWatchlist() *PlexWatchlist          { return &PlexWatchlist{} }
+func (p *PlexWatchlist) Implementation() string { return "PlexImport" }
+func (p *PlexWatchlist) DefaultName() string    { return "Plex Watchlist" }
+func (p *PlexWatchlist) Settings() any          { return &p.Cfg }
 
 // --- Plex RSS --------------------------------------------------------------
 
@@ -120,7 +120,7 @@ type Simkl struct {
 	Cfg SimklSettings
 }
 
-func NewSimkl() *Simkl                 { return &Simkl{} }
+func NewSimkl() *Simkl                  { return &Simkl{} }
 func (s *Simkl) Implementation() string { return "SimklImport" }
 func (s *Simkl) DefaultName() string    { return "Simkl" }
 func (s *Simkl) Settings() any          { return &s.Cfg }
@@ -128,12 +128,12 @@ func (s *Simkl) Settings() any          { return &s.Cfg }
 // --- Sonarr (another instance) ---------------------------------------------
 
 type SonarrSettings struct {
-	BaseURL           string `json:"baseUrl" form:"text" label:"Sonarr URL" required:"true"`
-	APIKey            string `json:"apiKey" form:"text" label:"API Key" required:"true" privacy:"apiKey"`
-	QualityProfileIds []int  `json:"qualityProfileIds" form:"number" label:"Quality Profiles"`
-	TagIds            []int  `json:"tagIds" form:"number" label:"Tags"`
-	RootFolderPaths   []string `json:"rootFolderPaths" form:"text" label:"Root Folder Paths"`
-	LanguageProfileIds []int `json:"languageProfileIds" form:"number" label:"Language Profiles"`
+	BaseURL            string   `json:"baseUrl" form:"text" label:"Sonarr URL" required:"true"`
+	APIKey             string   `json:"apiKey" form:"text" label:"API Key" required:"true" privacy:"apiKey"`
+	QualityProfileIds  []int    `json:"qualityProfileIds" form:"number" label:"Quality Profiles"`
+	TagIds             []int    `json:"tagIds" form:"number" label:"Tags"`
+	RootFolderPaths    []string `json:"rootFolderPaths" form:"text" label:"Root Folder Paths"`
+	LanguageProfileIds []int    `json:"languageProfileIds" form:"number" label:"Language Profiles"`
 }
 
 type SonarrImport struct {
@@ -141,10 +141,10 @@ type SonarrImport struct {
 	Cfg SonarrSettings
 }
 
-func NewSonarrImport() *SonarrImport             { return &SonarrImport{} }
-func (s *SonarrImport) Implementation() string   { return "SonarrImport" }
-func (s *SonarrImport) DefaultName() string      { return "Sonarr" }
-func (s *SonarrImport) Settings() any            { return &s.Cfg }
+func NewSonarrImport() *SonarrImport           { return &SonarrImport{} }
+func (s *SonarrImport) Implementation() string { return "SonarrImport" }
+func (s *SonarrImport) DefaultName() string    { return "Sonarr" }
+func (s *SonarrImport) Settings() any          { return &s.Cfg }
 
 // --- Trakt (User / List / Popular) -----------------------------------------
 // Sonarr registers three distinct identifiers backed by shared OAuth state.
@@ -158,9 +158,9 @@ type TraktBaseSettings struct {
 
 type TraktUserSettings struct {
 	TraktBaseSettings
-	Username    string `json:"username" form:"text" label:"Username" required:"true"`
+	Username      string `json:"username" form:"text" label:"Username" required:"true"`
 	TraktListType string `json:"traktListType" form:"text" label:"List Type" placeholder:"collection|watched|watchlist|recommendations|shows"`
-	Limit       int    `json:"limit" form:"number" label:"Limit" placeholder:"100"`
+	Limit         int    `json:"limit" form:"number" label:"Limit" placeholder:"100"`
 }
 
 type TraktUser struct {
@@ -168,10 +168,10 @@ type TraktUser struct {
 	Cfg TraktUserSettings
 }
 
-func NewTraktUser() *TraktUser               { return &TraktUser{} }
-func (t *TraktUser) Implementation() string  { return "TraktUserImport" }
-func (t *TraktUser) DefaultName() string     { return "Trakt User" }
-func (t *TraktUser) Settings() any           { return &t.Cfg }
+func NewTraktUser() *TraktUser              { return &TraktUser{} }
+func (t *TraktUser) Implementation() string { return "TraktUserImport" }
+func (t *TraktUser) DefaultName() string    { return "Trakt User" }
+func (t *TraktUser) Settings() any          { return &t.Cfg }
 
 type TraktListSettings struct {
 	TraktBaseSettings
@@ -184,10 +184,10 @@ type TraktList struct {
 	Cfg TraktListSettings
 }
 
-func NewTraktList() *TraktList               { return &TraktList{} }
-func (t *TraktList) Implementation() string  { return "TraktListImport" }
-func (t *TraktList) DefaultName() string     { return "Trakt List" }
-func (t *TraktList) Settings() any           { return &t.Cfg }
+func NewTraktList() *TraktList              { return &TraktList{} }
+func (t *TraktList) Implementation() string { return "TraktListImport" }
+func (t *TraktList) DefaultName() string    { return "Trakt List" }
+func (t *TraktList) Settings() any          { return &t.Cfg }
 
 type TraktPopularSettings struct {
 	TraktBaseSettings
@@ -204,10 +204,10 @@ type TraktPopular struct {
 	Cfg TraktPopularSettings
 }
 
-func NewTraktPopular() *TraktPopular              { return &TraktPopular{} }
-func (t *TraktPopular) Implementation() string    { return "TraktPopularImport" }
-func (t *TraktPopular) DefaultName() string       { return "Trakt Popular" }
-func (t *TraktPopular) Settings() any             { return &t.Cfg }
+func NewTraktPopular() *TraktPopular           { return &TraktPopular{} }
+func (t *TraktPopular) Implementation() string { return "TraktPopularImport" }
+func (t *TraktPopular) DefaultName() string    { return "Trakt Popular" }
+func (t *TraktPopular) Settings() any          { return &t.Cfg }
 
 // --- Custom List -----------------------------------------------------------
 

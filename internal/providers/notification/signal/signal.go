@@ -15,9 +15,9 @@ import (
 
 // Settings for Signal notifications.
 type Settings struct {
-	ServerURL  string `json:"serverUrl" form:"text" label:"signal-cli REST URL" required:"true"`
+	ServerURL    string `json:"serverUrl" form:"text" label:"signal-cli REST URL" required:"true"`
 	SenderNumber string `json:"senderNumber" form:"text" label:"Sender Number" required:"true" placeholder:"+15551234567"`
-	Recipients string `json:"recipients" form:"text" label:"Recipients" required:"true" placeholder:"CSV phone numbers"`
+	Recipients   string `json:"recipients" form:"text" label:"Recipients" required:"true" placeholder:"CSV phone numbers"`
 	AuthUsername string `json:"authUsername" form:"text" label:"Auth Username"`
 	AuthPassword string `json:"authPassword" form:"password" label:"Auth Password" privacy:"password"`
 }

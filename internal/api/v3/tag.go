@@ -30,16 +30,16 @@ type tagResource struct {
 // empty arrays for the subsystems that aren't yet wired to tags; fields must all
 // be present (non-null) for clients to parse correctly.
 type tagDetailsResource struct {
-	ID                int   `json:"id"`
+	ID                int    `json:"id"`
 	Label             string `json:"label"`
-	DelayProfileIds   []int `json:"delayProfileIds"`
-	ImportListIds     []int `json:"importListIds"`
-	NotificationIds   []int `json:"notificationIds"`
-	RestrictionIds    []int `json:"restrictionIds"`
-	IndexerIds        []int `json:"indexerIds"`
-	DownloadClientIds []int `json:"downloadClientIds"`
-	AutoTagIds        []int `json:"autoTagIds"`
-	SeriesIds         []int `json:"seriesIds"`
+	DelayProfileIds   []int  `json:"delayProfileIds"`
+	ImportListIds     []int  `json:"importListIds"`
+	NotificationIds   []int  `json:"notificationIds"`
+	RestrictionIds    []int  `json:"restrictionIds"`
+	IndexerIds        []int  `json:"indexerIds"`
+	DownloadClientIds []int  `json:"downloadClientIds"`
+	AutoTagIds        []int  `json:"autoTagIds"`
+	SeriesIds         []int  `json:"seriesIds"`
 }
 
 // TagHandler handles /api/v3/tag endpoints.

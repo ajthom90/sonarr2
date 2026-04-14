@@ -18,11 +18,11 @@ import (
 
 // Settings for an Aria2 download client.
 type Settings struct {
-	Host       string `json:"host" form:"text" label:"Host" required:"true"`
-	Port       int    `json:"port" form:"number" label:"Port" placeholder:"6800"`
-	UseSSL     bool   `json:"useSsl" form:"checkbox" label:"Use SSL"`
-	RPCSecret  string `json:"rpcSecret" form:"password" label:"RPC Secret" privacy:"apiKey"`
-	URLBase    string `json:"urlBase" form:"text" label:"URL Base" placeholder:"/jsonrpc"`
+	Host      string `json:"host" form:"text" label:"Host" required:"true"`
+	Port      int    `json:"port" form:"number" label:"Port" placeholder:"6800"`
+	UseSSL    bool   `json:"useSsl" form:"checkbox" label:"Use SSL"`
+	RPCSecret string `json:"rpcSecret" form:"password" label:"RPC Secret" privacy:"apiKey"`
+	URLBase   string `json:"urlBase" form:"text" label:"URL Base" placeholder:"/jsonrpc"`
 }
 
 type Aria2 struct {
@@ -37,10 +37,10 @@ func New(s Settings, client *http.Client) *Aria2 {
 	return &Aria2{settings: s, client: client}
 }
 
-func (a *Aria2) Implementation() string                  { return "Aria2" }
-func (a *Aria2) DefaultName() string                     { return "Aria2" }
-func (a *Aria2) Settings() any                           { return &a.settings }
-func (a *Aria2) Protocol() indexer.DownloadProtocol      { return indexer.ProtocolTorrent }
+func (a *Aria2) Implementation() string             { return "Aria2" }
+func (a *Aria2) DefaultName() string                { return "Aria2" }
+func (a *Aria2) Settings() any                      { return &a.settings }
+func (a *Aria2) Protocol() indexer.DownloadProtocol { return indexer.ProtocolTorrent }
 
 // Test invokes aria2.getVersion to verify connectivity.
 func (a *Aria2) Test(ctx context.Context) error {
@@ -70,7 +70,9 @@ func (a *Aria2) Items(ctx context.Context) ([]downloadclient.Item, error) {
 
 // Remove cancels and optionally forgets the GID.
 func (a *Aria2) Remove(ctx context.Context, gid string, _ bool) error {
-	var reply struct{ Result string `json:"result"` }
+	var reply struct {
+		Result string `json:"result"`
+	}
 	return a.call(ctx, "aria2.remove", []any{gid}, &reply)
 }
 

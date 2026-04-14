@@ -30,17 +30,17 @@ const (
 
 // Profile represents one delay profile row.
 type Profile struct {
-	ID                              int      `json:"id"`
-	EnableUsenet                    bool     `json:"enableUsenet"`
-	EnableTorrent                   bool     `json:"enableTorrent"`
-	PreferredProtocol               Protocol `json:"preferredProtocol"`
-	UsenetDelay                     int      `json:"usenetDelay"`                    // minutes
-	TorrentDelay                    int      `json:"torrentDelay"`                   // minutes
-	Order                           int      `json:"order"`                          // sort key (Sonarr calls it Order)
-	BypassIfHighestQuality          bool     `json:"bypassIfHighestQuality"`
-	BypassIfAboveCustomFormatScore  bool     `json:"bypassIfAboveCustomFormatScore"`
-	MinimumCustomFormatScore        int      `json:"minimumCustomFormatScore"`
-	Tags                            []int    `json:"tags"`
+	ID                             int      `json:"id"`
+	EnableUsenet                   bool     `json:"enableUsenet"`
+	EnableTorrent                  bool     `json:"enableTorrent"`
+	PreferredProtocol              Protocol `json:"preferredProtocol"`
+	UsenetDelay                    int      `json:"usenetDelay"`  // minutes
+	TorrentDelay                   int      `json:"torrentDelay"` // minutes
+	Order                          int      `json:"order"`        // sort key (Sonarr calls it Order)
+	BypassIfHighestQuality         bool     `json:"bypassIfHighestQuality"`
+	BypassIfAboveCustomFormatScore bool     `json:"bypassIfAboveCustomFormatScore"`
+	MinimumCustomFormatScore       int      `json:"minimumCustomFormatScore"`
+	Tags                           []int    `json:"tags"`
 }
 
 // Store provides CRUD access to delay profiles.

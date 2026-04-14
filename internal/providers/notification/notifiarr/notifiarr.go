@@ -31,7 +31,7 @@ func (n *Notifiarr) Settings() any          { return &n.settings }
 
 func (n *Notifiarr) Test(ctx context.Context) error {
 	return n.send(ctx, "Test", map[string]any{
-		"event":       "Test",
+		"event":        "Test",
 		"instanceName": "sonarr2",
 	})
 }

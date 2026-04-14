@@ -24,16 +24,16 @@ func (s *postgresStore) Create(ctx context.Context, p Profile) (Profile, error) 
 		p.PreferredProtocol = ProtocolUsenet
 	}
 	row, err := s.q.CreateDelayProfile(ctx, pggen.CreateDelayProfileParams{
-		EnableUsenet:                     p.EnableUsenet,
-		EnableTorrent:                    p.EnableTorrent,
-		PreferredProtocol:                string(p.PreferredProtocol),
-		UsenetDelay:                      int32(p.UsenetDelay),
-		TorrentDelay:                     int32(p.TorrentDelay),
-		SortOrder:                        int32(p.Order),
-		BypassIfHighestQuality:           p.BypassIfHighestQuality,
-		BypassIfAboveCustomFormatScore:   p.BypassIfAboveCustomFormatScore,
-		MinimumCustomFormatScore:         int32(p.MinimumCustomFormatScore),
-		Tags:                             tags,
+		EnableUsenet:                   p.EnableUsenet,
+		EnableTorrent:                  p.EnableTorrent,
+		PreferredProtocol:              string(p.PreferredProtocol),
+		UsenetDelay:                    int32(p.UsenetDelay),
+		TorrentDelay:                   int32(p.TorrentDelay),
+		SortOrder:                      int32(p.Order),
+		BypassIfHighestQuality:         p.BypassIfHighestQuality,
+		BypassIfAboveCustomFormatScore: p.BypassIfAboveCustomFormatScore,
+		MinimumCustomFormatScore:       int32(p.MinimumCustomFormatScore),
+		Tags:                           tags,
 	})
 	if err != nil {
 		return Profile{}, fmt.Errorf("delayprofile: create: %w", err)
@@ -71,17 +71,17 @@ func (s *postgresStore) List(ctx context.Context) ([]Profile, error) {
 func (s *postgresStore) Update(ctx context.Context, p Profile) error {
 	tags, _ := json.Marshal(nonNilInt(p.Tags))
 	if err := s.q.UpdateDelayProfile(ctx, pggen.UpdateDelayProfileParams{
-		ID:                               int32(p.ID),
-		EnableUsenet:                     p.EnableUsenet,
-		EnableTorrent:                    p.EnableTorrent,
-		PreferredProtocol:                string(p.PreferredProtocol),
-		UsenetDelay:                      int32(p.UsenetDelay),
-		TorrentDelay:                     int32(p.TorrentDelay),
-		SortOrder:                        int32(p.Order),
-		BypassIfHighestQuality:           p.BypassIfHighestQuality,
-		BypassIfAboveCustomFormatScore:   p.BypassIfAboveCustomFormatScore,
-		MinimumCustomFormatScore:         int32(p.MinimumCustomFormatScore),
-		Tags:                             tags,
+		ID:                             int32(p.ID),
+		EnableUsenet:                   p.EnableUsenet,
+		EnableTorrent:                  p.EnableTorrent,
+		PreferredProtocol:              string(p.PreferredProtocol),
+		UsenetDelay:                    int32(p.UsenetDelay),
+		TorrentDelay:                   int32(p.TorrentDelay),
+		SortOrder:                      int32(p.Order),
+		BypassIfHighestQuality:         p.BypassIfHighestQuality,
+		BypassIfAboveCustomFormatScore: p.BypassIfAboveCustomFormatScore,
+		MinimumCustomFormatScore:       int32(p.MinimumCustomFormatScore),
+		Tags:                           tags,
 	}); err != nil {
 		return fmt.Errorf("delayprofile: update: %w", err)
 	}
@@ -101,16 +101,16 @@ func fromPG(r pggen.DelayProfile) (Profile, error) {
 		return Profile{}, err
 	}
 	return Profile{
-		ID:                              int(r.ID),
-		EnableUsenet:                    r.EnableUsenet,
-		EnableTorrent:                   r.EnableTorrent,
-		PreferredProtocol:               Protocol(r.PreferredProtocol),
-		UsenetDelay:                     int(r.UsenetDelay),
-		TorrentDelay:                    int(r.TorrentDelay),
-		Order:                           int(r.SortOrder),
-		BypassIfHighestQuality:          r.BypassIfHighestQuality,
-		BypassIfAboveCustomFormatScore:  r.BypassIfAboveCustomFormatScore,
-		MinimumCustomFormatScore:        int(r.MinimumCustomFormatScore),
-		Tags:                            nonNilInt(tags),
+		ID:                             int(r.ID),
+		EnableUsenet:                   r.EnableUsenet,
+		EnableTorrent:                  r.EnableTorrent,
+		PreferredProtocol:              Protocol(r.PreferredProtocol),
+		UsenetDelay:                    int(r.UsenetDelay),
+		TorrentDelay:                   int(r.TorrentDelay),
+		Order:                          int(r.SortOrder),
+		BypassIfHighestQuality:         r.BypassIfHighestQuality,
+		BypassIfAboveCustomFormatScore: r.BypassIfAboveCustomFormatScore,
+		MinimumCustomFormatScore:       int(r.MinimumCustomFormatScore),
+		Tags:                           nonNilInt(tags),
 	}, nil
 }

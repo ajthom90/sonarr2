@@ -64,8 +64,8 @@ func (p *Plex) baseURL() string {
 
 func (p *Plex) headers() map[string]string {
 	return map[string]string{
-		"X-Plex-Token":         p.settings.AuthToken,
+		"X-Plex-Token":             p.settings.AuthToken,
 		"X-Plex-Client-Identifier": "sonarr2",
-		"Accept":               "application/json",
+		"Accept":                   "application/json",
 	}
 }

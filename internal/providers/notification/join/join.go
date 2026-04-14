@@ -15,9 +15,9 @@ import (
 
 // Settings for a Join notification provider.
 type Settings struct {
-	APIKey   string `json:"apiKey" form:"text" label:"API Key" required:"true" privacy:"apiKey"`
+	APIKey    string `json:"apiKey" form:"text" label:"API Key" required:"true" privacy:"apiKey"`
 	DeviceIds string `json:"deviceIds" form:"text" label:"Device IDs" placeholder:"Comma-separated or group name"`
-	Priority int    `json:"priority" form:"number" label:"Priority" placeholder:"2"` // -2..2
+	Priority  int    `json:"priority" form:"number" label:"Priority" placeholder:"2"` // -2..2
 }
 
 // Join sends push notifications through the Join joaoapps service.

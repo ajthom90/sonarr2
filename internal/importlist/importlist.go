@@ -25,14 +25,14 @@ var ErrNotFound = errors.New("importlist: not found")
 type Monitor string
 
 const (
-	MonitorAll           Monitor = "all"
-	MonitorFuture        Monitor = "future"
-	MonitorMissing       Monitor = "missing"
-	MonitorExisting      Monitor = "existing"
-	MonitorPilot         Monitor = "pilot"
-	MonitorFirstSeason   Monitor = "firstSeason"
-	MonitorLatestSeason  Monitor = "latestSeason"
-	MonitorNone          Monitor = "none"
+	MonitorAll          Monitor = "all"
+	MonitorFuture       Monitor = "future"
+	MonitorMissing      Monitor = "missing"
+	MonitorExisting     Monitor = "existing"
+	MonitorPilot        Monitor = "pilot"
+	MonitorFirstSeason  Monitor = "firstSeason"
+	MonitorLatestSeason Monitor = "latestSeason"
+	MonitorNone         Monitor = "none"
 )
 
 // Item is one entry returned by a list provider.

@@ -23,7 +23,9 @@ type Simplepush struct {
 	client   *http.Client
 }
 
-func New(s Settings, client *http.Client) *Simplepush { return &Simplepush{settings: s, client: client} }
+func New(s Settings, client *http.Client) *Simplepush {
+	return &Simplepush{settings: s, client: client}
+}
 
 func (p *Simplepush) Implementation() string { return "Simplepush" }
 func (p *Simplepush) DefaultName() string    { return "Simplepush" }

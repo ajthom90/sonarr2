@@ -38,7 +38,7 @@ func TestBlocklistedSpecRejects(t *testing.T) {
 	spec := specs.BlocklistedSpec{Store: store}
 	remote := decisionengine.RemoteEpisode{
 		SeriesID: 42,
-		Release: decisionengine.Release{Title: "Show.S01E01.1080p.WEB-DL"},
+		Release:  decisionengine.Release{Title: "Show.S01E01.1080p.WEB-DL"},
 	}
 	decision, rejections := spec.Evaluate(ctx, remote, profiles.QualityProfile{})
 	if decision != decisionengine.Reject {

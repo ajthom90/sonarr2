@@ -16,30 +16,30 @@ var ErrNotFound = errors.New("metadata: not found")
 
 // SeriesInfo carries the subset of series data relevant to metadata emission.
 type SeriesInfo struct {
-	ID       int64
-	Title    string
-	Path     string
-	TvdbID   int64
-	ImdbID   string
-	Year     int
-	Overview string
-	Runtime  int // minutes
-	Network  string
-	Status   string
-	Genres   []string
-	Actors   []Actor
-	PosterURL  string
-	FanartURL  string
-	BannerURL  string
+	ID            int64
+	Title         string
+	Path          string
+	TvdbID        int64
+	ImdbID        string
+	Year          int
+	Overview      string
+	Runtime       int // minutes
+	Network       string
+	Status        string
+	Genres        []string
+	Actors        []Actor
+	PosterURL     string
+	FanartURL     string
+	BannerURL     string
 	Certification string
 }
 
 // Actor is one cast-list entry.
 type Actor struct {
-	Name      string
-	Role      string
-	Order     int
-	ThumbURL  string
+	Name     string
+	Role     string
+	Order    int
+	ThumbURL string
 }
 
 // EpisodeInfo carries the subset of episode data relevant to metadata.

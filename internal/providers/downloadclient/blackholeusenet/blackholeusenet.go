@@ -25,9 +25,9 @@ func New(s Settings, client *http.Client) *UsenetBlackhole {
 	return &UsenetBlackhole{inner: blackhole.New(s, client)}
 }
 
-func (u *UsenetBlackhole) Implementation() string         { return "UsenetBlackhole" }
-func (u *UsenetBlackhole) DefaultName() string            { return "Usenet Blackhole" }
-func (u *UsenetBlackhole) Settings() any                  { return u.inner.Settings() }
+func (u *UsenetBlackhole) Implementation() string             { return "UsenetBlackhole" }
+func (u *UsenetBlackhole) DefaultName() string                { return "Usenet Blackhole" }
+func (u *UsenetBlackhole) Settings() any                      { return u.inner.Settings() }
 func (u *UsenetBlackhole) Protocol() indexer.DownloadProtocol { return indexer.ProtocolUsenet }
 func (u *UsenetBlackhole) Add(ctx context.Context, url, title string) (string, error) {
 	return u.inner.Add(ctx, url, title)
