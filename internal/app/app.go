@@ -618,7 +618,10 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 	// Load quality definitions for specs that need them.
 	allDefs, _ := qualityDefStore.GetAll(ctx)
 
-	// Decision engine with 8 M5 specs.
+	// Decision engine: 8 M5 specs + M24 additions (blocklist rejection,
+	// release-profile term filtering). Release profiles are filtered by
+	// indexer scope here; series-tag scoping will follow when series grow a
+	// tags column.
 	engine := decisionengine.New(
 		specs.QualityAllowedSpec{},
 		specs.CustomFormatScoreSpec{},
@@ -628,6 +631,29 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 		specs.NotSampleSpec{},
 		specs.RepackSpec{},
 		specs.AlreadyImportedSpec{},
+		specs.BlocklistedSpec{Store: blStore},
+		specs.ReleaseProfileSpec{
+			ProfilesFn: func(ctx context.Context, _ int64, indexerName string) ([]releaseprofile.Profile, error) {
+				all, err := rpStore.List(ctx)
+				if err != nil {
+					return nil, err
+				}
+				out := make([]releaseprofile.Profile, 0, len(all))
+				for _, p := range all {
+					if !p.Enabled {
+						continue
+					}
+					// IndexerID 0 = applies to any indexer. Otherwise the
+					// filter needs indexer-name → id resolution; for now we
+					// just include globally-scoped profiles.
+					if p.IndexerID == 0 {
+						out = append(out, p)
+					}
+				}
+				_ = indexerName
+				return out, nil
+			},
+		},
 	)
 
 	// Grab service.
