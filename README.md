@@ -4,7 +4,18 @@ A feature-complete rewrite of [Sonarr](https://github.com/Sonarr/Sonarr) focused
 
 ## Current Status
 
-**Milestone 24 of 24 complete** — all milestones finished. The full backend is production-capable with a connected React frontend, all providers, TVDB caching, health checks, housekeeping, backups, a migration tool, ops hardening, a GitHub Actions release pipeline, and a built-in update checker. Not yet ready for end users (pre-v1).
+**M0–M23 complete; M24 (Sonarr parity) in progress.** All original roadmap
+milestones shipped. M24 is a drop-in-replacement push aiming for byte-identical
+v3 API compatibility and feature parity with upstream Sonarr (see
+[M24 design doc](./docs/superpowers/specs/2026-04-15-m24-sonarr-parity-design.md)).
+Current M24 scope: navigation shell matches Sonarr's 6-item sidebar with all
+sub-items; Tags / Blocklist / Remote Path Mappings / Recycle Bin / Release
+Profiles / Delay Profiles / iCalendar feed landed end-to-end; provider
+registries expanded to 10/10 indexers, 20/20 download clients, 24/25
+notifications. Subsystems still pending: Import Lists, Metadata Consumers,
+Auto-Tagging, Interactive Search, Manual Import, Scene Mappings, Custom Format
+spec types beyond regex, expanded health checks, and additional scheduled
+tasks. Not ready for end users (pre-v1).
 
 ### What's implemented
 
