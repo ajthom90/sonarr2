@@ -10,22 +10,26 @@ export class ApiError extends Error {
 }
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
+  return fetchWithAuth<T>(`${API_BASE}${path}`, init)
+}
+
+/**
+ * apiFetchRaw performs an authenticated fetch against an arbitrary path
+ * (not scoped to the v6 base). Callers provide the full path, e.g.
+ * "/api/v3/blocklist". Auth behavior matches apiFetch.
+ */
+export async function apiFetchRaw(path: string, init?: RequestInit): Promise<Response> {
   const apiKey = localStorage.getItem('sonarr2_api_key') ?? ''
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(init?.headers as Record<string, string> ?? {}),
   }
-  // Only send API key header if one is stored (external integrations).
-  // Session cookie auth is handled automatically via credentials: 'include'.
-  if (apiKey) {
-    headers['X-Api-Key'] = apiKey
-  }
+  if (apiKey) headers['X-Api-Key'] = apiKey
+  return fetch(path, { ...init, credentials: 'include', headers })
+}
 
-  const res = await fetch(`${API_BASE}${path}`, {
-    ...init,
-    credentials: 'include',
-    headers,
-  })
+async function fetchWithAuth<T>(url: string, init?: RequestInit): Promise<T> {
+  const res = await apiFetchRaw(url, init)
   if (!res.ok) {
     const body = await res.json().catch(() => ({ detail: res.statusText }))
     throw new ApiError(res.status, body.detail ?? body.message ?? res.statusText)

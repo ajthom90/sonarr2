@@ -5,18 +5,55 @@ import type { Series } from '../api/types'
 import styles from './Sidebar.module.css'
 
 const navItems = [
-  { to: '/', label: 'Series', icon: '📺' },
-  { to: '/add/new', label: 'Add New', icon: '➕' },
+  {
+    to: '/', label: 'Series', icon: '📺', children: [
+      { to: '/add/new', label: 'Add New' },
+      { to: '/add/import', label: 'Library Import' },
+      { to: '/serieseditor', label: 'Mass Editor' },
+      { to: '/seasonpass', label: 'Season Pass' },
+    ],
+  },
   { to: '/calendar', label: 'Calendar', icon: '📅' },
-  { to: '/activity', label: 'Activity', icon: '⚡' },
-  { to: '/wanted', label: 'Wanted', icon: '🔍' },
-  { to: '/settings', label: 'Settings', icon: '⚙️', children: [
-    { to: '/settings/general', label: 'General' },
-    { to: '/settings/mediamanagement', label: 'Media Management' },
-    { to: '/settings/profiles', label: 'Profiles' },
-    { to: '/settings/customformats', label: 'Custom Formats' },
-  ] },
-  { to: '/system', label: 'System', icon: '💻' },
+  {
+    to: '/activity', label: 'Activity', icon: '⚡', children: [
+      { to: '/activity/queue', label: 'Queue' },
+      { to: '/activity/history', label: 'History' },
+      { to: '/activity/blocklist', label: 'Blocklist' },
+    ],
+  },
+  {
+    to: '/wanted', label: 'Wanted', icon: '🔍', children: [
+      { to: '/wanted/missing', label: 'Missing' },
+      { to: '/wanted/cutoffunmet', label: 'Cutoff Unmet' },
+    ],
+  },
+  {
+    to: '/settings', label: 'Settings', icon: '⚙️', children: [
+      { to: '/settings/mediamanagement', label: 'Media Management' },
+      { to: '/settings/profiles', label: 'Profiles' },
+      { to: '/settings/quality', label: 'Quality' },
+      { to: '/settings/customformats', label: 'Custom Formats' },
+      { to: '/settings/indexers', label: 'Indexers' },
+      { to: '/settings/downloadclients', label: 'Download Clients' },
+      { to: '/settings/importlists', label: 'Import Lists' },
+      { to: '/settings/connect', label: 'Connect' },
+      { to: '/settings/metadata', label: 'Metadata' },
+      { to: '/settings/metadatasource', label: 'Metadata Source' },
+      { to: '/settings/tags', label: 'Tags' },
+      { to: '/settings/general', label: 'General' },
+      { to: '/settings/ui', label: 'UI' },
+    ],
+  },
+  {
+    to: '/system', label: 'System', icon: '💻', children: [
+      { to: '/system/status', label: 'Status' },
+      { to: '/system/tasks', label: 'Tasks' },
+      { to: '/system/backup', label: 'Backup' },
+      { to: '/system/updates', label: 'Updates' },
+      { to: '/system/events', label: 'Events' },
+      { to: '/system/logs/files', label: 'Log Files' },
+    ],
+  },
 ]
 
 function SearchBar() {
