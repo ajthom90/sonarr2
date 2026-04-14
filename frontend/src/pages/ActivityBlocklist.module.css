@@ -1,0 +1,98 @@
+.page {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.title {
+  font-size: 1.5rem;
+  margin: 0 0 6px;
+}
+.subtitle {
+  color: var(--color-text-muted, #9aa0a6);
+  font-size: 0.9rem;
+  margin: 0 0 24px;
+  line-height: 1.5;
+  max-width: 800px;
+}
+.status,
+.error {
+  padding: 24px;
+  text-align: center;
+  color: var(--color-text-muted, #9aa0a6);
+  margin: 0;
+}
+.error {
+  color: var(--color-danger, #ef4444);
+}
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  font-size: 0.9rem;
+}
+.removeBulkBtn {
+  padding: 6px 14px;
+  border-radius: 4px;
+  border: 1px solid var(--color-border, #2d3138);
+  background: transparent;
+  color: var(--color-danger, #ef4444);
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+.removeBulkBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.pagerInfo {
+  color: var(--color-text-muted, #9aa0a6);
+}
+.tableWrapper {
+  background: var(--color-bg-surface, #1b1e22);
+  border: 1px solid var(--color-border, #2d3138);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.th {
+  text-align: left;
+  padding: 10px 12px;
+  background: var(--color-surface-hover, #242830);
+  border-bottom: 1px solid var(--color-border, #2d3138);
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: var(--color-text-muted, #9aa0a6);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.row:not(:last-child) .td {
+  border-bottom: 1px solid var(--color-border, #2d3138);
+}
+.td {
+  padding: 8px 12px;
+}
+.sourceTitle {
+  display: inline-block;
+  max-width: 400px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+.removeBtn {
+  padding: 2px 10px;
+  border-radius: 3px;
+  border: 1px solid var(--color-border, #2d3138);
+  background: transparent;
+  color: var(--color-danger, #ef4444);
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+.removeBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
