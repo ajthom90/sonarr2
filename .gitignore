@@ -58,3 +58,6 @@ coverage.html
 
 # Migration tool fixtures (large)
 /tools/sonarr-migrate/testdata/fixtures/*.db
+
+# Git worktrees for feature branches
+/.worktrees/
