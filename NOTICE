@@ -1,0 +1,22 @@
+sonarr2
+Copyright (c) 2026 sonarr2 contributors
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation, version 3 of the License. See the LICENSE file for the full text.
+
+---
+
+Upstream attribution:
+
+This project is inspired by and aims for feature parity and wire-level
+compatibility with Sonarr (https://github.com/Sonarr/Sonarr), which is
+licensed under the GNU General Public License v3.0.
+
+    Sonarr
+    Copyright (c) Team Sonarr
+    Licensed under GPL-3.0
+
+Where sonarr2 incorporates or adapts code from Sonarr, the relevant files
+retain their original copyright notices. The project as a whole is licensed
+under GPL-3.0 to preserve compatibility with upstream.

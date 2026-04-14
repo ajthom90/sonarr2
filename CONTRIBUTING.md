@@ -57,4 +57,4 @@ See the [design doc](./docs/superpowers/specs/2026-04-10-sonarr-rewrite-design.m
 
 ## License
 
-By contributing you agree your contribution will be licensed under the MIT license (see [LICENSE](./LICENSE)).
+By contributing you agree your contribution will be licensed under the GPL-3.0 license (see [LICENSE](./LICENSE)).

@@ -84,11 +84,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **Go 1.23** backend — single static binary, ~15MB, frontend embedded via `//go:embed`
 - **React 18 + TypeScript + Vite** frontend — dark theme, SPA with client-side routing; `npm run dev` proxies to the Go backend for local development
 - **Postgres-first** with SQLite support — no "database is locked" errors via application-level single-writer discipline
-- **Clean-room reimplementation** — MIT licensed, no Sonarr (GPL-3) source code copied
+- **GPL-3 licensed** — compatible with upstream Sonarr (also GPL-3); see [LICENSE](./LICENSE) and [NOTICE](./NOTICE)
 - **Multi-arch** — builds for linux/amd64, linux/arm64, linux/arm/v7, macOS
 
 See the [design doc](./docs/superpowers/specs/2026-04-10-sonarr-rewrite-design.md) for the full architectural spec.
 
 ## License
 
-MIT — see [LICENSE](./LICENSE).
+GPL-3.0 — see [LICENSE](./LICENSE) and [NOTICE](./NOTICE). This matches upstream Sonarr's license.
