@@ -14,19 +14,26 @@ import (
 	v6 "github.com/ajthom90/sonarr2/internal/api/v6"
 	"github.com/ajthom90/sonarr2/internal/auth"
 	"github.com/ajthom90/sonarr2/internal/backup"
+	"github.com/ajthom90/sonarr2/internal/blocklist"
 	"github.com/ajthom90/sonarr2/internal/buildinfo"
 	"github.com/ajthom90/sonarr2/internal/commands"
 	"github.com/ajthom90/sonarr2/internal/customformats"
+	"github.com/ajthom90/sonarr2/internal/delayprofile"
 	"github.com/ajthom90/sonarr2/internal/health"
 	"github.com/ajthom90/sonarr2/internal/history"
 	"github.com/ajthom90/sonarr2/internal/hostconfig"
+	"github.com/ajthom90/sonarr2/internal/importlist"
 	"github.com/ajthom90/sonarr2/internal/library"
+	"github.com/ajthom90/sonarr2/internal/metadata"
 	"github.com/ajthom90/sonarr2/internal/profiles"
 	"github.com/ajthom90/sonarr2/internal/providers/downloadclient"
 	"github.com/ajthom90/sonarr2/internal/providers/indexer"
 	"github.com/ajthom90/sonarr2/internal/providers/metadatasource"
 	"github.com/ajthom90/sonarr2/internal/providers/notification"
 	"github.com/ajthom90/sonarr2/internal/realtime"
+	"github.com/ajthom90/sonarr2/internal/releaseprofile"
+	"github.com/ajthom90/sonarr2/internal/remotepathmapping"
+	"github.com/ajthom90/sonarr2/internal/tags"
 	"github.com/ajthom90/sonarr2/web"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -55,6 +62,13 @@ type Deps struct {
 	QualityProfiles      profiles.QualityProfileStore
 	QualityDefs          profiles.QualityDefinitionStore
 	CustomFormats        customformats.Store
+	Tags                 tags.Store
+	Blocklist            blocklist.Store
+	RemotePathMappings   remotepathmapping.Store
+	ReleaseProfiles      releaseprofile.Store
+	DelayProfiles        delayprofile.Store
+	MetadataRegistry     *metadata.Registry
+	ImportListRegistry   *importlist.Registry
 	Commands             commands.Queue
 	History              history.Store
 	IndexerStore         indexer.InstanceStore
@@ -222,6 +236,10 @@ func HandlerWithDeps(log *slog.Logger, deps Deps) http.Handler {
 			if deps.Episodes != nil {
 				cal := v3.NewCalendarHandler(deps.Episodes, log)
 				v3.MountCalendar(r, cal)
+				if deps.Series != nil {
+					feed := v3.NewCalendarFeedHandler(deps.Episodes, deps.Series, log)
+					v3.MountCalendarFeed(r, feed)
+				}
 			}
 
 			// Task 6 — providers + utility.
@@ -244,7 +262,39 @@ func HandlerWithDeps(log *slog.Logger, deps Deps) http.Handler {
 				rfh := v3.NewRootFolderHandler(deps.Series, log)
 				v3.MountRootFolder(r, rfh)
 			}
-			v3.MountTag(r)
+			if deps.Tags != nil {
+				th := v3.NewTagHandler(deps.Tags, log)
+				v3.MountTag(r, th)
+			} else {
+				v3.MountTag(r, nil)
+			}
+			if deps.Blocklist != nil {
+				bh := v3.NewBlocklistHandler(deps.Blocklist, log)
+				v3.MountBlocklist(r, bh)
+			}
+			if deps.RemotePathMappings != nil {
+				rpmh := v3.NewRemotePathMappingHandler(deps.RemotePathMappings, log)
+				v3.MountRemotePathMapping(r, rpmh)
+			}
+			if deps.ReleaseProfiles != nil {
+				rph := v3.NewReleaseProfileHandler(deps.ReleaseProfiles, log)
+				v3.MountReleaseProfile(r, rph)
+			}
+			if deps.DelayProfiles != nil {
+				dph := v3.NewDelayProfileHandler(deps.DelayProfiles, log)
+				v3.MountDelayProfile(r, dph)
+			}
+			if deps.MetadataRegistry != nil {
+				mh := v3.NewMetadataHandler(deps.MetadataRegistry, log)
+				v3.MountMetadata(r, mh)
+			}
+			if deps.ImportListRegistry != nil {
+				ih := v3.NewImportListHandler(deps.ImportListRegistry, log)
+				v3.MountImportList(r, ih)
+			}
+			v3.MountAutoTagging(r, v3.NewAutoTaggingHandler(log))
+			v3.MountRelease(r, v3.NewReleaseHandler(log))
+			v3.MountManualImport(r, v3.NewManualImportHandler(log))
 			v3.MountHealth(r, deps.HealthChecker)
 			v3.MountParse(r)
 			if deps.Episodes != nil {

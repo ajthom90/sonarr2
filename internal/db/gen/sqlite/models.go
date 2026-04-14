@@ -6,7 +6,26 @@ package sqlite
 
 import (
 	"database/sql"
+	"time"
 )
+
+type Blocklist struct {
+	ID              int64
+	SeriesID        int64
+	EpisodeIds      string
+	SourceTitle     string
+	Quality         string
+	Languages       string
+	Date            time.Time
+	PublishedDate   sql.NullTime
+	Size            sql.NullInt64
+	Protocol        string
+	Indexer         string
+	IndexerFlags    int64
+	ReleaseType     string
+	Message         string
+	TorrentInfoHash sql.NullString
+}
 
 type Command struct {
 	ID         int64
@@ -32,6 +51,20 @@ type CustomFormat struct {
 	Name                string
 	IncludeWhenRenaming int64
 	Specifications      string
+}
+
+type DelayProfile struct {
+	ID                             int64
+	EnableUsenet                   int64
+	EnableTorrent                  int64
+	PreferredProtocol              string
+	UsenetDelay                    int64
+	TorrentDelay                   int64
+	SortOrder                      int64
+	BypassIfHighestQuality         int64
+	BypassIfAboveCustomFormatScore int64
+	MinimumCustomFormatScore       int64
+	Tags                           string
 }
 
 type DownloadClient struct {
@@ -87,13 +120,15 @@ type History struct {
 }
 
 type HostConfig struct {
-	ID             int64
-	ApiKey         string
-	AuthMode       string
-	MigrationState string
-	CreatedAt      string
-	UpdatedAt      string
-	TvdbApiKey     string
+	ID                    int64
+	ApiKey                string
+	AuthMode              string
+	MigrationState        string
+	CreatedAt             string
+	UpdatedAt             string
+	TvdbApiKey            string
+	RecycleBin            string
+	RecycleBinCleanupDays int64
 }
 
 type Indexer struct {
@@ -141,6 +176,23 @@ type QualityProfile struct {
 	FormatItems       string
 }
 
+type ReleaseProfile struct {
+	ID        int64
+	Name      string
+	Enabled   int64
+	Required  string
+	Ignored   string
+	IndexerID int64
+	Tags      string
+}
+
+type RemotePathMapping struct {
+	ID         int64
+	Host       string
+	RemotePath string
+	LocalPath  string
+}
+
 type ScheduledTask struct {
 	TypeName      string
 	IntervalSecs  int64
@@ -182,6 +234,11 @@ type Session struct {
 	UserID    int64
 	ExpiresAt string
 	CreatedAt string
+}
+
+type Tag struct {
+	ID    int64
+	Label string
 }
 
 type User struct {

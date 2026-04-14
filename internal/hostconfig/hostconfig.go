@@ -17,12 +17,14 @@ var ErrNotFound = errors.New("hostconfig: not found")
 
 // HostConfig is the singleton host configuration row.
 type HostConfig struct {
-	APIKey         string
-	AuthMode       string
-	MigrationState string
-	TvdbApiKey     string
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
+	APIKey                string
+	AuthMode              string
+	MigrationState        string
+	TvdbApiKey            string
+	RecycleBin            string // empty = disabled, else path to move deleted files to
+	RecycleBinCleanupDays int    // 0 = never, else files older than N days are purged
+	CreatedAt             time.Time
+	UpdatedAt             time.Time
 }
 
 // Store reads and writes the host_config row.

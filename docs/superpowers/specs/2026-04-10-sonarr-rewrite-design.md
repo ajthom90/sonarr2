@@ -6,7 +6,7 @@
 
 ## 1. Overview
 
-sonarr2 is a ground-up rewrite of [Sonarr](https://github.com/Sonarr/Sonarr) (the .NET TV-series PVR) in Go, targeting large-library performance, low-resource homelab deployments, full feature parity with upstream, and a clean MIT license.
+sonarr2 is a ground-up rewrite of [Sonarr](https://github.com/Sonarr/Sonarr) (the .NET TV-series PVR) in Go, targeting large-library performance, low-resource homelab deployments, and full feature parity with upstream. Licensed under GPL-3.0 to match Sonarr.
 
 ### 1.1 Goals
 
@@ -14,7 +14,7 @@ sonarr2 is a ground-up rewrite of [Sonarr](https://github.com/Sonarr/Sonarr) (th
 - **Drop-in replacement at the wire level**: implement Sonarr's `/api/v3/*` REST surface and SignalR real-time protocol so existing clients (Overseerr, Jellyseerr, Prowlarr, LunaSea, nzb360, Notifiarr, Tautulli, Radarr cross-integration, Home Assistant) work without modification.
 - **Migration tool**: one-shot import of an existing Sonarr SQLite or Postgres database (Sonarr v4.x and v5.x).
 - **Performance targets** on a 10,000-series / 500,000-episode-file reference library running on 2 cores / 4 GB RAM — see §6.11.
-- **MIT licensed**, via clean-room reimplementation (no source code copied from Sonarr).
+- **GPL-3.0 licensed**, matching upstream Sonarr. Code may be studied from and adapted from Sonarr's source where useful, with attribution preserved.
 - **Multi-arch Docker**: `linux/amd64`, `linux/arm64`, `linux/arm/v7`, plus native binaries for macOS, Linux, and Windows.
 
 ### 1.2 Non-goals (v1)
@@ -27,14 +27,15 @@ sonarr2 is a ground-up rewrite of [Sonarr](https://github.com/Sonarr/Sonarr) (th
 - Mobile app, Radarr/Lidarr/Readarr equivalents.
 - TRaSH Guides auto-install browser. Users import JSON manually.
 
-### 1.3 Clean-room constraint
+### 1.3 Licensing & upstream attribution
 
-Sonarr is GPL-3.0 licensed. sonarr2 is MIT licensed. To avoid license contamination:
+Sonarr is GPL-3.0 licensed. sonarr2 is also GPL-3.0 licensed, which removes the derivative-work concern that previously required clean-room separation. Sonarr's source code may be read, studied, and adapted directly:
 
-- Claude does **not** read Sonarr's C# source code during design or implementation.
-- Design and implementation draw only from (a) Sonarr's public OpenAPI specs (`/api/v3/openapi.json`), (b) observable wire formats and HTTP behavior, (c) documented features, (d) UI screenshots and the running application's interface.
-- APIs themselves are not copyrightable (_Google v. Oracle_, 2021), so re-implementing the same REST surface is permitted. Re-implementing the same business logic from a written spec is also permitted.
-- Translations, when seeded, are regenerated from Sonarr's public locale files with attribution; non-literal expressions of the same functionality are independently authored.
+- When files contain code ported or adapted from Sonarr, preserve the original copyright notice and add an SPDX `GPL-3.0-or-later` identifier at the top.
+- The top-level [NOTICE](../../../NOTICE) file records upstream attribution for the project as a whole.
+- Sonarr's public OpenAPI specs (`/api/v3/openapi.json`), observable wire formats, documented features, and UI screenshots remain primary references.
+- APIs themselves are not copyrightable (_Google v. Oracle_, 2021), so re-implementing the same REST surface is permitted regardless of license.
+- Translations, when seeded, are regenerated from Sonarr's public locale files with attribution.
 
 ## 2. Technology Choices
 
@@ -144,7 +145,7 @@ sonarr2/
 │   └── entrypoint.sh
 ├── .github/workflows/
 ├── go.mod
-├── LICENSE                    # MIT
+├── LICENSE                    # GPL-3.0
 └── README.md
 ```
 
@@ -1187,7 +1188,7 @@ SemVer on the v3 API. Breaking v3 changes = major version. v6 starts at v0.x unt
 
 ### 12.14 Contributor hygiene
 
-Root of repo: `README.md`, `LICENSE` (MIT), `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md` (Contributor Covenant), `SECURITY.md`, `.github/ISSUE_TEMPLATE/`, `.github/PULL_REQUEST_TEMPLATE.md`. Per-provider `README.md` inside each package.
+Root of repo: `README.md`, `LICENSE` (GPL-3.0), `NOTICE`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md` (Contributor Covenant), `SECURITY.md`, `.github/ISSUE_TEMPLATE/`, `.github/PULL_REQUEST_TEMPLATE.md`. Per-provider `README.md` inside each package.
 
 ## Appendix A — Provider inventory (full parity target)
 

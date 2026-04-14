@@ -31,22 +31,26 @@ func (s *PostgresStore) Get(ctx context.Context) (HostConfig, error) {
 		return HostConfig{}, fmt.Errorf("hostconfig: postgres get: %w", err)
 	}
 	return HostConfig{
-		APIKey:         row.ApiKey,
-		AuthMode:       row.AuthMode,
-		MigrationState: row.MigrationState,
-		TvdbApiKey:     row.TvdbApiKey,
-		CreatedAt:      row.CreatedAt.Time,
-		UpdatedAt:      row.UpdatedAt.Time,
+		APIKey:                row.ApiKey,
+		AuthMode:              row.AuthMode,
+		MigrationState:        row.MigrationState,
+		TvdbApiKey:            row.TvdbApiKey,
+		RecycleBin:            row.RecycleBin,
+		RecycleBinCleanupDays: int(row.RecycleBinCleanupDays),
+		CreatedAt:             row.CreatedAt.Time,
+		UpdatedAt:             row.UpdatedAt.Time,
 	}, nil
 }
 
 // Upsert implements Store.
 func (s *PostgresStore) Upsert(ctx context.Context, hc HostConfig) error {
 	if err := s.q.UpsertHostConfig(ctx, pggen.UpsertHostConfigParams{
-		ApiKey:         hc.APIKey,
-		AuthMode:       hc.AuthMode,
-		MigrationState: hc.MigrationState,
-		TvdbApiKey:     hc.TvdbApiKey,
+		ApiKey:                hc.APIKey,
+		AuthMode:              hc.AuthMode,
+		MigrationState:        hc.MigrationState,
+		TvdbApiKey:            hc.TvdbApiKey,
+		RecycleBin:            hc.RecycleBin,
+		RecycleBinCleanupDays: int32(hc.RecycleBinCleanupDays),
 	}); err != nil {
 		return fmt.Errorf("hostconfig: postgres upsert: %w", err)
 	}

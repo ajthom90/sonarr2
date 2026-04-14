@@ -52,7 +52,20 @@ jobs:
           /tmp/sonarr2 -port 18989 -bind 127.0.0.1 -log-format text \
             -db-dsn "file:/tmp/sonarr2-ci/sonarr2.db?_journal=WAL&_busy_timeout=5000" &
           PID=$!
-          sleep 1
+          # Wait up to 30 s for the server to become ready. Migration count
+          # has grown so a fixed `sleep 1` no longer covers cold start on
+          # slower CI runners.
+          for i in $(seq 1 60); do
+            if curl -sf http://127.0.0.1:18989/ping >/dev/null; then
+              echo "ready after $((i / 2))s"
+              break
+            fi
+            if ! kill -0 $PID 2>/dev/null; then
+              echo "sonarr2 process died before becoming ready"
+              exit 1
+            fi
+            sleep 0.5
+          done
           curl -sf http://127.0.0.1:18989/ping
           # Extract the seeded API key from the SQLite database and use it.
           API_KEY=$(sqlite3 /tmp/sonarr2-ci/sonarr2.db "SELECT api_key FROM host_config WHERE id=1")

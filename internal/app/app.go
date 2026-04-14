@@ -23,6 +23,7 @@ import (
 	"github.com/ajthom90/sonarr2/internal/api"
 	"github.com/ajthom90/sonarr2/internal/auth"
 	"github.com/ajthom90/sonarr2/internal/backup"
+	"github.com/ajthom90/sonarr2/internal/blocklist"
 	"github.com/ajthom90/sonarr2/internal/buildinfo"
 	"github.com/ajthom90/sonarr2/internal/commands"
 	"github.com/ajthom90/sonarr2/internal/commands/handlers"
@@ -31,6 +32,7 @@ import (
 	"github.com/ajthom90/sonarr2/internal/db"
 	"github.com/ajthom90/sonarr2/internal/decisionengine"
 	"github.com/ajthom90/sonarr2/internal/decisionengine/specs"
+	"github.com/ajthom90/sonarr2/internal/delayprofile"
 	"github.com/ajthom90/sonarr2/internal/events"
 	"github.com/ajthom90/sonarr2/internal/fswatcher"
 	"github.com/ajthom90/sonarr2/internal/grab"
@@ -39,38 +41,83 @@ import (
 	"github.com/ajthom90/sonarr2/internal/hostconfig"
 	"github.com/ajthom90/sonarr2/internal/housekeeping"
 	"github.com/ajthom90/sonarr2/internal/importer"
+	"github.com/ajthom90/sonarr2/internal/importlist"
 	"github.com/ajthom90/sonarr2/internal/library"
 	"github.com/ajthom90/sonarr2/internal/logging"
+	metadataconsumer "github.com/ajthom90/sonarr2/internal/metadata"
+	metadatakodi "github.com/ajthom90/sonarr2/internal/metadata/kodi"
+	metadataplex "github.com/ajthom90/sonarr2/internal/metadata/plex"
+	metadataroksbox "github.com/ajthom90/sonarr2/internal/metadata/roksbox"
+	metadatawdtv "github.com/ajthom90/sonarr2/internal/metadata/wdtv"
 	"github.com/ajthom90/sonarr2/internal/profiles"
 	"github.com/ajthom90/sonarr2/internal/providers/downloadclient"
+	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/aria2"
 	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/blackhole"
+	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/blackholetorrent"
+	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/blackholeusenet"
 	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/deluge"
+	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/dstation"
+	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/flood"
+	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/freebox"
+	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/hadouken"
 	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/nzbget"
+	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/nzbvortex"
+	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/pneumatic"
 	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/qbittorrent"
+	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/rqbit"
+	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/rtorrent"
 	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/sabnzbd"
 	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/transmission"
+	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/tribler"
+	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/utorrent"
+	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/vuze"
 	"github.com/ajthom90/sonarr2/internal/providers/indexer"
 	"github.com/ajthom90/sonarr2/internal/providers/indexer/broadcasthenet"
+	"github.com/ajthom90/sonarr2/internal/providers/indexer/fanzub"
+	"github.com/ajthom90/sonarr2/internal/providers/indexer/filelist"
+	"github.com/ajthom90/sonarr2/internal/providers/indexer/hdbits"
 	"github.com/ajthom90/sonarr2/internal/providers/indexer/iptorrents"
 	"github.com/ajthom90/sonarr2/internal/providers/indexer/newznab"
 	"github.com/ajthom90/sonarr2/internal/providers/indexer/nyaa"
+	"github.com/ajthom90/sonarr2/internal/providers/indexer/torrentleech"
 	"github.com/ajthom90/sonarr2/internal/providers/indexer/torrentrss"
 	"github.com/ajthom90/sonarr2/internal/providers/indexer/torznab"
 	"github.com/ajthom90/sonarr2/internal/providers/metadatasource"
 	"github.com/ajthom90/sonarr2/internal/providers/metadatasource/cached"
 	"github.com/ajthom90/sonarr2/internal/providers/metadatasource/tvdb"
 	"github.com/ajthom90/sonarr2/internal/providers/notification"
+	"github.com/ajthom90/sonarr2/internal/providers/notification/apprise"
 	"github.com/ajthom90/sonarr2/internal/providers/notification/customscript"
 	"github.com/ajthom90/sonarr2/internal/providers/notification/discord"
 	notifyemail "github.com/ajthom90/sonarr2/internal/providers/notification/email"
+	"github.com/ajthom90/sonarr2/internal/providers/notification/emby"
 	"github.com/ajthom90/sonarr2/internal/providers/notification/gotify"
+	notifyjoin "github.com/ajthom90/sonarr2/internal/providers/notification/join"
+	"github.com/ajthom90/sonarr2/internal/providers/notification/kodi"
+	"github.com/ajthom90/sonarr2/internal/providers/notification/mailgun"
+	"github.com/ajthom90/sonarr2/internal/providers/notification/notifiarr"
+	"github.com/ajthom90/sonarr2/internal/providers/notification/ntfy"
+	"github.com/ajthom90/sonarr2/internal/providers/notification/plex"
+	"github.com/ajthom90/sonarr2/internal/providers/notification/prowl"
+	"github.com/ajthom90/sonarr2/internal/providers/notification/pushbullet"
+	"github.com/ajthom90/sonarr2/internal/providers/notification/pushcut"
 	"github.com/ajthom90/sonarr2/internal/providers/notification/pushover"
+	"github.com/ajthom90/sonarr2/internal/providers/notification/sendgrid"
+	notifysignal "github.com/ajthom90/sonarr2/internal/providers/notification/signal"
+	"github.com/ajthom90/sonarr2/internal/providers/notification/simplepush"
 	"github.com/ajthom90/sonarr2/internal/providers/notification/slack"
+	"github.com/ajthom90/sonarr2/internal/providers/notification/synology"
 	"github.com/ajthom90/sonarr2/internal/providers/notification/telegram"
+	"github.com/ajthom90/sonarr2/internal/providers/notification/trakt"
+	"github.com/ajthom90/sonarr2/internal/providers/notification/twitter"
 	notifwebhook "github.com/ajthom90/sonarr2/internal/providers/notification/webhook"
 	"github.com/ajthom90/sonarr2/internal/realtime"
+	"github.com/ajthom90/sonarr2/internal/recyclebin"
+	"github.com/ajthom90/sonarr2/internal/releaseprofile"
+	"github.com/ajthom90/sonarr2/internal/remotepathmapping"
 	"github.com/ajthom90/sonarr2/internal/rsssync"
 	"github.com/ajthom90/sonarr2/internal/scheduler"
+	"github.com/ajthom90/sonarr2/internal/tags"
 	"github.com/ajthom90/sonarr2/internal/updatecheck"
 )
 
@@ -89,6 +136,11 @@ type App struct {
 	qualityDefs     profiles.QualityDefinitionStore
 	qualityProfiles profiles.QualityProfileStore
 	customFormats   customformats.Store
+	tagStore        tags.Store
+	blocklistStore  blocklist.Store
+	rpmStore        remotepathmapping.Store
+	releaseProfiles releaseprofile.Store
+	delayProfiles   delayprofile.Store
 	indexerRegistry *indexer.Registry
 	dcRegistry      *downloadclient.Registry
 	notifRegistry   *notification.Registry
@@ -175,19 +227,34 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 		return lib.Stats.Delete(ctx, e.ID)
 	})
 
-	// Create profile and custom format stores.
+	// Create profile, custom format, and tag stores.
 	var qualityDefStore profiles.QualityDefinitionStore
 	var qualityProfileStore profiles.QualityProfileStore
 	var cfStore customformats.Store
+	var tagStore tags.Store
+	var blStore blocklist.Store
+	var rpmStore remotepathmapping.Store
+	var rpStore releaseprofile.Store
+	var dpStore delayprofile.Store
 	switch p := pool.(type) {
 	case *db.PostgresPool:
 		qualityDefStore = profiles.NewPostgresQualityDefinitionStore(p)
 		qualityProfileStore = profiles.NewPostgresQualityProfileStore(p)
 		cfStore = customformats.NewPostgresStore(p)
+		tagStore = tags.NewPostgresStore(p)
+		blStore = blocklist.NewPostgresStore(p)
+		rpmStore = remotepathmapping.NewPostgresStore(p)
+		rpStore = releaseprofile.NewPostgresStore(p)
+		dpStore = delayprofile.NewPostgresStore(p)
 	case *db.SQLitePool:
 		qualityDefStore = profiles.NewSQLiteQualityDefinitionStore(p)
 		qualityProfileStore = profiles.NewSQLiteQualityProfileStore(p)
 		cfStore = customformats.NewSQLiteStore(p)
+		tagStore = tags.NewSQLiteStore(p)
+		blStore = blocklist.NewSQLiteStore(p)
+		rpmStore = remotepathmapping.NewSQLiteStore(p)
+		rpStore = releaseprofile.NewSQLiteStore(p)
+		dpStore = delayprofile.NewSQLiteStore(p)
 	default:
 		_ = pool.Close()
 		return nil, fmt.Errorf("app: unsupported pool type for profiles/CF: %T", pool)
@@ -248,6 +315,47 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 	idxReg.Register("BroadcastheNet", func() indexer.Indexer {
 		return broadcasthenet.New(broadcasthenet.Settings{}, nil)
 	})
+	idxReg.Register("FileList", func() indexer.Indexer {
+		return filelist.New(filelist.Settings{}, nil)
+	})
+	idxReg.Register("HDBits", func() indexer.Indexer {
+		return hdbits.New(hdbits.Settings{}, nil)
+	})
+	idxReg.Register("Torrentleech", func() indexer.Indexer {
+		return torrentleech.New(torrentleech.Settings{}, nil)
+	})
+	idxReg.Register("Fanzub", func() indexer.Indexer {
+		return fanzub.New(fanzub.Settings{}, nil)
+	})
+
+	// Metadata consumer registry.
+	metaReg := metadataconsumer.NewRegistry()
+	metaReg.Register("XbmcMetadata", func() metadataconsumer.Consumer {
+		return metadatakodi.New(metadatakodi.Settings{})
+	})
+	metaReg.Register("MediaBrowserMetadata", func() metadataconsumer.Consumer {
+		return metadataplex.New(metadataplex.Settings{})
+	})
+	metaReg.Register("RoksboxMetadata", func() metadataconsumer.Consumer {
+		return metadataroksbox.New(metadataroksbox.Settings{})
+	})
+	metaReg.Register("WdtvMetadata", func() metadataconsumer.Consumer {
+		return metadatawdtv.New(metadatawdtv.Settings{})
+	})
+
+	// Import list registry.
+	ilReg := importlist.NewRegistry()
+	ilReg.Register("AniListImport", func() importlist.ListProvider { return importlist.NewAniList() })
+	ilReg.Register("MyAnimeListImport", func() importlist.ListProvider { return importlist.NewMyAnimeList() })
+	ilReg.Register("PlexImport", func() importlist.ListProvider { return importlist.NewPlexWatchlist() })
+	ilReg.Register("PlexRssImport", func() importlist.ListProvider { return importlist.NewPlexRSS() })
+	ilReg.Register("Rss", func() importlist.ListProvider { return importlist.NewRSS() })
+	ilReg.Register("SimklImport", func() importlist.ListProvider { return importlist.NewSimkl() })
+	ilReg.Register("SonarrImport", func() importlist.ListProvider { return importlist.NewSonarrImport() })
+	ilReg.Register("TraktUserImport", func() importlist.ListProvider { return importlist.NewTraktUser() })
+	ilReg.Register("TraktListImport", func() importlist.ListProvider { return importlist.NewTraktList() })
+	ilReg.Register("TraktPopularImport", func() importlist.ListProvider { return importlist.NewTraktPopular() })
+	ilReg.Register("CustomImport", func() importlist.ListProvider { return importlist.NewCustom() })
 
 	// Register built-in download client providers.
 	dcReg.Register("SABnzbd", func() downloadclient.DownloadClient {
@@ -267,6 +375,51 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 	})
 	dcReg.Register("Blackhole", func() downloadclient.DownloadClient {
 		return blackhole.New(blackhole.Settings{}, nil)
+	})
+	dcReg.Register("UsenetBlackhole", func() downloadclient.DownloadClient {
+		return blackholeusenet.New(blackholeusenet.Settings{}, nil)
+	})
+	dcReg.Register("TorrentBlackhole", func() downloadclient.DownloadClient {
+		return blackholetorrent.New(blackholetorrent.Settings{}, nil)
+	})
+	dcReg.Register("Aria2", func() downloadclient.DownloadClient {
+		return aria2.New(aria2.Settings{}, nil)
+	})
+	dcReg.Register("NzbVortex", func() downloadclient.DownloadClient {
+		return nzbvortex.New(nzbvortex.Settings{}, nil)
+	})
+	dcReg.Register("Pneumatic", func() downloadclient.DownloadClient {
+		return pneumatic.New(pneumatic.Settings{}, nil)
+	})
+	dcReg.Register("DownloadStation", func() downloadclient.DownloadClient {
+		return dstation.NewTorrent(dstation.Settings{}, nil)
+	})
+	dcReg.Register("UsenetDownloadStation", func() downloadclient.DownloadClient {
+		return dstation.NewUsenet(dstation.Settings{}, nil)
+	})
+	dcReg.Register("RTorrent", func() downloadclient.DownloadClient {
+		return rtorrent.New(rtorrent.Settings{}, nil)
+	})
+	dcReg.Register("UTorrent", func() downloadclient.DownloadClient {
+		return utorrent.New(utorrent.Settings{}, nil)
+	})
+	dcReg.Register("Vuze", func() downloadclient.DownloadClient {
+		return vuze.New(vuze.Settings{}, nil)
+	})
+	dcReg.Register("Hadouken", func() downloadclient.DownloadClient {
+		return hadouken.New(hadouken.Settings{}, nil)
+	})
+	dcReg.Register("Flood", func() downloadclient.DownloadClient {
+		return flood.New(flood.Settings{}, nil)
+	})
+	dcReg.Register("FreeboxDownload", func() downloadclient.DownloadClient {
+		return freebox.New(freebox.Settings{}, nil)
+	})
+	dcReg.Register("Tribler", func() downloadclient.DownloadClient {
+		return tribler.New(tribler.Settings{}, nil)
+	})
+	dcReg.Register("RQBit", func() downloadclient.DownloadClient {
+		return rqbit.New(rqbit.Settings{}, nil)
 	})
 
 	// Register built-in notification providers.
@@ -293,6 +446,57 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 	})
 	notifReg.Register("CustomScript", func() notification.Notification {
 		return customscript.New(customscript.Settings{})
+	})
+	notifReg.Register("PushBullet", func() notification.Notification {
+		return pushbullet.New(pushbullet.Settings{}, nil)
+	})
+	notifReg.Register("Ntfy", func() notification.Notification {
+		return ntfy.New(ntfy.Settings{}, nil)
+	})
+	notifReg.Register("Xbmc", func() notification.Notification {
+		return kodi.New(kodi.Settings{}, nil)
+	})
+	notifReg.Register("PlexServer", func() notification.Notification {
+		return plex.New(plex.Settings{}, nil)
+	})
+	notifReg.Register("MediaBrowser", func() notification.Notification {
+		return emby.New(emby.Settings{}, nil)
+	})
+	notifReg.Register("Notifiarr", func() notification.Notification {
+		return notifiarr.New(notifiarr.Settings{}, nil)
+	})
+	notifReg.Register("Prowl", func() notification.Notification {
+		return prowl.New(prowl.Settings{}, nil)
+	})
+	notifReg.Register("Apprise", func() notification.Notification {
+		return apprise.New(apprise.Settings{}, nil)
+	})
+	notifReg.Register("Join", func() notification.Notification {
+		return notifyjoin.New(notifyjoin.Settings{}, nil)
+	})
+	notifReg.Register("Simplepush", func() notification.Notification {
+		return simplepush.New(simplepush.Settings{}, nil)
+	})
+	notifReg.Register("Pushcut", func() notification.Notification {
+		return pushcut.New(pushcut.Settings{}, nil)
+	})
+	notifReg.Register("Mailgun", func() notification.Notification {
+		return mailgun.New(mailgun.Settings{}, nil)
+	})
+	notifReg.Register("SendGrid", func() notification.Notification {
+		return sendgrid.New(sendgrid.Settings{}, nil)
+	})
+	notifReg.Register("Signal", func() notification.Notification {
+		return notifysignal.New(notifysignal.Settings{}, nil)
+	})
+	notifReg.Register("Twitter", func() notification.Notification {
+		return twitter.New(twitter.Settings{}, nil)
+	})
+	notifReg.Register("Trakt", func() notification.Notification {
+		return trakt.New(trakt.Settings{}, nil)
+	})
+	notifReg.Register("SynologyIndexer", func() notification.Notification {
+		return synology.New(synology.Settings{}, nil)
 	})
 
 	// Provider instance stores.
@@ -414,7 +618,10 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 	// Load quality definitions for specs that need them.
 	allDefs, _ := qualityDefStore.GetAll(ctx)
 
-	// Decision engine with 8 M5 specs.
+	// Decision engine: 8 M5 specs + M24 additions (blocklist rejection,
+	// release-profile term filtering). Release profiles are filtered by
+	// indexer scope here; series-tag scoping will follow when series grow a
+	// tags column.
 	engine := decisionengine.New(
 		specs.QualityAllowedSpec{},
 		specs.CustomFormatScoreSpec{},
@@ -424,6 +631,29 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 		specs.NotSampleSpec{},
 		specs.RepackSpec{},
 		specs.AlreadyImportedSpec{},
+		specs.BlocklistedSpec{Store: blStore},
+		specs.ReleaseProfileSpec{
+			ProfilesFn: func(ctx context.Context, _ int64, indexerName string) ([]releaseprofile.Profile, error) {
+				all, err := rpStore.List(ctx)
+				if err != nil {
+					return nil, err
+				}
+				out := make([]releaseprofile.Profile, 0, len(all))
+				for _, p := range all {
+					if !p.Enabled {
+						continue
+					}
+					// IndexerID 0 = applies to any indexer. Otherwise the
+					// filter needs indexer-name → id resolution; for now we
+					// just include globally-scoped profiles.
+					if p.IndexerID == 0 {
+						out = append(out, p)
+					}
+				}
+				_ = indexerName
+				return out, nil
+			},
+		},
 	)
 
 	// Grab service.
@@ -559,6 +789,20 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 		hcStore = hostconfig.NewSQLiteStore(p)
 	}
 
+	// CleanUpRecycleBin: daily purge of entries older than
+	// host_config.recycle_bin_cleanup_days from the configured recycle bin.
+	// No-op when RecycleBin path is empty or CleanupDays is 0.
+	cleanupHandler := &recycleBinCleanupHandler{hostConfig: hcStore, log: log}
+	reg.Register("CleanUpRecycleBin", cleanupHandler)
+	if err := taskStore.Upsert(ctx, scheduler.ScheduledTask{
+		TypeName:      "CleanUpRecycleBin",
+		IntervalSecs:  86400,
+		NextExecution: time.Now().Add(24 * time.Hour),
+	}); err != nil {
+		_ = pool.Close()
+		return nil, fmt.Errorf("app: upsert CleanUpRecycleBin task: %w", err)
+	}
+
 	// Auth stores.
 	var userStore auth.UserStore
 	var sessionStore auth.SessionStore
@@ -585,6 +829,13 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 			QualityProfiles:      qualityProfileStore,
 			QualityDefs:          qualityDefStore,
 			CustomFormats:        cfStore,
+			Tags:                 tagStore,
+			Blocklist:            blStore,
+			RemotePathMappings:   rpmStore,
+			ReleaseProfiles:      rpStore,
+			DelayProfiles:        dpStore,
+			MetadataRegistry:     metaReg,
+			ImportListRegistry:   ilReg,
 			Commands:             cmdQueue,
 			History:              histStore,
 			IndexerStore:         idxStore,
@@ -616,6 +867,11 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 		qualityDefs:     qualityDefStore,
 		qualityProfiles: qualityProfileStore,
 		customFormats:   cfStore,
+		tagStore:        tagStore,
+		blocklistStore:  blStore,
+		rpmStore:        rpmStore,
+		releaseProfiles: rpStore,
+		delayProfiles:   dpStore,
 		indexerRegistry: idxReg,
 		dcRegistry:      dcReg,
 		notifRegistry:   notifReg,
@@ -995,6 +1251,32 @@ func extractSQLitePath(dsn string) string {
 		return ""
 	}
 	return path
+}
+
+// recycleBinCleanupHandler purges old entries from the configured recycle
+// bin when the CleanUpRecycleBin scheduled task fires. When RecycleBin is
+// empty (feature disabled) or CleanupDays is 0, Handle is a no-op.
+type recycleBinCleanupHandler struct {
+	hostConfig hostconfig.Store
+	log        *slog.Logger
+}
+
+func (h *recycleBinCleanupHandler) Handle(ctx context.Context, _ commands.Command) error {
+	hc, err := h.hostConfig.Get(ctx)
+	if err != nil {
+		return fmt.Errorf("recycle-bin cleanup: get host config: %w", err)
+	}
+	maxAge := time.Duration(hc.RecycleBinCleanupDays) * 24 * time.Hour
+	removed, err := recyclebin.Cleanup(hc.RecycleBin, maxAge)
+	if err != nil {
+		return fmt.Errorf("recycle-bin cleanup: %w", err)
+	}
+	if removed > 0 {
+		h.log.Info("recycle-bin cleanup purged entries",
+			slog.Int("count", removed),
+			slog.String("path", hc.RecycleBin))
+	}
+	return nil
 }
 
 // backupTaskHandler wraps the backup Service as a command handler.

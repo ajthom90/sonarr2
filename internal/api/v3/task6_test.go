@@ -240,7 +240,7 @@ func TestRootFolderList(t *testing.T) {
 
 func TestTagListReturnsEmpty(t *testing.T) {
 	r := chi.NewRouter()
-	MountTag(r)
+	MountTag(r, nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v3/tag", nil)
 	rr := httptest.NewRecorder()

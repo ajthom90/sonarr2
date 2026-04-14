@@ -8,6 +8,24 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type Blocklist struct {
+	ID              int32
+	SeriesID        int32
+	EpisodeIds      []byte
+	SourceTitle     string
+	Quality         []byte
+	Languages       []byte
+	Date            pgtype.Timestamptz
+	PublishedDate   pgtype.Timestamptz
+	Size            pgtype.Int8
+	Protocol        string
+	Indexer         string
+	IndexerFlags    int32
+	ReleaseType     string
+	Message         string
+	TorrentInfoHash pgtype.Text
+}
+
 type Command struct {
 	ID         int64
 	Name       string
@@ -32,6 +50,20 @@ type CustomFormat struct {
 	Name                string
 	IncludeWhenRenaming bool
 	Specifications      []byte
+}
+
+type DelayProfile struct {
+	ID                             int32
+	EnableUsenet                   bool
+	EnableTorrent                  bool
+	PreferredProtocol              string
+	UsenetDelay                    int32
+	TorrentDelay                   int32
+	SortOrder                      int32
+	BypassIfHighestQuality         bool
+	BypassIfAboveCustomFormatScore bool
+	MinimumCustomFormatScore       int32
+	Tags                           []byte
 }
 
 type DownloadClient struct {
@@ -87,13 +119,15 @@ type History struct {
 }
 
 type HostConfig struct {
-	ID             int16
-	ApiKey         string
-	AuthMode       string
-	MigrationState string
-	CreatedAt      pgtype.Timestamptz
-	UpdatedAt      pgtype.Timestamptz
-	TvdbApiKey     string
+	ID                    int16
+	ApiKey                string
+	AuthMode              string
+	MigrationState        string
+	CreatedAt             pgtype.Timestamptz
+	UpdatedAt             pgtype.Timestamptz
+	TvdbApiKey            string
+	RecycleBin            string
+	RecycleBinCleanupDays int32
 }
 
 type Indexer struct {
@@ -141,6 +175,23 @@ type QualityProfile struct {
 	FormatItems       []byte
 }
 
+type ReleaseProfile struct {
+	ID        int32
+	Name      string
+	Enabled   bool
+	Required  []byte
+	Ignored   []byte
+	IndexerID int32
+	Tags      []byte
+}
+
+type RemotePathMapping struct {
+	ID         int32
+	Host       string
+	RemotePath string
+	LocalPath  string
+}
+
 type ScheduledTask struct {
 	TypeName      string
 	IntervalSecs  int32
@@ -182,6 +233,11 @@ type Session struct {
 	UserID    int32
 	ExpiresAt pgtype.Timestamptz
 	CreatedAt pgtype.Timestamptz
+}
+
+type Tag struct {
+	ID    int32
+	Label string
 }
 
 type User struct {

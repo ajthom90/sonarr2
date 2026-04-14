@@ -57,4 +57,16 @@ See the [design doc](./docs/superpowers/specs/2026-04-10-sonarr-rewrite-design.m
 
 ## License
 
-By contributing you agree your contribution will be licensed under the MIT license (see [LICENSE](./LICENSE)).
+By contributing you agree your contribution will be licensed under the GPL-3.0 license (see [LICENSE](./LICENSE)).
+
+### Porting code from Sonarr
+
+sonarr2 and Sonarr are both GPL-3.0, so code may be studied and adapted from Sonarr directly. When a file contains code ported or adapted from Sonarr, add the following header at the top of the file to preserve upstream attribution:
+
+```go
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Portions adapted from Sonarr (https://github.com/Sonarr/Sonarr),
+// Copyright (c) Team Sonarr, licensed under GPL-3.0.
+```
+
+Use the equivalent comment syntax for non-Go files (`//` for TS/JS, `#` for shell/yaml, `--` for SQL). Files that are fully independent work do not need the attribution line, but new files are still encouraged to carry the SPDX identifier.
