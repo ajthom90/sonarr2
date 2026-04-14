@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from './client'
 import { apiV3 } from './v3'
-import type { Series, Episode, Page, SystemStatus, Command, HistoryEntry, HealthItem, WantedEpisode, Indexer, DownloadClient, QualityProfile, QualityDefinition, SeriesLookupResult, RootFolder, AddSeriesRequest, GeneralSettings, CustomFormat, BackupInfo, FilesystemListing, LibraryImportEntry, CreateRootFolderRequest, ProviderSchema, IndexerResource, DownloadClientResource, RemotePathMapping, NotificationResource } from './types'
+import type { Series, Episode, Page, SystemStatus, Command, HistoryEntry, HealthItem, WantedEpisode, Indexer, DownloadClient, QualityProfile, QualityDefinition, SeriesLookupResult, RootFolder, AddSeriesRequest, GeneralSettings, CustomFormat, BackupInfo, FilesystemListing, LibraryImportEntry, CreateRootFolderRequest, ProviderSchema, IndexerResource, DownloadClientResource, RemotePathMapping, NotificationResource, PagedEpisodeResponse } from './types'
 
 export function useSeriesList() {
   return useQuery({
@@ -514,5 +514,27 @@ export function useMetadataSchema() {
   return useQuery({
     queryKey: ['v3', 'metadata', 'schema'],
     queryFn: () => apiV3.get<ProviderSchema[]>('/metadata/schema'),
+  })
+}
+
+// ── Wanted v3 (sub-project #4) ───────────────────────────────────────────────
+
+export function useWantedMissingV3(page = 1, pageSize = 50) {
+  return useQuery({
+    queryKey: ['v3', 'wanted', 'missing', page, pageSize],
+    queryFn: () =>
+      apiV3.get<PagedEpisodeResponse>(
+        `/wanted/missing?page=${page}&pageSize=${pageSize}`,
+      ),
+  })
+}
+
+export function useWantedCutoffUnmet(page = 1, pageSize = 50) {
+  return useQuery({
+    queryKey: ['v3', 'wanted', 'cutoff', page, pageSize],
+    queryFn: () =>
+      apiV3.get<PagedEpisodeResponse>(
+        `/wanted/cutoff?page=${page}&pageSize=${pageSize}`,
+      ),
   })
 }
