@@ -62,11 +62,25 @@ import (
 	"github.com/ajthom90/sonarr2/internal/providers/metadatasource/cached"
 	"github.com/ajthom90/sonarr2/internal/providers/metadatasource/tvdb"
 	"github.com/ajthom90/sonarr2/internal/providers/notification"
+	"github.com/ajthom90/sonarr2/internal/providers/notification/apprise"
 	"github.com/ajthom90/sonarr2/internal/providers/notification/customscript"
 	"github.com/ajthom90/sonarr2/internal/providers/notification/discord"
 	notifyemail "github.com/ajthom90/sonarr2/internal/providers/notification/email"
+	"github.com/ajthom90/sonarr2/internal/providers/notification/emby"
 	"github.com/ajthom90/sonarr2/internal/providers/notification/gotify"
+	notifyjoin "github.com/ajthom90/sonarr2/internal/providers/notification/join"
+	"github.com/ajthom90/sonarr2/internal/providers/notification/kodi"
+	"github.com/ajthom90/sonarr2/internal/providers/notification/mailgun"
+	"github.com/ajthom90/sonarr2/internal/providers/notification/notifiarr"
+	"github.com/ajthom90/sonarr2/internal/providers/notification/ntfy"
+	"github.com/ajthom90/sonarr2/internal/providers/notification/plex"
+	"github.com/ajthom90/sonarr2/internal/providers/notification/prowl"
+	"github.com/ajthom90/sonarr2/internal/providers/notification/pushbullet"
+	"github.com/ajthom90/sonarr2/internal/providers/notification/pushcut"
 	"github.com/ajthom90/sonarr2/internal/providers/notification/pushover"
+	"github.com/ajthom90/sonarr2/internal/providers/notification/sendgrid"
+	notifysignal "github.com/ajthom90/sonarr2/internal/providers/notification/signal"
+	"github.com/ajthom90/sonarr2/internal/providers/notification/simplepush"
 	"github.com/ajthom90/sonarr2/internal/providers/notification/slack"
 	"github.com/ajthom90/sonarr2/internal/providers/notification/telegram"
 	notifwebhook "github.com/ajthom90/sonarr2/internal/providers/notification/webhook"
@@ -318,6 +332,48 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 	})
 	notifReg.Register("CustomScript", func() notification.Notification {
 		return customscript.New(customscript.Settings{})
+	})
+	notifReg.Register("PushBullet", func() notification.Notification {
+		return pushbullet.New(pushbullet.Settings{}, nil)
+	})
+	notifReg.Register("Ntfy", func() notification.Notification {
+		return ntfy.New(ntfy.Settings{}, nil)
+	})
+	notifReg.Register("Xbmc", func() notification.Notification {
+		return kodi.New(kodi.Settings{}, nil)
+	})
+	notifReg.Register("PlexServer", func() notification.Notification {
+		return plex.New(plex.Settings{}, nil)
+	})
+	notifReg.Register("MediaBrowser", func() notification.Notification {
+		return emby.New(emby.Settings{}, nil)
+	})
+	notifReg.Register("Notifiarr", func() notification.Notification {
+		return notifiarr.New(notifiarr.Settings{}, nil)
+	})
+	notifReg.Register("Prowl", func() notification.Notification {
+		return prowl.New(prowl.Settings{}, nil)
+	})
+	notifReg.Register("Apprise", func() notification.Notification {
+		return apprise.New(apprise.Settings{}, nil)
+	})
+	notifReg.Register("Join", func() notification.Notification {
+		return notifyjoin.New(notifyjoin.Settings{}, nil)
+	})
+	notifReg.Register("Simplepush", func() notification.Notification {
+		return simplepush.New(simplepush.Settings{}, nil)
+	})
+	notifReg.Register("Pushcut", func() notification.Notification {
+		return pushcut.New(pushcut.Settings{}, nil)
+	})
+	notifReg.Register("Mailgun", func() notification.Notification {
+		return mailgun.New(mailgun.Settings{}, nil)
+	})
+	notifReg.Register("SendGrid", func() notification.Notification {
+		return sendgrid.New(sendgrid.Settings{}, nil)
+	})
+	notifReg.Register("Signal", func() notification.Notification {
+		return notifysignal.New(notifysignal.Settings{}, nil)
 	})
 
 	// Provider instance stores.
