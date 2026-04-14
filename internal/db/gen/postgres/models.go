@@ -8,6 +8,14 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type AutoTag struct {
+	ID                      int32
+	Name                    string
+	RemoveTagsAutomatically bool
+	Tags                    []byte
+	Specifications          []byte
+}
+
 type Blocklist struct {
 	ID              int32
 	SeriesID        int32
@@ -130,6 +138,30 @@ type HostConfig struct {
 	RecycleBinCleanupDays int32
 }
 
+type ImportList struct {
+	ID                     int32
+	Name                   string
+	Implementation         string
+	Settings               []byte
+	EnableAutomaticAdd     bool
+	ShouldMonitor          string
+	ShouldMonitorExisting  bool
+	ShouldSearch           bool
+	RootFolderPath         string
+	QualityProfileID       int32
+	SeriesType             string
+	SeasonFolder           bool
+	Tags                   []byte
+	ListType               string
+	MinRefreshIntervalMins int32
+}
+
+type ImportListExclusion struct {
+	ID     int32
+	TvdbID int32
+	Title  string
+}
+
 type Indexer struct {
 	ID                      int32
 	Name                    string
@@ -190,6 +222,27 @@ type RemotePathMapping struct {
 	Host       string
 	RemotePath string
 	LocalPath  string
+}
+
+type RootFolder struct {
+	ID        int32
+	Path      string
+	CreatedAt pgtype.Timestamptz
+}
+
+type SceneMapping struct {
+	ID                int32
+	TvdbID            int32
+	SeasonNumber      pgtype.Int4
+	SceneSeasonNumber pgtype.Int4
+	SceneOrigin       string
+	Comment           string
+	FilterRegex       string
+	ParseTerm         string
+	SearchTerm        string
+	Title             string
+	Type              string
+	UpdatedAt         pgtype.Timestamptz
 }
 
 type ScheduledTask struct {
