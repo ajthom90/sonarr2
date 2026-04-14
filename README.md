@@ -53,7 +53,7 @@ tasks. Not ready for end users (pre-v1).
 - **API key authentication** — `X-Api-Key` header or `?apikey=` query param, matching Sonarr's convention
 - **Filesystem watcher** — fsnotify-based monitoring with 2-second debouncing; detects changes in series folders for instant scan
 - **Download monitoring** — 1-minute polling of download clients for completed items, auto-triggers import
-- **Docker-ready** — multi-stage Dockerfile producing a ~20MB distroless static binary
+- **Docker-ready** — multi-stage Dockerfile producing an Alpine-based image (~25 MB) with a `PUID`/`PGID` entrypoint so bind-mounted `/config` and `/data` volumes inherit host-side ownership. LinuxServer.io-style conventions.
 - **CI** — GitHub Actions for lint (staticcheck + golangci-lint) and test (race detector + Postgres testcontainers)
 - **Real-time push** — SignalR WebSocket transport (Sonarr-compatible) and Server-Sent Events; live updates for series, episodes, commands, and queue changes
 - **Web UI** — React + TypeScript + Vite dark-themed frontend with series list (progress bars, status badges), series detail with season/episode tables, weekly calendar, activity queue/history with live refresh, wanted/missing episodes, system status with health checks, settings for indexers/download clients/profiles, connection status indicator
@@ -75,10 +75,22 @@ make build
 
 # Run with Docker
 docker build -f docker/Dockerfile -t sonarr2 .
-docker run -p 8989:8989 -v ./config:/config sonarr2
+docker run -d --name sonarr2 \
+  -p 8989:8989 \
+  -e PUID=$(id -u) \
+  -e PGID=$(id -g) \
+  -e TZ=America/Chicago \
+  -v ./config:/config \
+  -v /path/to/tv:/data \
+  sonarr2
 ```
 
-**Docker deployments:** mount your media library into the container (e.g. `-v /host/media:/data`). The `/api/v3/filesystem` endpoint only sees what the process can access, so Library Import won't find folders that aren't bind-mounted.
+### Docker notes
+
+- **`PUID` / `PGID`.** The container runs as `1000:1000` by default; set `PUID`/`PGID` env vars to match the host user that owns your media library. The entrypoint drops privileges to that uid:gid via `su-exec` before launching the binary, so bind-mounted `/config` and `/data` inherit the expected ownership. Pass `-e PUID=$(id -u) -e PGID=$(id -g)` for a "same user as the host" setup.
+- **Volumes.** `/config` holds sonarr2's own state (DB + logs + backups) — the entrypoint ensures it's writable by PUID:PGID. `/data` is your media library — bind-mount it from the host and make sure the host-side permissions already allow PUID:PGID to read/write. We deliberately don't recursively chown `/data` at boot because it can be terabytes.
+- **Timezone.** The image includes `tzdata`; set `TZ=<Area/City>` so scheduled tasks fire at the times you expect.
+- **Filesystem visibility.** The `/api/v3/filesystem` endpoint only sees what the process sees inside the container, so Library Import won't find folders that aren't bind-mounted.
 
 ## Development
 
