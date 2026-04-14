@@ -41,8 +41,14 @@ import (
 	"github.com/ajthom90/sonarr2/internal/hostconfig"
 	"github.com/ajthom90/sonarr2/internal/housekeeping"
 	"github.com/ajthom90/sonarr2/internal/importer"
+	"github.com/ajthom90/sonarr2/internal/importlist"
 	"github.com/ajthom90/sonarr2/internal/library"
 	"github.com/ajthom90/sonarr2/internal/logging"
+	metadataconsumer "github.com/ajthom90/sonarr2/internal/metadata"
+	metadatakodi "github.com/ajthom90/sonarr2/internal/metadata/kodi"
+	metadataplex "github.com/ajthom90/sonarr2/internal/metadata/plex"
+	metadataroksbox "github.com/ajthom90/sonarr2/internal/metadata/roksbox"
+	metadatawdtv "github.com/ajthom90/sonarr2/internal/metadata/wdtv"
 	"github.com/ajthom90/sonarr2/internal/profiles"
 	"github.com/ajthom90/sonarr2/internal/providers/downloadclient"
 	"github.com/ajthom90/sonarr2/internal/providers/downloadclient/aria2"
@@ -320,6 +326,35 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 	idxReg.Register("Fanzub", func() indexer.Indexer {
 		return fanzub.New(fanzub.Settings{}, nil)
 	})
+
+	// Metadata consumer registry.
+	metaReg := metadataconsumer.NewRegistry()
+	metaReg.Register("XbmcMetadata", func() metadataconsumer.Consumer {
+		return metadatakodi.New(metadatakodi.Settings{})
+	})
+	metaReg.Register("MediaBrowserMetadata", func() metadataconsumer.Consumer {
+		return metadataplex.New(metadataplex.Settings{})
+	})
+	metaReg.Register("RoksboxMetadata", func() metadataconsumer.Consumer {
+		return metadataroksbox.New(metadataroksbox.Settings{})
+	})
+	metaReg.Register("WdtvMetadata", func() metadataconsumer.Consumer {
+		return metadatawdtv.New(metadatawdtv.Settings{})
+	})
+
+	// Import list registry.
+	ilReg := importlist.NewRegistry()
+	ilReg.Register("AniListImport", func() importlist.ListProvider { return importlist.NewAniList() })
+	ilReg.Register("MyAnimeListImport", func() importlist.ListProvider { return importlist.NewMyAnimeList() })
+	ilReg.Register("PlexImport", func() importlist.ListProvider { return importlist.NewPlexWatchlist() })
+	ilReg.Register("PlexRssImport", func() importlist.ListProvider { return importlist.NewPlexRSS() })
+	ilReg.Register("Rss", func() importlist.ListProvider { return importlist.NewRSS() })
+	ilReg.Register("SimklImport", func() importlist.ListProvider { return importlist.NewSimkl() })
+	ilReg.Register("SonarrImport", func() importlist.ListProvider { return importlist.NewSonarrImport() })
+	ilReg.Register("TraktUserImport", func() importlist.ListProvider { return importlist.NewTraktUser() })
+	ilReg.Register("TraktListImport", func() importlist.ListProvider { return importlist.NewTraktList() })
+	ilReg.Register("TraktPopularImport", func() importlist.ListProvider { return importlist.NewTraktPopular() })
+	ilReg.Register("CustomImport", func() importlist.ListProvider { return importlist.NewCustom() })
 
 	// Register built-in download client providers.
 	dcReg.Register("SABnzbd", func() downloadclient.DownloadClient {
@@ -758,6 +793,8 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 			RemotePathMappings:   rpmStore,
 			ReleaseProfiles:      rpStore,
 			DelayProfiles:        dpStore,
+			MetadataRegistry:     metaReg,
+			ImportListRegistry:   ilReg,
 			Commands:             cmdQueue,
 			History:              histStore,
 			IndexerStore:         idxStore,

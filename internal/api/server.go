@@ -22,7 +22,9 @@ import (
 	"github.com/ajthom90/sonarr2/internal/health"
 	"github.com/ajthom90/sonarr2/internal/history"
 	"github.com/ajthom90/sonarr2/internal/hostconfig"
+	"github.com/ajthom90/sonarr2/internal/importlist"
 	"github.com/ajthom90/sonarr2/internal/library"
+	"github.com/ajthom90/sonarr2/internal/metadata"
 	"github.com/ajthom90/sonarr2/internal/profiles"
 	"github.com/ajthom90/sonarr2/internal/providers/downloadclient"
 	"github.com/ajthom90/sonarr2/internal/providers/indexer"
@@ -65,6 +67,8 @@ type Deps struct {
 	RemotePathMappings   remotepathmapping.Store
 	ReleaseProfiles      releaseprofile.Store
 	DelayProfiles        delayprofile.Store
+	MetadataRegistry     *metadata.Registry
+	ImportListRegistry   *importlist.Registry
 	Commands             commands.Queue
 	History              history.Store
 	IndexerStore         indexer.InstanceStore
@@ -280,6 +284,15 @@ func HandlerWithDeps(log *slog.Logger, deps Deps) http.Handler {
 				dph := v3.NewDelayProfileHandler(deps.DelayProfiles, log)
 				v3.MountDelayProfile(r, dph)
 			}
+			if deps.MetadataRegistry != nil {
+				mh := v3.NewMetadataHandler(deps.MetadataRegistry, log)
+				v3.MountMetadata(r, mh)
+			}
+			if deps.ImportListRegistry != nil {
+				ih := v3.NewImportListHandler(deps.ImportListRegistry, log)
+				v3.MountImportList(r, ih)
+			}
+			v3.MountAutoTagging(r, v3.NewAutoTaggingHandler(log))
 			v3.MountHealth(r, deps.HealthChecker)
 			v3.MountParse(r)
 			if deps.Episodes != nil {
