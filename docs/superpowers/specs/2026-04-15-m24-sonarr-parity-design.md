@@ -89,6 +89,19 @@ tracks completeness.
   [`docs/superpowers/plans/2026-04-14-provider-settings-pages.md`](../plans/2026-04-14-provider-settings-pages.md)
   for the full implementation plan.
 
+- **Connect + Import Lists + Metadata settings pages** — ✅ DONE (with
+  scope-limited caveats). Connect is full CRUD against `/api/v3/notification`
+  (24 providers, OnGrab / OnDownload / OnHealthIssue triggers, tag binding).
+  Import Lists (`/settings/importlists`) and Metadata (`/settings/metadata`)
+  landed as browsable read-only catalogs showing the 11 registered list
+  providers and 4 registered metadata consumers, respectively. Persisted
+  instances for those two backends are deferred — a subsequent sub-project
+  will add `/api/v3/importlist` POST/PUT/DELETE plus a new metadata instance
+  store. Notification backend only emits 3 of Sonarr's 13 event triggers
+  today; expanding that is also a follow-up. See
+  [`docs/superpowers/specs/2026-04-14-connect-importlist-metadata-pages-design.md`](2026-04-14-connect-importlist-metadata-pages-design.md)
+  for the full design + scope note.
+
 The following are targeted for completion in follow-up commits. Each is
 non-trivial but isolated:
 
