@@ -164,9 +164,13 @@ export function useSeriesLookup(term: string) {
 }
 
 export function useRootFolders() {
+  // v3 is the source of truth for persisted root folders. The v6 endpoint
+  // still derives from series paths and is blind to what /api/v3/rootfolder
+  // POST creates, so using v3 here is required for library-import and
+  // settings pages to see the same list.
   return useQuery({
     queryKey: ['rootfolders'],
-    queryFn: () => api.get<RootFolder[]>('/rootfolder'),
+    queryFn: () => apiV3.get<RootFolder[]>('/rootfolder'),
   })
 }
 
