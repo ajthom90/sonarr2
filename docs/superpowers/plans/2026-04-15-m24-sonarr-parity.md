@@ -12,7 +12,7 @@ corresponds to one or more commits on the branch.
 
 ## Final state
 
-- **Commits:** 19 new (plus earlier relicense + gap-analysis commits)
+- **Commits:** 24 new (plus earlier relicense + gap-analysis commits)
 - **Tests:** 69 packages, all passing
 - **Build:** Go + frontend (vite) both clean
 - **Pushes:** Every commit pushed to origin as it landed
@@ -85,11 +85,31 @@ corresponds to one or more commits on the branch.
 | `4116618` | `/api/v3/metadata` + `/api/v3/importlist` (+ `/importlistexclusion`) + `/api/v3/autotagging` — list stubs (empty arrays) + /schema endpoints that enumerate the new registries with full Sonarr-compatible field shapes |
 | `6a8fa56` | `/api/v3/release` (Interactive Search list + grab + push) + `/api/v3/manualimport` (folder scan + execute) — endpoint shells returning valid JSON so frontend modals load; real implementations pending |
 
-### 11. Documentation
+### 11. Scheduled tasks
+
+| Commit | Scope |
+|---|---|
+| `53c3986` | `CleanUpRecycleBin` scheduled task — daily purge of entries older than host_config.recycle_bin_cleanup_days from the configured recycle bin. No-op when disabled. Reads host_config on each tick so config changes take effect without a restart |
+
+### 12. Custom Format expansion
+
+| Commit | Scope |
+|---|---|
+| `9db74fa` | 4 new custom-format spec types: LanguageSpecification, IndexerFlagSpecification, SizeSpecification (parses "loGB-hiGB" ranges), ReleaseTypeSpecification. ParsedEpisodeInfo extended with Languages/IndexerFlags/Size/ReleaseType fields so specs have data to evaluate |
+
+### 13. Decision engine integration
+
+| Commit | Scope |
+|---|---|
+| `2c9dc32` | New `BlocklistedSpec` (permanent reject on source-title match per-series) + `ReleaseProfileSpec` (rejects when any enabled profile's Required/Ignored terms fail). Nil-tolerant, read-error-tolerant. |
+| `53a0dee` | Wired both new specs into the decision engine composition list — grow from 8 to 10 specs. Release profiles filtered to globally-scoped (IndexerID=0) + enabled-only |
+
+### 14. Documentation
 
 | Commit | Scope |
 |---|---|
 | `78ea30c` | M24 design doc (`docs/superpowers/specs/2026-04-15-m24-sonarr-parity-design.md`) with subsystem status table, provider counts, architectural decisions, codex-review checklist, out-of-scope list. README updated from "all milestones complete" to "M0–M23 complete; M24 in progress" with link to design doc |
+| `f9d0bac` | This plan doc (`docs/superpowers/plans/2026-04-15-m24-sonarr-parity.md`) — the overnight implementation log for codex review |
 
 ## Parity scoreboard
 
@@ -102,15 +122,18 @@ corresponds to one or more commits on the branch.
 | Metadata consumers | 0 | 4 | 4 |
 | Import List providers | 0 | 11 | 11 |
 | Auto-tag spec types | 0 | 7 | 7 |
+| Custom format spec types | 4 | 8 | 8 |
+| Decision engine specs | 8 | 10 | 10 |
 | Health checks | 7 | 17 | ~25 |
-| Release Profiles | — | ✓ | ✓ |
-| Delay Profiles | — | ✓ | ✓ |
+| Release Profiles | — | ✓ + decision engine wired | ✓ |
+| Delay Profiles | — | ✓ (grab-pipeline wiring pending) | ✓ |
 | Tags | stub | ✓ | ✓ |
-| Blocklist | — | ✓ | ✓ |
-| Remote Path Mappings | — | ✓ | ✓ |
-| Recycle Bin | — | core done | ✓ |
+| Blocklist | — | ✓ + decision engine wired | ✓ |
+| Remote Path Mappings | — | ✓ (importer wiring pending) | ✓ |
+| Recycle Bin | — | ✓ + daily cleanup task | ✓ |
 | Scene Mapping | — | core done | ✓ |
 | iCal feed | — | ✓ | ✓ |
+| Scheduled tasks | 6 | 7 (+CleanUpRecycleBin) | ~11 |
 | Test count | 61 | 69 | n/a |
 
 ## Known gaps for codex to flag
