@@ -264,6 +264,14 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 		return nil, fmt.Errorf("app: unsupported pool type for profiles/CF: %T", pool)
 	}
 
+	// Backfill root_folders from existing series paths. Idempotent — derives
+	// distinct filepath.Dir(series.path) values and skips rows that already
+	// exist. Safe to run every boot.
+	if err := rootfolder.BackfillFromSeries(ctx, rfStore, lib.Series); err != nil {
+		_ = pool.Close()
+		return nil, fmt.Errorf("app: rootfolder backfill: %w", err)
+	}
+
 	// Seed a default "Any" quality profile that allows all qualities if none exist.
 	existing, err := qualityProfileStore.List(ctx)
 	if err != nil {

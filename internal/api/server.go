@@ -267,6 +267,10 @@ func HandlerWithDeps(log *slog.Logger, deps Deps) http.Handler {
 			if deps.RootFolders != nil && deps.Series != nil {
 				v3.MountRootFolder(r, deps.RootFolders, deps.Series)
 			}
+			v3.MountFilesystem(r)
+			if deps.RootFolders != nil && deps.Series != nil && deps.HostConfig != nil && deps.MetadataSource != nil {
+				v3.MountLibraryImport(r, deps.RootFolders, deps.Series, deps.HostConfig, deps.MetadataSource)
+			}
 			if deps.Tags != nil {
 				th := v3.NewTagHandler(deps.Tags, log)
 				v3.MountTag(r, th)
