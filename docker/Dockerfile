@@ -44,8 +44,30 @@ RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
       -o /out/sonarr2 ./cmd/sonarr
 
 # ---- Runtime ----
-FROM gcr.io/distroless/static-debian12:nonroot
+# Alpine-based so we can su-exec to a user-controlled PUID/PGID. Entrypoint
+# reads those env vars, ensures /config is writable, and drops privileges
+# before running the binary. Matches the LinuxServer.io convention that
+# most *arr users expect on bind-mounted volumes.
+#
+# su-exec is a tiny (~10 KB) setuid-style helper from Alpine community; it
+# forwards signals cleanly and doesn't leak a shell into the app's process
+# tree. ca-certificates is needed for outbound HTTPS (TVDB, indexer APIs).
+# tzdata is needed so scheduled tasks respect the host's TZ env var.
+FROM alpine:3.20
+RUN apk add --no-cache su-exec ca-certificates tzdata
 COPY --from=builder /out/sonarr2 /sonarr2
+COPY docker/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# Run from /config so sonarr2's default DSN (file:./data/sonarr2.db) lands
+# inside the persisted volume (at /config/data/sonarr2.db) instead of
+# colliding with the /data media-library volume.
+WORKDIR /config
+
+ENV PUID=1000 \
+    PGID=1000 \
+    SONARR2_DB_DSN="file:/config/data/sonarr2.db?_journal=WAL&_busy_timeout=5000"
+
 EXPOSE 8989
 VOLUME ["/config", "/data"]
-ENTRYPOINT ["/sonarr2"]
+ENTRYPOINT ["/entrypoint.sh"]
