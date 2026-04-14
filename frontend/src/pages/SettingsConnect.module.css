@@ -1,0 +1,97 @@
+.page {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.pageTitle {
+  font-size: 1.5rem;
+  margin: 0 0 6px;
+}
+.subtitle {
+  color: var(--color-text-muted, #9aa0a6);
+  font-size: 0.9rem;
+  margin: 0 0 24px;
+}
+.card {
+  background: var(--color-bg-surface, #1b1e22);
+  border: 1px solid var(--color-border, #2d3138);
+  border-radius: 6px;
+  padding: 12px 14px;
+}
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.cardName {
+  font-weight: 600;
+}
+.cardImpl {
+  font-size: 0.8rem;
+  color: var(--color-text-muted, #9aa0a6);
+}
+.cardActions {
+  display: flex;
+  gap: 6px;
+}
+.cardActions button {
+  padding: 2px 10px;
+  border-radius: 3px;
+  border: 1px solid var(--color-border, #2d3138);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+.cardActions button:hover {
+  background: var(--color-surface-hover, #242830);
+}
+.deleteBtn {
+  color: var(--color-danger, #ef4444);
+}
+.cardFlags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  align-items: center;
+}
+.flagOn {
+  background: rgba(34, 197, 94, 0.2);
+  color: #22c55e;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+.flagOff {
+  background: rgba(156, 163, 175, 0.15);
+  color: var(--color-text-muted, #9aa0a6);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+.tagsChip {
+  color: var(--color-text-muted, #9aa0a6);
+  margin-left: auto;
+  font-size: 0.75rem;
+}
+.extraRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-size: 0.9rem;
+}
+.tagsInput {
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--color-border, #2d3138);
+  background: var(--color-bg-surface, #1b1e22);
+  color: inherit;
+  font-size: 0.9rem;
+  min-width: 180px;
+}
+.extrasHelp {
+  font-size: 0.75rem;
+  color: var(--color-text-muted, #9aa0a6);
+  margin: 4px 0 0;
+}
